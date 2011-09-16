@@ -40,7 +40,7 @@ int print_rop_list (struct _elf_shdr * shdr, struct _rop_list * rops)
 
 
 int print_rops (struct _elf * elf, int rop_depth, int ret_rop, int jmp_rop,
-                int call_rop)
+                int call_rop, int cond_jmp_rop)
 {
     struct _elf_shdr shdr;
     struct _rop_list * rops;
@@ -65,6 +65,12 @@ int print_rops (struct _elf * elf, int rop_depth, int ret_rop, int jmp_rop,
                 rop_list_destroy(rops);
             }
             
+            if (cond_jmp_rop) {
+                rops = rop_cond_jmp_reg_rops(shdr_data(&shdr), shdr_size(&shdr), rop_depth);
+                total_gadgets += print_rop_list(&shdr, rops);
+                rop_list_destroy(rops);
+            }
+            
             if (call_rop) {
                 rops = rop_call_reg_rops(shdr_data(&shdr), shdr_size(&shdr), rop_depth);
                 total_gadgets += print_rop_list(&shdr, rops);
@@ -83,12 +89,13 @@ int main (int argc, char * argv[])
     char * filename = NULL;
     int ret_rop = 0;
     int jmp_rop = 0;
+    int cond_jmp_rop = 0;
     int call_rop = 0;
     int rop_depth = 1;
     int c;
     int total_gadgets = 0;
     
-    while ((c = getopt(argc, argv, "cd:e:jr")) != -1) {
+    while ((c = getopt(argc, argv, "cd:e:jkr")) != -1) {
         switch (c) {
         case 'c' :
             call_rop = 1;
@@ -101,6 +108,9 @@ int main (int argc, char * argv[])
             break;
         case 'j' :
             jmp_rop = 1;
+            break;
+        case 'k' :
+            cond_jmp_rop = 1;
             break;
         case 'r' :
             ret_rop = 1;
@@ -122,13 +132,16 @@ int main (int argc, char * argv[])
         printf("  -d <depth> depth, in instructions, to search backwards\n");
         printf("  -e <elf>   filename of elf to analyze\n");
         printf("  -j         search for jmp reg gadgets\n");
+        printf("  -k         search for conditional jmp reg gadgets (for when your day is \n");
+        printf("             really going that bad, and probably won't return anything)\n");
         printf("  -r         search for ret gadgets\n");
         exit(-1);
     }
     
     elf = elf_open(filename);
     
-    total_gadgets = print_rops(elf, rop_depth, ret_rop, jmp_rop, call_rop);
+    total_gadgets = print_rops(elf, rop_depth, ret_rop, jmp_rop,
+                               call_rop, cond_jmp_rop);
     
     elf_destroy(elf);
     

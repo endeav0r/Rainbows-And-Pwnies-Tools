@@ -31,6 +31,14 @@ struct _rop_list * rop_ret_rops (unsigned char * data, int data_size, int depth)
 */
 struct _rop_list * rop_jmp_reg_rops (unsigned char * data, int data_size,
                                      int depth);
+                                     
+/** finds all 'j? reg' rops, other than 'jmp reg' in data (conditional jmps)
+* @param data a pointer to data containing instructions
+* @param data_size the size, in bytes, of data
+* @return a struct _rop_list which contains all the rop gadgets found
+*/
+struct _rop_list * rop_cond_jmp_reg_rops (unsigned char * data, int data_size,
+                                     int depth);
 
 /** finds all 'call reg' rops in data
 * @param data a pointer to data containing instructions

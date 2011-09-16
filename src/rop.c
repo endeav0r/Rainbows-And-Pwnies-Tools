@@ -40,6 +40,43 @@ int rop_detect_jmp_reg (unsigned char * data, int data_size)
 }
 
 
+int rop_detect_cond_jmp_reg (unsigned char * data, int data_size)
+{
+    ud_t ud_obj;
+
+    ud_init(&ud_obj);
+    
+    ud_set_mode(&ud_obj, 32);
+    ud_set_input_buffer(&ud_obj, data, data_size);
+    ud_set_syntax(&ud_obj, NULL);
+    
+    ud_disassemble(&ud_obj);
+    if (    (ud_obj.mnemonic == UD_Ijo)
+         || (ud_obj.mnemonic == UD_Ijno)
+         || (ud_obj.mnemonic == UD_Ijb)
+         || (ud_obj.mnemonic == UD_Ijae)
+         || (ud_obj.mnemonic == UD_Ijz)
+         || (ud_obj.mnemonic == UD_Ijnz)
+         || (ud_obj.mnemonic == UD_Ijbe)
+         || (ud_obj.mnemonic == UD_Ija)
+         || (ud_obj.mnemonic == UD_Ijns)
+         || (ud_obj.mnemonic == UD_Ijp)
+         || (ud_obj.mnemonic == UD_Ijnp)
+         || (ud_obj.mnemonic == UD_Ijl)
+         || (ud_obj.mnemonic == UD_Ijge)
+         || (ud_obj.mnemonic == UD_Ijle)
+         || (ud_obj.mnemonic == UD_Ijg)
+         || (ud_obj.mnemonic == UD_Ijcxz)
+         || (ud_obj.mnemonic == UD_Ijecxz)
+         || (ud_obj.mnemonic == UD_Ijecxz)) {
+        if (    (ud_obj.operand[0].type == UD_OP_REG)
+             || (ud_obj.operand[0].type == UD_OP_MEM))
+            return ud_insn_len(&ud_obj);
+    }
+    return 0;
+}
+
+
 int rop_detect_call_reg (unsigned char * data, int data_size)
 {
     ud_t ud_obj;
@@ -84,32 +121,29 @@ struct _rop_list * rop_find_rops (unsigned char * data,
         if ((ins_size = detect_callback(&(data[d]), data_size - d)) > 0) {
             // we don't count the d byte in our rop chain depth
             backtrack = d - 1;
-            while ((backtrack_depth = rop_depth(&(data[backtrack]), d - backtrack)) < depth) {
-                backtrack--;
-                if (    (backtrack_depth > depth) 
-                     || (backtrack < 0)
-                     || (d - backtrack >= MAX_BACKTRACK_LEN)) {
-                    backtrack = -1;
-                    break;
+            while ((backtrack_depth = rop_depth(&(data[backtrack]), d - backtrack)) <= depth) {
+                if (backtrack_depth == depth) {
+                    if (rop_list == NULL) {
+                        rop_list = (struct _rop_list *) malloc(sizeof(struct _rop_list));
+                        next = rop_list;
+                    }
+                    else {
+                        next->next = (struct _rop_list *) malloc(sizeof(struct _rop_list));
+                        next = next->next;
+                    }
+                    next->offset = d - (d - backtrack);
+                    next->ins = rop_ins_create(&(data[backtrack]),
+                                               d - backtrack + ins_size,
+                                               d - (d - backtrack));
+                    next->next = NULL;
                 }
+                else if (    (backtrack_depth > depth) 
+                     || (backtrack < 0)
+                     || (d - backtrack >= MAX_BACKTRACK_LEN))
+                    break;
+                backtrack--;
+
             }
-            // if backtrack underflows data, this wasn't a valid chain
-            if (backtrack < 0)
-                continue;
-            // create this node in list
-            if (rop_list == NULL) {
-                rop_list = (struct _rop_list *) malloc(sizeof(struct _rop_list));
-                next = rop_list;
-            }
-            else {
-                next->next = (struct _rop_list *) malloc(sizeof(struct _rop_list));
-                next = next->next;
-            }
-            next->offset = d - (d - backtrack);
-            next->ins = rop_ins_create(&(data[backtrack]),
-                                       d - backtrack + ins_size,
-                                       d - (d - backtrack));
-            next->next = NULL;
         }
     }
     
@@ -127,6 +161,13 @@ struct _rop_list * rop_jmp_reg_rops (unsigned char * data, int data_size,
                                      int depth)
 {
     return rop_find_rops(data, data_size, depth, rop_detect_jmp_reg);
+}
+
+
+struct _rop_list * rop_cond_jmp_reg_rops (unsigned char * data, int data_size,
+                                     int depth)
+{
+    return rop_find_rops(data, data_size, depth, rop_detect_cond_jmp_reg);
 }
 
 
