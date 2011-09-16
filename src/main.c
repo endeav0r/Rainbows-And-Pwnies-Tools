@@ -31,10 +31,9 @@ int print_rop_list (struct _elf_shdr * shdr, struct _rop_list * rops)
             bytes_string[0] = '\0';
             for (byte_i = 0;
                  (byte_i < 8) && (byte_i < rop_ins->bytes_size);
-                 byte_i++) {
+                 byte_i++)
                 sprintf(&(bytes_string[byte_i * 3]),
                         "%02x ", rop_ins->bytes[byte_i]);
-            }
             while (byte_i++ < 8)
                 strcat(bytes_string, "-- ");
                 
