@@ -2,10 +2,41 @@
 
 #define MAX_BACKTRACK_LEN 32
 
-struct _rop_list * rop_ret_rops (unsigned char * data, int data_size, int depth)
+int rop_detect_ret (unsigned char * data, int data_size)
 {
+    if (data[0] == 0xc3)
+        return 1;
+    return 0;
+}
 
+
+int rop_detect_jmp_reg (unsigned char * data, int data_size)
+{
+    ud_t ud_obj;
+
+    ud_init(&ud_obj);
+    
+    ud_set_mode(&ud_obj, 32);
+    ud_set_input_buffer(&ud_obj, data, data_size);
+    ud_set_syntax(&ud_obj, NULL);
+    
+    ud_disassemble(&ud_obj);
+    if (ud_obj.mnemonic == UD_Ijmp) {
+        if (ud_obj.operand[0].type == UD_OP_REG)
+            return ud_insn_len(&ud_obj);
+    }
+    return 0;
+}
+
+
+struct _rop_list * rop_find_rops (unsigned char * data,
+                                  int data_size,
+                                  int depth,
+                                  int (* detect_callback) (unsigned char * data,
+                                                           int data_size))
+{
     int d; // iterator for location in data
+    int ins_size;
     int backtrack;
     int backtrack_depth;
     
@@ -20,9 +51,7 @@ struct _rop_list * rop_ret_rops (unsigned char * data, int data_size, int depth)
     ud_set_syntax(&ud_obj, NULL);
     
     for (d = 0; d < data_size; d++) {
-        // find a ret
-        // ret = 0xc3
-        if (data[d] == 0xc3) {
+        if ((ins_size = detect_callback(&(data[d]), data_size - d)) > 0) {
             // we don't count the d byte in our rop chain depth
             backtrack = d - 1;
             while ((backtrack_depth = rop_depth(&(data[backtrack]), d - backtrack)) < depth) {
@@ -48,13 +77,26 @@ struct _rop_list * rop_ret_rops (unsigned char * data, int data_size, int depth)
             }
             next->offset = d - (d - backtrack);
             next->ins = rop_ins_create(&(data[backtrack]),
-                                       d - backtrack + 1,
+                                       d - backtrack + ins_size,
                                        d - (d - backtrack));
             next->next = NULL;
         }
     }
     
     return rop_list;
+}
+
+
+struct _rop_list * rop_ret_rops (unsigned char * data, int data_size, int depth)
+{
+    return rop_find_rops(data, data_size, depth, rop_detect_ret);
+}
+
+
+struct _rop_list * rop_jmp_reg_rops (unsigned char * data, int data_size,
+                                     int depth)
+{
+    return rop_find_rops(data, data_size, depth, rop_detect_jmp_reg);
 }
 
 
