@@ -4,8 +4,19 @@
 
 int rop_detect_ret (unsigned char * data, int data_size)
 {
-    if (data[0] == 0xc3)
-        return 1;
+    ud_t ud_obj;
+
+    ud_init(&ud_obj);
+    
+    ud_set_mode(&ud_obj, 32);
+    ud_set_input_buffer(&ud_obj, data, data_size);
+    ud_set_syntax(&ud_obj, NULL);
+    
+    ud_disassemble(&ud_obj);
+    if (    (ud_obj.mnemonic == UD_Iret)
+         || (ud_obj.mnemonic == UD_Iretf)) {
+        return ud_insn_len(&ud_obj);
+    }
     return 0;
 }
 
@@ -22,6 +33,25 @@ int rop_detect_jmp_reg (unsigned char * data, int data_size)
     
     ud_disassemble(&ud_obj);
     if (ud_obj.mnemonic == UD_Ijmp) {
+        if (ud_obj.operand[0].type == UD_OP_REG)
+            return ud_insn_len(&ud_obj);
+    }
+    return 0;
+}
+
+
+int rop_detect_call_reg (unsigned char * data, int data_size)
+{
+    ud_t ud_obj;
+
+    ud_init(&ud_obj);
+    
+    ud_set_mode(&ud_obj, 32);
+    ud_set_input_buffer(&ud_obj, data, data_size);
+    ud_set_syntax(&ud_obj, NULL);
+    
+    ud_disassemble(&ud_obj);
+    if (ud_obj.mnemonic == UD_Icall) {
         if (ud_obj.operand[0].type == UD_OP_REG)
             return ud_insn_len(&ud_obj);
     }
@@ -97,6 +127,13 @@ struct _rop_list * rop_jmp_reg_rops (unsigned char * data, int data_size,
                                      int depth)
 {
     return rop_find_rops(data, data_size, depth, rop_detect_jmp_reg);
+}
+
+
+struct _rop_list * rop_call_reg_rops (unsigned char * data, int data_size,
+                                     int depth)
+{
+    return rop_find_rops(data, data_size, depth, rop_detect_call_reg);
 }
 
 

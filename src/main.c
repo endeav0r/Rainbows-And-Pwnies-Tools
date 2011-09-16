@@ -39,7 +39,8 @@ int print_rop_list (struct _elf_shdr * shdr, struct _rop_list * rops)
 }
 
 
-int print_rops (struct _elf * elf, int rop_depth, int ret_rop, int jmp_rop)
+int print_rops (struct _elf * elf, int rop_depth, int ret_rop, int jmp_rop,
+                int call_rop)
 {
     struct _elf_shdr shdr;
     struct _rop_list * rops;
@@ -63,6 +64,12 @@ int print_rops (struct _elf * elf, int rop_depth, int ret_rop, int jmp_rop)
                 total_gadgets += print_rop_list(&shdr, rops);
                 rop_list_destroy(rops);
             }
+            
+            if (call_rop) {
+                rops = rop_call_reg_rops(shdr_data(&shdr), shdr_size(&shdr), rop_depth);
+                total_gadgets += print_rop_list(&shdr, rops);
+                rop_list_destroy(rops);
+            }
         }
     }
     
@@ -76,23 +83,27 @@ int main (int argc, char * argv[])
     char * filename = NULL;
     int ret_rop = 0;
     int jmp_rop = 0;
+    int call_rop = 0;
     int rop_depth = 1;
     int c;
     int total_gadgets = 0;
     
-    while ((c = getopt(argc, argv, "e:rjd:")) != -1) {
+    while ((c = getopt(argc, argv, "cd:e:jr")) != -1) {
         switch (c) {
+        case 'c' :
+            call_rop = 1;
+            break;
+        case 'd' :
+            rop_depth = atoi(optarg);
+            break;
         case 'e' :
             filename = optarg;
-            break;
-        case 'r' :
-            ret_rop = 1;
             break;
         case 'j' :
             jmp_rop = 1;
             break;
-        case 'd' :
-            rop_depth = atoi(optarg);
+        case 'r' :
+            ret_rop = 1;
             break;
         case ':' :
             fprintf(stderr, "missing required optarg for %c\n", optopt);
@@ -117,7 +128,7 @@ int main (int argc, char * argv[])
     
     elf = elf_open(filename);
     
-    total_gadgets = print_rops(elf, rop_depth, ret_rop, jmp_rop);
+    total_gadgets = print_rops(elf, rop_depth, ret_rop, jmp_rop, call_rop);
     
     elf_destroy(elf);
     

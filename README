@@ -1,0 +1,44 @@
+Requires udis86
+http://udis86.sourceforge.net/
+
+Finds ROP gadgets
+Currently only supports ELF32 Binaries
+
+Detects gadgets ending in 'ret', 'jmp reg' and 'call reg' up to a
+user-determined depth
+
+examples:
+
+./rop_tools -e /lib/i386-linux-gnu/libc-2.13.so -r -j -c | tail
+
+__libc_thread_freeres_fn + 1222b7
+  001222b7  std 
+  001222b8  jmp eax
+
+__libc_thread_freeres_fn + 1222bc
+  001222bc  std 
+  001222bd  jmp eax
+
+9080 gadgets
+
+-----------------------------------------------------------------
+
+./rop_tools -e /lib/i386-linux-gnu/libc-2.13.so -r -j -c -d 3 | tail
+  001222b7  std 
+  001222b8  jmp eax
+
+__libc_thread_freeres_fn + 1222ba
+  001222ba  push edx
+  001222bb  das 
+  001222bc  std 
+  001222bd  jmp eax
+
+6308 gadgets
+
+-----------------------------------------------------------------
+
+time ./rop_tools -e /lib/i386-linux-gnu/libc-2.13.so -r -j -c > /dev/null
+
+real	0m4.574s
+user	0m3.832s
+sys	0m0.124s

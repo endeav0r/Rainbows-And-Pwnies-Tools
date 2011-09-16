@@ -32,6 +32,14 @@ struct _rop_list * rop_ret_rops (unsigned char * data, int data_size, int depth)
 struct _rop_list * rop_jmp_reg_rops (unsigned char * data, int data_size,
                                      int depth);
 
+/** finds all 'call reg' rops in data
+* @param data a pointer to data containing instructions
+* @param data_size the size, in bytes, of data
+* @return a struct _rop_list which contains all the rop gadgets found
+*/
+struct _rop_list * rop_call_reg_rops (unsigned char * data, int data_size,
+                                     int depth);
+
 /** gets the struct _rop_ins from a struct _rop_list
 * @param rop_list a valid struct _rop_list
 * @return the corresponding struct _rop_ins
