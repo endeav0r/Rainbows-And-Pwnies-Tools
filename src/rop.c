@@ -236,6 +236,9 @@ struct _rop_ins * rop_ins_create (unsigned char * data, int data_size, int offse
             next->next = (struct _rop_ins *) malloc(sizeof(struct _rop_ins));
             next = next->next;
         }
+        next->bytes_size = ud_insn_len(&ud_obj);
+        next->bytes = (unsigned char *) malloc(next->bytes_size);
+        memcpy(next->bytes, ud_insn_ptr(&ud_obj), next->bytes_size);        
         next->description = (char *) malloc(strlen(ud_insn_asm(&ud_obj)) + 1);
         strcpy(next->description, ud_insn_asm(&ud_obj));
         next->offset = offset + (int) ud_insn_off(&ud_obj);
@@ -250,6 +253,8 @@ void rop_ins_destroy (struct _rop_ins * ins) {
         return;
     if (ins->description != NULL)
         free(ins->description);
+    if (ins->bytes != NULL)
+        free(ins->bytes);
     rop_ins_destroy(ins->next);
     free(ins);
 }

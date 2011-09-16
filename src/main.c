@@ -10,6 +10,8 @@ int print_rop_list (struct _elf_shdr * shdr, struct _rop_list * rops)
     struct _elf_sym  sym;
     struct _rop_ins  * rop_ins;
     int rop_offset, total_gadgets = 0;
+    char bytes_string[8 * 3 + 1];
+    int byte_i;
             
     while (rops != NULL) {
         total_gadgets++;
@@ -26,8 +28,19 @@ int print_rop_list (struct _elf_shdr * shdr, struct _rop_list * rops)
     
         
         while (rop_ins != NULL) {
-            printf("  %08x  %s\n",
+            bytes_string[0] = '\0';
+            for (byte_i = 0;
+                 (byte_i < 8) && (byte_i < rop_ins->bytes_size);
+                 byte_i++) {
+                sprintf(&(bytes_string[byte_i * 3]),
+                        "%02x ", rop_ins->bytes[byte_i]);
+            }
+            while (byte_i++ < 8)
+                strcat(bytes_string, "-- ");
+                
+            printf("  %08x:  %s  %s\n",
                    shdr_addr(shdr) + rop_ins->offset,
+                   bytes_string,
                    rop_ins->description);
             rop_ins = rop_ins->next;
         }
