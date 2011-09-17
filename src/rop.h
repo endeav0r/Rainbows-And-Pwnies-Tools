@@ -8,6 +8,7 @@
 struct _rop_ins {
     int offset;
     int bytes_size;
+    int mnemonic;
     char * description;
     unsigned char * bytes;
     struct _rop_ins * next;

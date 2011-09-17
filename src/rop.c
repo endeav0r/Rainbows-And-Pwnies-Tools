@@ -236,6 +236,7 @@ struct _rop_ins * rop_ins_create (unsigned char * data, int data_size, int offse
             next->next = (struct _rop_ins *) malloc(sizeof(struct _rop_ins));
             next = next->next;
         }
+        next->mnemonic = ud_obj.mnemonic;
         next->bytes_size = ud_insn_len(&ud_obj);
         next->bytes = (unsigned char *) malloc(next->bytes_size);
         memcpy(next->bytes, ud_insn_ptr(&ud_obj), next->bytes_size);        

@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <unistd.h>
 
+#include "lua.h"
 #include "elf.h"
 #include "rop.h"
 
@@ -99,6 +100,7 @@ int main (int argc, char * argv[])
 {
     struct _elf * elf;
     char * filename = NULL;
+    int lua_run = 0;
     int ret_rop = 0;
     int jmp_rop = 0;
     int cond_jmp_rop = 0;
@@ -107,7 +109,7 @@ int main (int argc, char * argv[])
     int c;
     int total_gadgets = 0;
     
-    while ((c = getopt(argc, argv, "cd:e:jkr")) != -1) {
+    while ((c = getopt(argc, argv, "cd:e:jkl:r")) != -1) {
         switch (c) {
         case 'c' :
             call_rop = 1;
@@ -123,6 +125,10 @@ int main (int argc, char * argv[])
             break;
         case 'k' :
             cond_jmp_rop = 1;
+            break;
+        case 'l' :
+            lua_run = 1;
+            filename = optarg;
             break;
         case 'r' :
             ret_rop = 1;
@@ -140,24 +146,27 @@ int main (int argc, char * argv[])
         printf("rop_tools\n");
         printf("brought to you by rainbowsandpwnies\n");
         printf("\n");
-        printf("%s [-rj] [-d depth] -e <elf>\n", argv[0]);
+        printf("%s [-rj] [-d depth] (-e <elf> | -l <lua_file)\n", argv[0]);
         printf("  -d <depth> depth, in instructions, to search backwards\n");
         printf("  -e <elf>   filename of elf to analyze\n");
         printf("  -j         search for jmp reg gadgets\n");
         printf("  -k         search for conditional jmp reg gadgets (for when your day is \n");
         printf("             really going that bad, and probably won't return anything)\n");
+        printf("  -l <lua>   runs lua script\n");
         printf("  -r         search for ret gadgets\n");
         exit(-1);
     }
     
-    elf = elf_open(filename);
     
-    total_gadgets = print_rops(elf, rop_depth, ret_rop, jmp_rop,
-                               call_rop, cond_jmp_rop);
-    
-    elf_destroy(elf);
-    
-    printf("%d gadgets\n", total_gadgets);
+    if (lua_run)
+        lua_run_file(filename);
+    else {
+        elf = elf_open(filename);
+        total_gadgets = print_rops(elf, rop_depth, ret_rop, jmp_rop,
+                                   call_rop, cond_jmp_rop);
+        elf_destroy(elf);
+        printf("%d gadgets\n", total_gadgets);
+    }
 
     return 0;
 }
