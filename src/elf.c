@@ -76,6 +76,7 @@ int elf_shdr (struct _elf * elf, struct _elf_shdr * shdr, int index)
 int shdr_sym (struct _elf_shdr * shdr, struct _elf_sym * sym, int index)
 {
     unsigned char * data;
+    
     if (    (shdr_type(shdr) != SHT_SYMTAB)
          && (shdr_type(shdr) != SHT_DYNSYM))
         return 0;
@@ -86,6 +87,33 @@ int shdr_sym (struct _elf_shdr * shdr, struct _elf_sym * sym, int index)
     data = shdr_data(shdr);
     sym->sym = (Elf32_Sym *) &(data[shdr_entsize(shdr) * index]);
     
+    return 1;
+}
+
+
+int shdr_rel (struct _elf_shdr * shdr, struct _elf_rel * rel, int index)
+{
+    unsigned char * data;
+    struct _elf_shdr link;
+    
+    if (    (shdr_type(shdr) != SHT_REL)
+         && (shdr_type(shdr) != SHT_RELA))
+        return 0;
+    
+    rel->elf = shdr->elf;
+    rel->index = index;
+    elf_shdr(shdr->elf, &(rel->shdr), shdr->index);
+    data = shdr_data(shdr);
+    elf_shdr(shdr->elf, &link, shdr_link(shdr));
+    if (shdr_type(shdr) == SHT_REL) {
+        rel->rel = (Elf32_Rel *) &(data[shdr_entsize(shdr) * index]);
+        shdr_sym(&link, &(rel->sym), ELF32_R_SYM(rel->rel->r_info));
+    }
+    else {
+        rel->rela = (Elf32_Rela *) &(data[shdr_entsize(shdr) * index]);
+        shdr_sym(&link, &(rel->sym), ELF32_R_SYM(rel->rela->r_info));
+    }
+        
     return 1;
 }
 
@@ -135,6 +163,26 @@ int sym_type (struct _elf_sym * sym) { return ELF32_ST_TYPE(sym->sym->st_info); 
 unsigned int sym_addr (struct _elf_sym * sym) { return sym->sym->st_value; }
 char * sym_name (struct _elf_sym * sym) {
     return elf_strtab_str(sym->elf, shdr_link(&(sym->shdr)), sym->sym->st_name); }
+
+
+char * rel_name (struct _elf_rel * rel) { return sym_name(&(rel->sym)); }
+unsigned int rel_offset (struct _elf_rel * rel)
+{
+    if (shdr_type(&(rel->shdr)) == SHT_REL)
+        return rel->rel->r_offset;
+    else if (shdr_type(&(rel->shdr)) == SHT_RELA)
+        return rel->rela->r_offset;
+    return -1;
+}
+int rel_type (struct _elf_rel * rel)
+{
+    if (shdr_type(&(rel->shdr)) == SHT_REL)
+        return ELF32_R_TYPE(rel->rel->r_offset);
+    else if (shdr_type(&(rel->shdr)) == SHT_RELA)
+        return ELF32_R_TYPE(rel->rela->r_offset);
+    return -1;
+}
+
 
 unsigned int shdr_addr (struct _elf_shdr * shdr) { return shdr->shdr->sh_addr; }
 int          shdr_size (struct _elf_shdr * shdr) { return shdr->shdr->sh_size; }

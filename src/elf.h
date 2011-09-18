@@ -23,7 +23,17 @@ struct _elf_sym {
     struct _elf_shdr shdr;
     Elf32_Sym * sym;
 };
-    
+
+struct _elf_rel {
+    int index;
+    struct _elf * elf;
+    struct _elf_shdr shdr;
+    struct _elf_sym sym;
+    union {
+        Elf32_Rel  * rel;
+        Elf32_Rela * rela;
+    };
+};
 
 struct _elf * elf_open    (char * filename);
 void          elf_destroy (struct _elf * elf);
@@ -39,10 +49,15 @@ int elf_sym_func_addr (struct _elf * elf,
                        struct _elf_sym * sym,
                        unsigned int addr);
 int shdr_sym (struct _elf_shdr * shdr, struct _elf_sym * sym, int index);
+int shdr_rel (struct _elf_shdr * shdr, struct _elf_rel * rel, int index);
 
 int          sym_type (struct _elf_sym * sym);
 unsigned int sym_addr (struct _elf_sym * sym);
 char *       sym_name (struct _elf_sym * sym);
+
+char *       rel_name   (struct _elf_rel * rel);
+unsigned int rel_offset (struct _elf_rel * rel);
+int          rel_type   (struct _elf_rel * rel);
 
 char *          shdr_name    (struct _elf_shdr * shdr);
 unsigned int    shdr_addr    (struct _elf_shdr * shdr);
