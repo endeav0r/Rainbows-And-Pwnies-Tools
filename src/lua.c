@@ -136,7 +136,7 @@ static int lua_make_rop_table (lua_State * L)
 }
 
 
-int lua_elf_open_shdrs_syms (lua_State * L, struct _elf_shdr * shdr)
+int lua_elf_open_shdr_syms (lua_State * L, struct _elf_shdr * shdr)
 {
     struct _elf_sym sym;
     int sym_i;
@@ -147,10 +147,6 @@ int lua_elf_open_shdrs_syms (lua_State * L, struct _elf_shdr * shdr)
         shdr_sym(shdr, &sym, sym_i);
         // table for this symbol
         lua_newtable(L);
-        
-        lua_pushstring(L, "name");
-        lua_pushstring(L, sym_name(&sym));
-        lua_settable(L, -3);
         
         lua_pushstring(L, "address");
         lua_pushinteger(L, (lua_Integer) sym_addr(&sym));
@@ -163,12 +159,44 @@ int lua_elf_open_shdrs_syms (lua_State * L, struct _elf_shdr * shdr)
             lua_pushstring(L, "undefined");
         lua_settable(L, -3);
         
-        lua_pushinteger(L, (lua_Integer) sym_i + 1);
+        if (sym_name(&sym) == NULL)
+            lua_pushinteger(L, (lua_Integer) sym_i + 1);
+        else
+            lua_pushstring(L, sym_name(&sym));
         lua_insert(L, -2);
         lua_settable(L, -3);
     }
     
     return sym_i;
+}
+
+
+int lua_elf_open_shdr_rels (lua_State * L, struct _elf_shdr * shdr)
+{
+    struct _elf_rel rel;
+    int rel_i;
+    
+    // table for all relocations
+    lua_newtable(L);
+    for (rel_i = 0; rel_i < shdr_num(shdr); rel_i++) {
+        shdr_rel(shdr, &rel, rel_i);
+        // table for this relocation
+        lua_newtable(L);
+        
+        lua_pushstring(L, "type");
+        lua_pushinteger(L, (lua_Integer) rel_type(&rel));
+        lua_settable(L, -3);
+        
+        lua_pushstring(L, "offset");
+        lua_pushinteger(L, (lua_Integer) rel_offset(&rel));
+        lua_settable(L, -3);
+        
+        lua_pushstring(L, rel_name(&rel));
+        lua_insert(L, -2);
+        lua_settable(L, -3);
+    }
+    
+    return rel_i;
 }
 
 
@@ -183,10 +211,6 @@ int lua_elf_open_shdrs (lua_State * L, struct _elf * elf)
         elf_shdr(elf, &shdr, shdr_i);
         // create table for this shdr
         lua_newtable(L);
-        
-        lua_pushstring(L, "name");
-        lua_pushstring(L, shdr_name(&shdr));
-        lua_settable(L, -3);
         
         lua_pushstring(L, "address");
         lua_pushinteger(L, (lua_Integer) shdr_addr(&shdr));
@@ -210,14 +234,26 @@ int lua_elf_open_shdrs (lua_State * L, struct _elf * elf)
         // is this a symbol table? well then let's LOAD SOME FUCKING SYMBOLS
         if (    (shdr_type(&shdr) == SHT_SYMTAB)
              || (shdr_type(&shdr) == SHT_DYNSYM))
-            lua_elf_open_shdrs_syms(L, &shdr);
+            lua_elf_open_shdr_syms(L, &shdr);
         else
             lua_pushnil(L);
         lua_pushstring(L, "symbols");
         lua_insert(L, -2);
         lua_settable(L, -3);
-
-        lua_pushinteger(L, (lua_Integer) shdr_i + 1);
+        
+        if (    (shdr_type(&shdr) == SHT_REL)
+                  || (shdr_type(&shdr) == SHT_RELA))
+            lua_elf_open_shdr_rels(L, &shdr);
+        else
+            lua_pushnil(L);
+        lua_pushstring(L, "relocations");
+        lua_insert(L, -2);
+        lua_settable(L, -3);
+        
+        if (shdr_name(&shdr) == NULL)
+            lua_pushinteger(L, (lua_Integer) shdr_i + 1);
+        else
+            lua_pushstring(L, shdr_name(&shdr));
         lua_insert(L, -2);
         lua_settable(L, -3);
     }
