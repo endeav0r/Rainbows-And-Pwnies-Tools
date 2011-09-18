@@ -13,8 +13,7 @@ int rop_detect_ret (unsigned char * data, int data_size)
     ud_set_syntax(&ud_obj, NULL);
     
     ud_disassemble(&ud_obj);
-    if (    (ud_obj.mnemonic == UD_Iret)
-         || (ud_obj.mnemonic == UD_Iretf)) {
+    if (ud_obj.mnemonic == UD_Iret) {
         return ud_insn_len(&ud_obj);
     }
     return 0;
