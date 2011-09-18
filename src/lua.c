@@ -208,7 +208,8 @@ int lua_elf_open_shdrs (lua_State * L, struct _elf * elf)
         lua_settable(L, -3);
         
         // is this a symbol table? well then let's LOAD SOME FUCKING SYMBOLS
-        if (shdr_type(&shdr) == SHT_SYMTAB)
+        if (    (shdr_type(&shdr) == SHT_SYMTAB)
+             || (shdr_type(&shdr) == SHT_DYNSYM))
             lua_elf_open_shdrs_syms(L, &shdr);
         else
             lua_pushnil(L);

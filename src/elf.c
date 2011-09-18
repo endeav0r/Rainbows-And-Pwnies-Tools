@@ -76,7 +76,8 @@ int elf_shdr (struct _elf * elf, struct _elf_shdr * shdr, int index)
 int shdr_sym (struct _elf_shdr * shdr, struct _elf_sym * sym, int index)
 {
     unsigned char * data;
-    if (shdr_type(shdr) != SHT_SYMTAB)
+    if (    (shdr_type(shdr) != SHT_SYMTAB)
+         && (shdr_type(shdr) != SHT_DYNSYM))
         return 0;
     
     sym->elf = shdr->elf;
