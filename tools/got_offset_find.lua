@@ -11,11 +11,9 @@ endeavor@rainbowsandpwnies.com
 
 dofile("tools/rop_tools.lua")
 
-ROP_OFFSET_SIZE = 127
-DEPTH = 1
--- set TARGET_MNEMONICS to nil if you want to show all possibilities
-TARGET_MNEMONICS = {"add", "sub"}
-
+ROP_OFFSET_SIZE = 256
+DEPTH = 2
+TARGET_MNEMONICS = {"add", "sub"} -- set to nil to show all possibilities
 LIBC_FILENAME = "/lib/i386-linux-gnu/libc-2.13.so"
 TARGET_FILENAME = "/path/to/target"
 
