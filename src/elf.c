@@ -11,7 +11,7 @@ struct _elf * elf_open (char * filename)
     fh = fopen(filename, "rb");
     if (fh == NULL) {
         fprintf(stderr, "failed to open file %s\n", filename);
-        exit(-1);
+        return NULL;
     }
     
     elf = (struct _elf *) malloc(sizeof(struct _elf));

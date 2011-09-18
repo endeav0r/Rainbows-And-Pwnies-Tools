@@ -163,10 +163,12 @@ int main (int argc, char * argv[])
         lua_run_file(filename);
     else {
         elf = elf_open(filename);
-        total_gadgets = print_rops(elf, rop_depth, ret_rop, jmp_rop,
-                                   call_rop, cond_jmp_rop);
-        elf_destroy(elf);
-        printf("%d gadgets\n", total_gadgets);
+        if (elf != NULL) {
+            total_gadgets = print_rops(elf, rop_depth, ret_rop, jmp_rop,
+                                       call_rop, cond_jmp_rop);
+            elf_destroy(elf);
+            printf("%d gadgets\n", total_gadgets);
+        }
     }
 
     return 0;

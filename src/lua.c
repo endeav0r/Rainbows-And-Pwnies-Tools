@@ -102,9 +102,6 @@ static int lua_make_rop_table (lua_State * L)
                 rop_ins_count = 1;
                 // create a table for these rop instructions
                 lua_newtable(L);
-                lua_pushstring(L, "address");
-                lua_pushinteger(L, (lua_Integer) (shdr_addr(&shdr) + rop_list->offset));
-                lua_settable(L, -3);
                 rop_ins = rop_list_ins(rop_list);
                 while (rop_ins != NULL) {
                     lua_newtable(L);
@@ -139,6 +136,124 @@ static int lua_make_rop_table (lua_State * L)
 }
 
 
+int lua_elf_open_shdrs_syms (lua_State * L, struct _elf_shdr * shdr)
+{
+    struct _elf_sym sym;
+    int sym_i;
+    
+    // table for all symbols
+    lua_newtable(L);
+    for (sym_i = 0; sym_i < shdr_num(shdr); sym_i++) {
+        shdr_sym(shdr, &sym, sym_i);
+        // table for this symbol
+        lua_newtable(L);
+        
+        lua_pushstring(L, "name");
+        lua_pushstring(L, sym_name(&sym));
+        lua_settable(L, -3);
+        
+        lua_pushstring(L, "address");
+        lua_pushinteger(L, (lua_Integer) sym_addr(&sym));
+        lua_settable(L, -3);
+        
+        lua_pushstring(L, "type");
+        if (sym_type(&sym) < SYM_TYPE_STRINGS_SIZE)
+            lua_pushstring(L, sym_type_strings[sym_type(&sym)]);
+        else
+            lua_pushstring(L, "undefined");
+        lua_settable(L, -3);
+        
+        lua_pushinteger(L, (lua_Integer) sym_i + 1);
+        lua_insert(L, -2);
+        lua_settable(L, -3);
+    }
+    
+    return sym_i;
+}
+
+
+int lua_elf_open_shdrs (lua_State * L, struct _elf * elf)
+{
+    struct _elf_shdr shdr;
+    int shdr_i;
+    
+    // table for all shdrs
+    lua_newtable(L);
+    for (shdr_i = 0; shdr_i < elf_shnum(elf); shdr_i++) {
+        elf_shdr(elf, &shdr, shdr_i);
+        // create table for this shdr
+        lua_newtable(L);
+        
+        lua_pushstring(L, "name");
+        lua_pushstring(L, shdr_name(&shdr));
+        lua_settable(L, -3);
+        
+        lua_pushstring(L, "address");
+        lua_pushinteger(L, (lua_Integer) shdr_addr(&shdr));
+        lua_settable(L, -3);
+        
+        lua_pushstring(L, "executable");
+        lua_pushboolean(L, shdr_exec(&shdr));
+        lua_settable(L, -3);
+        
+        lua_pushstring(L, "size");
+        lua_pushinteger(L, (lua_Integer) shdr_size(&shdr));
+        lua_settable(L, -3);
+        
+        lua_pushstring(L, "type");
+        if (shdr_type(&shdr) > SHDR_TYPE_STRINGS_SIZE)
+            lua_pushstring(L, "unknown");
+        else
+            lua_pushstring(L, shdr_type_strings[shdr_type(&shdr)]);
+        lua_settable(L, -3);
+        
+        // is this a symbol table? well then let's LOAD SOME FUCKING SYMBOLS
+        if (shdr_type(&shdr) == SHT_SYMTAB)
+            lua_elf_open_shdrs_syms(L, &shdr);
+        else
+            lua_pushnil(L);
+        lua_pushstring(L, "symbols");
+        lua_insert(L, -2);
+        lua_settable(L, -3);
+
+        lua_pushinteger(L, (lua_Integer) shdr_i + 1);
+        lua_insert(L, -2);
+        lua_settable(L, -3);
+    }
+    
+    return shdr_i;
+}
+
+
+static int lua_elf_open (lua_State * L)
+{
+    char * filename;
+    struct _elf * elf;
+    
+    filename  = (char *) luaL_checkstring(L, 1);
+    lua_pop(L, 1);
+    
+    elf = elf_open(filename);
+    if (elf == NULL)
+        return luaL_error(L, "Failed opening elf %s\n", filename);
+    
+    lua_newtable(L);
+    lua_pushstring(L, "shnum");
+    lua_pushinteger(L, (lua_Integer) elf_shnum(elf));
+    lua_settable(L, -3);
+    
+    /* set info for section header */
+    lua_elf_open_shdrs(L, elf);
+    lua_pushstring(L, "sections");
+    lua_insert(L, -2);
+    lua_settable(L, -3);
+
+    elf_destroy(elf);
+
+    return 1;
+}
+
+
 int lua_run_file (char * filename)
 {
     int error;
@@ -148,6 +263,8 @@ int lua_run_file (char * filename)
     
     lua_pushcfunction(L, lua_make_rop_table);
     lua_setglobal(L, "make_rop_table");
+    lua_pushcfunction(L, lua_elf_open);
+    lua_setglobal(L, "elf_open");
     
     error =luaL_loadfile(L, filename);
     switch (error) {

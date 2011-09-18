@@ -712,3 +712,47 @@ char types_strings [][16] = {
     "jimm",
     "const"
 };
+
+
+char shdr_type_strings [20][16] = {
+    "null",
+    "progbits",
+    "symtab",
+    "strtab",
+    "rela",
+    "hash",
+    "dynamic",
+    "note",
+    "nobits",
+    "rel",
+    "shlib",
+    "dynsym",
+    "init_array",
+    "fini_array",
+    "preinit_array",
+    "group",
+    "symtab_shndx",
+    "num"
+};
+
+
+char sym_type_strings [16][16] = {
+    "notype",    // 0
+    "object",    // 1
+    "func",      // 2
+    "section",   // 3
+    "file",      // 4
+    "common",    // 5
+    "tls",       // 6
+    "num",       // 7
+    "undefined", // 8
+    "undefined", // 9
+    "loos",      // 10
+    "undefined", // 11
+    "hios",      // 12
+    "loproc",    // 13
+    "undefined", // 14
+    "hiproc"     // 15
+};
+
+
