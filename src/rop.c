@@ -104,7 +104,6 @@ struct _rop_list * rop_find_rops (unsigned char * data,
     int d; // iterator for location in data
     int ins_size;
     int backtrack;
-    int backtrack_depth;
     
     struct _rop_list * rop_list = NULL;
     struct _rop_list * next = NULL;
@@ -120,8 +119,8 @@ struct _rop_list * rop_find_rops (unsigned char * data,
         if ((ins_size = detect_callback(&(data[d]), data_size - d)) > 0) {
             // we don't count the d byte in our rop chain depth
             backtrack = d - 1;
-            while ((backtrack_depth = rop_depth(&(data[backtrack]), d - backtrack)) <= depth) {
-                if (backtrack_depth == depth) {
+            while (d - backtrack <= MAX_BACKTRACK_LEN) {
+                if (rop_depth(&(data[backtrack]), d - backtrack) == depth) {
                     if (rop_list == NULL) {
                         rop_list = (struct _rop_list *) malloc(sizeof(struct _rop_list));
                         next = rop_list;
@@ -136,9 +135,7 @@ struct _rop_list * rop_find_rops (unsigned char * data,
                                                d - (d - backtrack));
                     next->next = NULL;
                 }
-                else if (    (backtrack_depth > depth) 
-                     || (backtrack < 0)
-                     || (d - backtrack >= MAX_BACKTRACK_LEN))
+                else if (backtrack < 0)
                     break;
                 backtrack--;
 
