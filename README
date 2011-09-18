@@ -21,6 +21,23 @@ http://www.lua.org/
 * EXAMPLES *
 ***********/
 
+./rop_tools 
+rop_tools
+brought to you by rainbowsandpwnies
+
+./rop_tools [-cjr] [-d depth] (-e <elf> | -l <lua_file)
+  -c         search for call reg gadgets
+  -d <depth> depth, in instructions, to search backwards
+  -e <elf>   filename of elf to analyze
+  -j         search for jmp reg gadgets
+  -k         search for conditional jmp reg gadgets (for when your day is 
+             really going that bad, and probably won't return anything)
+  -l <lua>   runs lua script
+  -r         search for ret gadgets
+
+/*******************************************************************************
+*******************************************************************************/
+
 ./rop_tools -e rop_tools -c -j -r -d 2 | tail -n 20
   0804d518:  83 eb 04 -- -- -- -- --   sub ebx, 0x4
   0804d51b:  ff d0 -- -- -- -- -- --   call eax
@@ -43,7 +60,8 @@ _fini + 19
 
 227 gadgets
 
------------------------------------------------------------------
+/*******************************************************************************
+*******************************************************************************/
 
 time ./rop_tools -e /lib/i386-linux-gnu/libc-2.13.so -c -j -r -d 3 | tail -n 20
 
@@ -71,7 +89,8 @@ real	0m4.999s
 user	0m4.300s
 sys	0m0.380s
 
------------------------------------------------------------------
+/*******************************************************************************
+*******************************************************************************/
 
 time ./rop_tools -l tools/test1.lua | tail -n 24
       size	0
