@@ -11,7 +11,7 @@ static int lua_make_rop_table (lua_State * L)
     char             * filename;
     int                rop_depth;
     int                shdr_i;
-    int                rop_list_count = 0;
+    int                rop_list_count = 1;
     int                rop_ins_count;
     
     filename  = (char *) luaL_checkstring(L, 1);
@@ -23,12 +23,18 @@ static int lua_make_rop_table (lua_State * L)
     
     for (shdr_i = 0; shdr_i < elf_shnum(elf); shdr_i++) {
         elf_shdr(elf, &shdr, shdr_i);
+        // for each executable shdr
         if (shdr_exec(&shdr)) {
             rop_list = rop_ret_rops(shdr_data(&shdr), shdr_size(&shdr), rop_depth);
             rop_list_first = rop_list;
+            // for each rop sequence
             while (rop_list != NULL) {
-                rop_ins_count = 0;
+                rop_ins_count = 1;
+                // create a table for these rop instructions
                 lua_newtable(L);
+                lua_pushstring(L, "address");
+                lua_pushinteger(L, (lua_Integer) (shdr_addr(&shdr) + rop_list->offset));
+                lua_settable(L, -3);
                 rop_ins = rop_list_ins(rop_list);
                 while (rop_ins != NULL) {
                     lua_newtable(L);
@@ -42,11 +48,14 @@ static int lua_make_rop_table (lua_State * L)
                     lua_pushstring(L, mnemonic_strings[rop_ins->mnemonic]);
                     lua_settable(L, -3);
                     lua_pushinteger(L, (lua_Integer) rop_ins_count);
+                    lua_insert(L, -2);
                     lua_settable(L, -3);
                     rop_ins_count++;
                     rop_ins = rop_ins->next;
                 }
+                // add these rop instructions to the rop table
                 lua_pushinteger(L, (lua_Integer) rop_list_count);
+                lua_insert(L, -2);
                 lua_settable(L, -3);
                 rop_list_count++;
                 rop_list = rop_list->next;
