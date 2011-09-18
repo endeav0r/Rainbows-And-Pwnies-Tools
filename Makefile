@@ -1,6 +1,6 @@
 CPP=gcc
 CFLAGS= -Wall -O2
-LIBS = -ludis86 -llua5.1 -ldisasm
+LIBS = -ludis86 -llua5.1
 
 _OBJS = elf.o rop.o lua.o strings.o
 
