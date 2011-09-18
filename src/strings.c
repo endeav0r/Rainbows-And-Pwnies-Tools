@@ -565,7 +565,7 @@ char mnemonic_strings[][16] = {
 
 
 char types_strings [][16] = {
-    "ud_none",
+    "none",
     "al",
     "cl",
     "dl",

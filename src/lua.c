@@ -1,6 +1,76 @@
 #include "lua.h"
 
 
+void lua_rop_ins_operand_table (lua_State * L, struct _rop_ins * rop_ins)
+{
+    int                op_i;
+    ud_t ud_obj;
+
+    // table for operands
+    lua_newtable(L);
+
+    ud_init(&ud_obj);
+    ud_set_mode(&ud_obj, 32);
+    ud_set_input_buffer(&ud_obj, rop_ins->bytes, rop_ins->bytes_size);
+    ud_set_syntax(&ud_obj, NULL);
+    ud_disassemble(&ud_obj);
+    for (op_i = 0; op_i < 3; op_i++) {
+        // table for this operand
+        lua_newtable(L);
+        lua_pushstring(L, "type");
+        lua_pushstring(L, types_strings[ud_obj.operand[op_i].type]);
+        lua_settable(L, -3);
+        lua_pushstring(L, "base");
+        lua_pushstring(L, types_strings[ud_obj.operand[op_i].base]);
+        lua_settable(L, -3);
+        lua_pushstring(L, "index");
+        lua_pushstring(L, types_strings[ud_obj.operand[op_i].index]);
+        lua_settable(L, -3);
+        lua_pushstring(L, "offset");
+        lua_pushstring(L, types_strings[ud_obj.operand[op_i].offset]);
+        lua_settable(L, -3);
+        lua_pushstring(L, "scale");
+        lua_pushstring(L, types_strings[ud_obj.operand[op_i].scale]);
+        lua_settable(L, -3);
+        lua_pushstring(L, "size");
+        lua_pushinteger(L, (lua_Integer) ud_obj.operand[op_i].size);
+        lua_settable(L, -3);
+            
+        lua_pushstring(L, "lval");
+        if (    (ud_obj.operand[op_i].type == UD_OP_IMM)
+             || (ud_obj.operand[op_i].offset)) {
+            switch (ud_obj.operand[op_i].size) {
+            case 8 :
+                lua_pushinteger(L, (lua_Integer) ud_obj.operand[op_i].lval.sbyte);
+                break;
+            case 16 :
+                lua_pushinteger(L, (lua_Integer) ud_obj.operand[op_i].lval.uword);
+                break;
+            case 32 :
+                lua_pushinteger(L, (lua_Integer) ud_obj.operand[op_i].lval.udword);
+                break;
+            case 64 :
+                lua_pushinteger(L, (lua_Integer) ud_obj.operand[op_i].lval.uqword);
+                break;
+            default :
+                lua_pushinteger(L, (lua_Integer) 0);
+                break;
+            }
+        }
+        else
+            lua_pushinteger(L, (lua_Integer) 0);
+        lua_settable(L, -3);
+            
+        lua_pushinteger(L, (lua_Integer) op_i + 1);
+        lua_insert(L, -2);
+        lua_settable(L, -3);
+    }
+    lua_pushstring(L, "operands");
+    lua_insert(L, -2);
+    lua_settable(L, -3);
+}
+
+
 static int lua_make_rop_table (lua_State * L)
 {
     struct _rop_list * rop_list;
@@ -47,6 +117,7 @@ static int lua_make_rop_table (lua_State * L)
                     lua_pushstring(L, "mnemonic");
                     lua_pushstring(L, mnemonic_strings[rop_ins->mnemonic]);
                     lua_settable(L, -3);
+                    lua_rop_ins_operand_table(L, rop_ins); 
                     lua_pushinteger(L, (lua_Integer) rop_ins_count);
                     lua_insert(L, -2);
                     lua_settable(L, -3);
