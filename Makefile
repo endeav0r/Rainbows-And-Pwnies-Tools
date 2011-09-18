@@ -2,7 +2,7 @@ CPP=gcc
 CFLAGS= -Wall -O2
 LIBS = -ludis86 -llua5.1 -ldisasm
 
-_OBJS = elf.o rop.o lua.o mnemonic_strings.o
+_OBJS = elf.o rop.o lua.o strings.o
 
 SRCDIR = src
 OBJS = $(patsubst %,$(SRCDIR)/%,$(_OBJS))

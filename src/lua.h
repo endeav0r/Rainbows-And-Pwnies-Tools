@@ -8,7 +8,7 @@
 #include <lua5.1/lualib.h>
 
 #include "elf.h"
-#include "mnemonic_strings.h"
+#include "strings.h"
 #include "rop.h"
 
 int lua_run_file (char * filename);
