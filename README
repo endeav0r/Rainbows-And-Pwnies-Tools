@@ -1,44 +1,105 @@
-Requires udis86
+Brought to you by rainbowsandpwnies
+
+/**************
+* DESCRIPTION *
+**************/
+rop_tools is a tool to help with the identification of rop gadgets and the
+building of rop chains. Coded in C, it quickly identifies rop gadgets in large
+binaries. It makes this information available to lua scripts for rop chain
+scripting goodness.
+
+Currently only supports 32-bit ELF binaries
+
+/*************** 
+* REQUIREMENTS *
+***************/
+udis86 and lua5.1
 http://udis86.sourceforge.net/
+http://www.lua.org/
 
-Finds ROP gadgets
-Currently only supports ELF32 Binaries
+/***********
+* EXAMPLES *
+***********/
 
-Detects gadgets ending in 'ret', 'jmp reg' and 'call reg' up to a
-user-determined depth
+./rop_tools -e rop_tools -c -j -r -d 2 | tail -n 20
+  0804d518:  83 eb 04 -- -- -- -- --   sub ebx, 0x4
+  0804d51b:  ff d0 -- -- -- -- -- --   call eax
 
-examples:
+__do_global_ctors_aux + 15
+  0804d515:  08 66 90 -- -- -- -- --   or [esi-0x70], ah
+  0804d518:  83 eb 04 -- -- -- -- --   sub ebx, 0x4
+  0804d51b:  ff d0 -- -- -- -- -- --   call eax
 
-./rop_tools -e /lib/i386-linux-gnu/libc-2.13.so -r -j -c | tail
+section: .fini
+_fini + 9
+  0804d535:  00 00 -- -- -- -- -- --   add [eax], al
+  0804d537:  00 5b 81 -- -- -- -- --   add [ebx-0x7f], bl
+  0804d53a:  c3 -- -- -- -- -- -- --   ret 
 
-__libc_thread_freeres_fn + 1222b7
-  001222b7  std 
-  001222b8  jmp eax
+_fini + 19
+  0804d545:  5b -- -- -- -- -- -- --   pop ebx
+  0804d546:  c9 -- -- -- -- -- -- --   leave 
+  0804d547:  c3 -- -- -- -- -- -- --   ret 
 
-__libc_thread_freeres_fn + 1222bc
-  001222bc  std 
-  001222bd  jmp eax
-
-9080 gadgets
+227 gadgets
 
 -----------------------------------------------------------------
 
-./rop_tools -e /lib/i386-linux-gnu/libc-2.13.so -r -j -c -d 3 | tail
-  001222b7  std 
-  001222b8  jmp eax
+time ./rop_tools -e /lib/i386-linux-gnu/libc-2.13.so -c -j -r -d 3 | tail -n 20
+
+__libc_thread_freeres_fn + 12234a
+  0012234a:  8b 7d fc -- -- -- -- --   mov edi, [ebp-0x4]
+  0012234d:  89 ec -- -- -- -- -- --   mov esp, ebp
+  0012234f:  5d -- -- -- -- -- -- --   pop ebp
+  00122350:  c3 -- -- -- -- -- -- --   ret 
+
+__libc_thread_freeres_fn + 1222b0
+  001222b0:  00 89 45 f0 e8 87 -- --   add [ecx+0x87e8f045], cl
+  001222b6:  6e -- -- -- -- -- -- --   outsb 
+  001222b7:  fd -- -- -- -- -- -- --   std 
+  001222b8:  ff e8 -- -- -- -- -- --   jmp eax
 
 __libc_thread_freeres_fn + 1222ba
-  001222ba  push edx
-  001222bb  das 
-  001222bc  std 
-  001222bd  jmp eax
+  001222ba:  52 -- -- -- -- -- -- --   push edx
+  001222bb:  2f -- -- -- -- -- -- --   das 
+  001222bc:  fd -- -- -- -- -- -- --   std 
+  001222bd:  ff e8 -- -- -- -- -- --   jmp eax
 
-6308 gadgets
+10431 gadgets
+
+real	0m4.999s
+user	0m4.300s
+sys	0m0.380s
 
 -----------------------------------------------------------------
 
-time ./rop_tools -e /lib/i386-linux-gnu/libc-2.13.so -r -j -c > /dev/null
+time ./rop_tools -l tools/test1.lua | tail -n 24
+      size	0
+  0804d529 ret 
+0804d537
+  0804d537 add [ebx-0x7f], bl
+    1
+      offset	bh
+      type	mem
+      index	none
+      scale	none
+      lval	-127
+      base	ebx
+      size	8
+    2
+      offset	none
+      type	reg
+      index	none
+      scale	none
+      lval	0
+      base	bl
+      size	8
+  0804d53a ret 
+0804d546
+  0804d546 leave 
+  0804d547 ret 
 
-real	0m4.574s
-user	0m3.832s
-sys	0m0.124s
+real	0m0.183s
+user	0m0.032s
+sys	0m0.084s
+
