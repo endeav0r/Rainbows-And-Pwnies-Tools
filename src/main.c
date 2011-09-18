@@ -146,7 +146,8 @@ int main (int argc, char * argv[])
         printf("rop_tools\n");
         printf("brought to you by rainbowsandpwnies\n");
         printf("\n");
-        printf("%s [-rj] [-d depth] (-e <elf> | -l <lua_file)\n", argv[0]);
+        printf("%s [-cjr] [-d depth] (-e <elf> | -l <lua_file)\n", argv[0]);
+        printf("  -c         search for call reg gadgets\n");
         printf("  -d <depth> depth, in instructions, to search backwards\n");
         printf("  -e <elf>   filename of elf to analyze\n");
         printf("  -j         search for jmp reg gadgets\n");
