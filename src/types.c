@@ -184,17 +184,27 @@ char * uint_t_strx (uint_t * uintt)
 
 int uint_t_cmp (uint_t * a, uint_t * b)
 {
-    if (a->type != b->type)
-        return -2;
     switch (a->type) {
     case UINT_T_16 :
-        return a->uints.uint16 - b->uints.uint16;
+        if (a->uints.uint16 < b->uints.uint16)
+            return -1;
+        else if (a->uints.uint16 > b->uints.uint16)
+            return 1;
+        return 0;
     case UINT_T_32 :
-        return a->uints.uint32 - b->uints.uint32;
+        if (a->uints.uint32 < b->uints.uint32)
+            return -1;
+        else if (a->uints.uint32 > b->uints.uint32)
+            return 1;
+        return 0;
     case UINT_T_64 :
-        return a->uints.uint64 - b->uints.uint64;
+        if (a->uints.uint64 < b->uints.uint64)
+            return -1;
+        else if (a->uints.uint64 > b->uints.uint64)
+            return 1;
+        return 0;
     }
-    return -3;
+    return 0;
 }
     
 

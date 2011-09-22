@@ -266,8 +266,8 @@ int elf_sym_func_addr (struct _elf * elf,
             for (j = 0; j < shdr_num(&shdr); j++) {
                 shdr_sym(&shdr, &sym_tmp, j);
                 if (    (sym_type(&sym_tmp) == STT_FUNC)
-                     && (uint_t_cmp(sym_value(&sym_tmp), addr) == -1)
-                     && (uint_t_cmp(sym_value(&sym_tmp), &best_sym_addr) == 1)) {
+                     && (uint_t_cmp(sym_value(&sym_tmp), addr) < 0)
+                     && (uint_t_cmp(sym_value(&sym_tmp), &best_sym_addr) > 0)) {
                     best_shdr = i;
                     best_sym = j;
                     uint_t_set(&best_sym_addr, sym_value(&sym_tmp));
