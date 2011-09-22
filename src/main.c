@@ -1,9 +1,10 @@
 #include <stdio.h>
 #include <unistd.h>
 
-#include "lua.h"
 #include "elf.h"
+#include "lua.h"
 #include "rop.h"
+#include "types.h"
 
 int print_rop_list (struct _elf_shdr * shdr, struct _rop_list * rops)
 {
@@ -13,6 +14,7 @@ int print_rop_list (struct _elf_shdr * shdr, struct _rop_list * rops)
     int rop_offset, total_gadgets = 0;
     char bytes_string[8 * 3 + 1];
     int byte_i;
+    uint_t tmp_addr;
             
     while (rops != NULL) {
         total_gadgets++;
@@ -20,12 +22,15 @@ int print_rop_list (struct _elf_shdr * shdr, struct _rop_list * rops)
         rop_ins = rop_list_ins(rops);
         rop_offset = 0;
         
-        if (elf_sym_func_addr(elf, &sym, rops->offset + shdr_addr(shdr)))
+        uint_t_set(&tmp_addr, shdr_addr(shdr));
+        uint_t_add_int(&tmp_addr, rops->offset);
+        if (elf_sym_func_addr(elf, &sym, &tmp_addr))
             printf("%s + %x\n", sym_name(&sym),
-                   (shdr_addr(shdr) + rops->offset) - sym_addr(&sym));
+                   (uint_t_get(shdr_addr(shdr)) + rops->offset)
+                   - uint_t_get(sym_value(&sym)));
         else
             printf("%s + %x\n", shdr_name(shdr),
-                   shdr_addr(shdr) + rops->offset);
+                   uint_t_get(shdr_addr(shdr)) + rops->offset);
     
         
         while (rop_ins != NULL) {
@@ -37,9 +42,11 @@ int print_rop_list (struct _elf_shdr * shdr, struct _rop_list * rops)
                         "%02x ", rop_ins->bytes[byte_i]);
             while (byte_i++ < 8)
                 strcat(bytes_string, "-- ");
-                
-            printf("  %08x:  %s  %s\n",
-                   shdr_addr(shdr) + rop_ins->offset,
+            
+            uint_t_set(&tmp_addr, shdr_addr(shdr));
+            uint_t_add_int(&tmp_addr, rop_ins->offset);
+            printf("  %s:  %s  %s\n",
+                   uint_t_strx(&tmp_addr),
                    bytes_string,
                    rop_ins->description);
             rop_ins = rop_ins->next;
@@ -60,32 +67,36 @@ int print_rops (struct _elf * elf, int rop_depth, int ret_rop, int jmp_rop,
     int i;
     int total_gadgets = 0;
     
-    for (i = 0; i < elf_shnum(elf); i++) {
+    for (i = 0; i < int_t_get(elf_shnum(elf)); i++) {
         elf_shdr(elf, &shdr, i);
         
         if (shdr_exec(&shdr)) {
             printf("section: %s\n", shdr_name(&shdr));
             
             if (ret_rop) {
-                rops = rop_ret_rops(shdr_data(&shdr), shdr_size(&shdr), rop_depth);
+                rops = rop_ret_rops(shdr_data(&shdr),
+                                    int_t_get(shdr_size(&shdr)), rop_depth);
                 total_gadgets += print_rop_list(&shdr, rops);
                 rop_list_destroy(rops);
             }
             
             if (jmp_rop) {
-                rops = rop_jmp_reg_rops(shdr_data(&shdr), shdr_size(&shdr), rop_depth);
+                rops = rop_jmp_reg_rops(shdr_data(&shdr),
+                                    int_t_get(shdr_size(&shdr)), rop_depth);
                 total_gadgets += print_rop_list(&shdr, rops);
                 rop_list_destroy(rops);
             }
             
             if (cond_jmp_rop) {
-                rops = rop_cond_jmp_reg_rops(shdr_data(&shdr), shdr_size(&shdr), rop_depth);
+                rops = rop_cond_jmp_reg_rops(shdr_data(&shdr),
+                                    int_t_get(shdr_size(&shdr)), rop_depth);
                 total_gadgets += print_rop_list(&shdr, rops);
                 rop_list_destroy(rops);
             }
             
             if (call_rop) {
-                rops = rop_call_reg_rops(shdr_data(&shdr), shdr_size(&shdr), rop_depth);
+                rops = rop_call_reg_rops(shdr_data(&shdr),
+                                    int_t_get(shdr_size(&shdr)), rop_depth);
                 total_gadgets += print_rop_list(&shdr, rops);
                 rop_list_destroy(rops);
             }

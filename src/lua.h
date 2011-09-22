@@ -9,8 +9,9 @@
 #include <udis86.h>
 
 #include "elf.h"
-#include "strings.h"
 #include "rop.h"
+#include "strings.h"
+#include "types.h"
 
 int lua_run_file (char * filename);
 

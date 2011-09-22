@@ -91,11 +91,13 @@ static int lua_make_rop_table (lua_State * L)
     
     elf = elf_open(filename);
     
-    for (shdr_i = 0; shdr_i < elf_shnum(elf); shdr_i++) {
+    for (shdr_i = 0; shdr_i < int_t_get(elf_shnum(elf)); shdr_i++) {
         elf_shdr(elf, &shdr, shdr_i);
         // for each executable shdr
         if (shdr_exec(&shdr)) {
-            rop_list = rop_ret_rops(shdr_data(&shdr), shdr_size(&shdr), rop_depth);
+            rop_list = rop_ret_rops(shdr_data(&shdr),
+                                    int_t_get(shdr_size(&shdr)),
+                                    rop_depth);
             rop_list_first = rop_list;
             // for each rop sequence
             while (rop_list != NULL) {
@@ -106,7 +108,8 @@ static int lua_make_rop_table (lua_State * L)
                 while (rop_ins != NULL) {
                     lua_newtable(L);
                     lua_pushstring(L, "address");
-                    lua_pushinteger(L, (lua_Integer) (shdr_addr(&shdr) + rop_ins->offset));
+                    lua_pushinteger(L, (lua_Integer) (uint_t_get(shdr_addr(&shdr))
+                                                     + rop_ins->offset));
                     lua_settable(L, -3);
                     lua_pushstring(L, "description");
                     lua_pushstring(L, rop_ins->description);
@@ -149,7 +152,7 @@ int lua_elf_open_shdr_syms (lua_State * L, struct _elf_shdr * shdr)
         lua_newtable(L);
         
         lua_pushstring(L, "address");
-        lua_pushinteger(L, (lua_Integer) sym_addr(&sym));
+        lua_pushinteger(L, (lua_Integer) uint_t_get(sym_value(&sym)));
         lua_settable(L, -3);
         
         lua_pushstring(L, "type");
@@ -188,7 +191,7 @@ int lua_elf_open_shdr_rels (lua_State * L, struct _elf_shdr * shdr)
         lua_settable(L, -3);
         
         lua_pushstring(L, "offset");
-        lua_pushinteger(L, (lua_Integer) rel_offset(&rel));
+        lua_pushinteger(L, (lua_Integer) uint_t_get(rel_offset(&rel)));
         lua_settable(L, -3);
         
         lua_pushstring(L, rel_name(&rel));
@@ -207,13 +210,13 @@ int lua_elf_open_shdrs (lua_State * L, struct _elf * elf)
     
     // table for all shdrs
     lua_newtable(L);
-    for (shdr_i = 0; shdr_i < elf_shnum(elf); shdr_i++) {
+    for (shdr_i = 0; shdr_i < int_t_get(elf_shnum(elf)); shdr_i++) {
         elf_shdr(elf, &shdr, shdr_i);
         // create table for this shdr
         lua_newtable(L);
         
         lua_pushstring(L, "address");
-        lua_pushinteger(L, (lua_Integer) shdr_addr(&shdr));
+        lua_pushinteger(L, (lua_Integer) uint_t_get(shdr_addr(&shdr)));
         lua_settable(L, -3);
         
         lua_pushstring(L, "executable");
@@ -221,19 +224,19 @@ int lua_elf_open_shdrs (lua_State * L, struct _elf * elf)
         lua_settable(L, -3);
         
         lua_pushstring(L, "size");
-        lua_pushinteger(L, (lua_Integer) shdr_size(&shdr));
+        lua_pushinteger(L, (lua_Integer) int_t_get(shdr_size(&shdr)));
         lua_settable(L, -3);
         
         lua_pushstring(L, "type");
-        if (shdr_type(&shdr) > SHDR_TYPE_STRINGS_SIZE)
+        if (int_t_get(shdr_type(&shdr)) > SHDR_TYPE_STRINGS_SIZE)
             lua_pushstring(L, "unknown");
         else
-            lua_pushstring(L, shdr_type_strings[shdr_type(&shdr)]);
+            lua_pushstring(L, shdr_type_strings[int_t_get(shdr_type(&shdr))]);
         lua_settable(L, -3);
         
         // is this a symbol table? well then let's LOAD SOME FUCKING SYMBOLS
-        if (    (shdr_type(&shdr) == SHT_SYMTAB)
-             || (shdr_type(&shdr) == SHT_DYNSYM))
+        if (    (int_t_get(shdr_type(&shdr)) == SHT_SYMTAB)
+             || (int_t_get(shdr_type(&shdr)) == SHT_DYNSYM))
             lua_elf_open_shdr_syms(L, &shdr);
         else
             lua_pushnil(L);
@@ -241,8 +244,8 @@ int lua_elf_open_shdrs (lua_State * L, struct _elf * elf)
         lua_insert(L, -2);
         lua_settable(L, -3);
         
-        if (    (shdr_type(&shdr) == SHT_REL)
-                  || (shdr_type(&shdr) == SHT_RELA))
+        if (    (int_t_get(shdr_type(&shdr)) == SHT_REL)
+             || (int_t_get(shdr_type(&shdr)) == SHT_RELA))
             lua_elf_open_shdr_rels(L, &shdr);
         else
             lua_pushnil(L);
