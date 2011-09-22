@@ -41,7 +41,7 @@ struct _rop_list * rop_jmp_reg_rops (unsigned char * data, int data_size,
 * @return a struct _rop_list which contains all the rop gadgets found
 */
 struct _rop_list * rop_cond_jmp_reg_rops (unsigned char * data, int data_size,
-                                     int depth);
+                                          int depth);
 
 /** finds all 'call reg' rops in data
 * @param data a pointer to data containing instructions
@@ -49,13 +49,13 @@ struct _rop_list * rop_cond_jmp_reg_rops (unsigned char * data, int data_size,
 * @return a struct _rop_list which contains all the rop gadgets found
 */
 struct _rop_list * rop_call_reg_rops (unsigned char * data, int data_size,
-                                     int depth);
+                                      int depth);
 
 /** gets the struct _rop_ins from a struct _rop_list
 * @param rop_list a valid struct _rop_list
 * @return the corresponding struct _rop_ins
 */
-struct _rop_ins  * rop_list_ins     (struct _rop_list * rop_list);
+struct _rop_ins  * rop_list_ins (struct _rop_list * rop_list);
 
 /** destroys all data in a struct _rop_list, including the struct _rop_ins
 * @param rop_list the struct _rop_list to destroy
