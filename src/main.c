@@ -66,6 +66,16 @@ int print_rops (struct _elf * elf, int rop_depth, int ret_rop, int jmp_rop,
     struct _rop_list * rops;
     int i;
     int total_gadgets = 0;
+    int mode;
+
+    switch (elf_class(elf)) {
+    case ELFCLASS32 :
+        mode = 32;
+        break;
+    case ELFCLASS64 :
+        mode = 64;
+        break;
+    }
     
     for (i = 0; i < int_t_get(elf_shnum(elf)); i++) {
         elf_shdr(elf, &shdr, i);
@@ -75,28 +85,36 @@ int print_rops (struct _elf * elf, int rop_depth, int ret_rop, int jmp_rop,
             
             if (ret_rop) {
                 rops = rop_ret_rops(shdr_data(&shdr),
-                                    int_t_get(shdr_size(&shdr)), rop_depth);
+                                    int_t_get(shdr_size(&shdr)),
+                                    rop_depth,
+                                    mode);
                 total_gadgets += print_rop_list(&shdr, rops);
                 rop_list_destroy(rops);
             }
             
             if (jmp_rop) {
                 rops = rop_jmp_reg_rops(shdr_data(&shdr),
-                                    int_t_get(shdr_size(&shdr)), rop_depth);
+                                        int_t_get(shdr_size(&shdr)),
+                                        rop_depth,
+                                        mode);
                 total_gadgets += print_rop_list(&shdr, rops);
                 rop_list_destroy(rops);
             }
             
             if (cond_jmp_rop) {
                 rops = rop_cond_jmp_reg_rops(shdr_data(&shdr),
-                                    int_t_get(shdr_size(&shdr)), rop_depth);
+                                             int_t_get(shdr_size(&shdr)),
+                                             rop_depth,
+                                             mode);
                 total_gadgets += print_rop_list(&shdr, rops);
                 rop_list_destroy(rops);
             }
             
             if (call_rop) {
                 rops = rop_call_reg_rops(shdr_data(&shdr),
-                                    int_t_get(shdr_size(&shdr)), rop_depth);
+                                         int_t_get(shdr_size(&shdr)),
+                                         rop_depth,
+                                         mode);
                 total_gadgets += print_rop_list(&shdr, rops);
                 rop_list_destroy(rops);
             }

@@ -2,13 +2,13 @@
 
 #define MAX_BACKTRACK_LEN 32
 
-int rop_detect_ret (unsigned char * data, int data_size)
+int rop_detect_ret (unsigned char * data, int data_size, int mode)
 {
     ud_t ud_obj;
 
     ud_init(&ud_obj);
     
-    ud_set_mode(&ud_obj, 32);
+    ud_set_mode(&ud_obj, mode);
     ud_set_input_buffer(&ud_obj, data, data_size);
     ud_set_syntax(&ud_obj, NULL);
     
@@ -20,13 +20,13 @@ int rop_detect_ret (unsigned char * data, int data_size)
 }
 
 
-int rop_detect_jmp_reg (unsigned char * data, int data_size)
+int rop_detect_jmp_reg (unsigned char * data, int data_size, int mode)
 {
     ud_t ud_obj;
 
     ud_init(&ud_obj);
     
-    ud_set_mode(&ud_obj, 32);
+    ud_set_mode(&ud_obj, mode);
     ud_set_input_buffer(&ud_obj, data, data_size);
     ud_set_syntax(&ud_obj, NULL);
     
@@ -39,13 +39,13 @@ int rop_detect_jmp_reg (unsigned char * data, int data_size)
 }
 
 
-int rop_detect_cond_jmp_reg (unsigned char * data, int data_size)
+int rop_detect_cond_jmp_reg (unsigned char * data, int data_size, int mode)
 {
     ud_t ud_obj;
 
     ud_init(&ud_obj);
     
-    ud_set_mode(&ud_obj, 32);
+    ud_set_mode(&ud_obj, mode);
     ud_set_input_buffer(&ud_obj, data, data_size);
     ud_set_syntax(&ud_obj, NULL);
     
@@ -76,13 +76,13 @@ int rop_detect_cond_jmp_reg (unsigned char * data, int data_size)
 }
 
 
-int rop_detect_call_reg (unsigned char * data, int data_size)
+int rop_detect_call_reg (unsigned char * data, int data_size, int mode)
 {
     ud_t ud_obj;
 
     ud_init(&ud_obj);
     
-    ud_set_mode(&ud_obj, 32);
+    ud_set_mode(&ud_obj, mode);
     ud_set_input_buffer(&ud_obj, data, data_size);
     ud_set_syntax(&ud_obj, NULL);
     
@@ -99,7 +99,9 @@ struct _rop_list * rop_find_rops (unsigned char * data,
                                   int data_size,
                                   int depth,
                                   int (* detect_callback) (unsigned char * data,
-                                                           int data_size))
+                                                           int data_size,
+                                                           int mode),
+                                  int mode)
 {
     int d; // iterator for location in data
     int ins_size;
@@ -111,16 +113,16 @@ struct _rop_list * rop_find_rops (unsigned char * data,
 
     ud_init(&ud_obj);
     
-    ud_set_mode(&ud_obj, 32);
+    ud_set_mode(&ud_obj, mode);
     ud_set_input_buffer(&ud_obj, data, data_size);
     ud_set_syntax(&ud_obj, NULL);
     
     for (d = 0; d < data_size; d++) {
-        if ((ins_size = detect_callback(&(data[d]), data_size - d)) > 0) {
+        if ((ins_size = detect_callback(&(data[d]), data_size - d, mode)) > 0) {
             // we don't count the d byte in our rop chain depth
             backtrack = d - 1;
             while (d - backtrack <= MAX_BACKTRACK_LEN) {
-                if (rop_depth(&(data[backtrack]), d - backtrack) == depth) {
+                if (rop_depth(&(data[backtrack]), d - backtrack, mode) == depth) {
                     if (rop_list == NULL) {
                         rop_list = (struct _rop_list *) malloc(sizeof(struct _rop_list));
                         next = rop_list;
@@ -132,13 +134,13 @@ struct _rop_list * rop_find_rops (unsigned char * data,
                     next->offset = d - (d - backtrack);
                     next->ins = rop_ins_create(&(data[backtrack]),
                                                d - backtrack + ins_size,
-                                               d - (d - backtrack));
+                                               d - (d - backtrack),
+                                               mode);
                     next->next = NULL;
                 }
                 else if (backtrack < 0)
                     break;
                 backtrack--;
-
             }
         }
     }
@@ -147,30 +149,31 @@ struct _rop_list * rop_find_rops (unsigned char * data,
 }
 
 
-struct _rop_list * rop_ret_rops (unsigned char * data, int data_size, int depth)
+struct _rop_list * rop_ret_rops (unsigned char * data, int data_size,
+                                 int depth, int mode)
 {
-    return rop_find_rops(data, data_size, depth, rop_detect_ret);
+    return rop_find_rops(data, data_size, depth, rop_detect_ret, mode);
 }
 
 
 struct _rop_list * rop_jmp_reg_rops (unsigned char * data, int data_size,
-                                     int depth)
+                                     int depth, int mode)
 {
-    return rop_find_rops(data, data_size, depth, rop_detect_jmp_reg);
+    return rop_find_rops(data, data_size, depth, rop_detect_jmp_reg, mode);
 }
 
 
 struct _rop_list * rop_cond_jmp_reg_rops (unsigned char * data, int data_size,
-                                     int depth)
+                                          int depth, int mode)
 {
-    return rop_find_rops(data, data_size, depth, rop_detect_cond_jmp_reg);
+    return rop_find_rops(data, data_size, depth, rop_detect_cond_jmp_reg, mode);
 }
 
 
 struct _rop_list * rop_call_reg_rops (unsigned char * data, int data_size,
-                                     int depth)
+                                     int depth, int mode)
 {
-    return rop_find_rops(data, data_size, depth, rop_detect_call_reg);
+    return rop_find_rops(data, data_size, depth, rop_detect_call_reg, mode);
 }
 
 
@@ -191,14 +194,14 @@ struct _rop_ins * rop_list_ins (struct _rop_list * rop_list)
 }
 
 
-int rop_depth (unsigned char * data, int data_size)
+int rop_depth (unsigned char * data, int data_size, int mode)
 {
     int depth = 0;
     ud_t ud_obj;
 
     ud_init(&ud_obj);
     
-    ud_set_mode(&ud_obj, 32);
+    ud_set_mode(&ud_obj, mode);
     ud_set_input_buffer(&ud_obj, data, data_size);
     ud_set_syntax(&ud_obj, NULL);
     
@@ -211,7 +214,8 @@ int rop_depth (unsigned char * data, int data_size)
 }
 
 
-struct _rop_ins * rop_ins_create (unsigned char * data, int data_size, int offset)
+struct _rop_ins * rop_ins_create (unsigned char * data, int data_size,
+                                  int offset, int mode)
 {
     struct _rop_ins * rop_ins = NULL;
     struct _rop_ins * next = NULL;
@@ -219,7 +223,7 @@ struct _rop_ins * rop_ins_create (unsigned char * data, int data_size, int offse
 
     ud_init(&ud_obj);
     
-    ud_set_mode(&ud_obj, 32);
+    ud_set_mode(&ud_obj, mode);
     ud_set_input_buffer(&ud_obj, data, data_size);
     ud_set_syntax(&ud_obj, UD_SYN_INTEL);
     
@@ -255,6 +259,4 @@ void rop_ins_destroy (struct _rop_ins * ins) {
     rop_ins_destroy(ins->next);
     free(ins);
 }
-
-
 

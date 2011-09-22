@@ -25,7 +25,8 @@ struct _rop_list {
 * @param data_size the size, in bytes, of data
 * @return a struct _rop_list which contains all the rop gadgets found
 */
-struct _rop_list * rop_ret_rops (unsigned char * data, int data_size, int depth);
+struct _rop_list * rop_ret_rops (unsigned char * data, int data_size,
+                                 int depth, int mode);
 
 /** finds all 'jmp reg' rops in data
 * @param data a pointer to data containing instructions
@@ -33,7 +34,7 @@ struct _rop_list * rop_ret_rops (unsigned char * data, int data_size, int depth)
 * @return a struct _rop_list which contains all the rop gadgets found
 */
 struct _rop_list * rop_jmp_reg_rops (unsigned char * data, int data_size,
-                                     int depth);
+                                     int depth, int mode);
                                      
 /** finds all 'j? reg' rops, other than 'jmp reg' in data (conditional jmps)
 * @param data a pointer to data containing instructions
@@ -41,7 +42,7 @@ struct _rop_list * rop_jmp_reg_rops (unsigned char * data, int data_size,
 * @return a struct _rop_list which contains all the rop gadgets found
 */
 struct _rop_list * rop_cond_jmp_reg_rops (unsigned char * data, int data_size,
-                                          int depth);
+                                          int depth, int mode);
 
 /** finds all 'call reg' rops in data
 * @param data a pointer to data containing instructions
@@ -49,7 +50,7 @@ struct _rop_list * rop_cond_jmp_reg_rops (unsigned char * data, int data_size,
 * @return a struct _rop_list which contains all the rop gadgets found
 */
 struct _rop_list * rop_call_reg_rops (unsigned char * data, int data_size,
-                                      int depth);
+                                      int depth, int mode);
 
 /** gets the struct _rop_ins from a struct _rop_list
 * @param rop_list a valid struct _rop_list
@@ -70,9 +71,11 @@ void rop_list_destroy (struct _rop_list * rop_list);
 void rop_ins_destroy (struct _rop_ins * ins);
 
 // returns depth of rop if data points to valid instructions, 0 otherwise
-int rop_depth (unsigned char * data, int data_size);
+int rop_depth (unsigned char * data, int data_size, int mode);
+
 // creates a list of struct _rop_ins from data
-struct _rop_ins * rop_ins_create (unsigned char * data, int data_size, int offset);
+struct _rop_ins * rop_ins_create (unsigned char * data, int data_size,
+                                  int offset, int mode);
 
 
 #endif
