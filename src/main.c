@@ -25,11 +25,11 @@ int print_rop_list (struct _elf_shdr * shdr, struct _rop_list * rops)
         uint_t_set(&tmp_addr, shdr_addr(shdr));
         uint_t_add_int(&tmp_addr, rops->offset);
         if (elf_sym_func_addr(elf, &sym, &tmp_addr))
-            printf("%s + %x\n", sym_name(&sym),
+            printf("%s + 0x%x\n", sym_name(&sym),
                    (uint_t_get(shdr_addr(shdr)) + rops->offset)
                    - uint_t_get(sym_value(&sym)));
         else
-            printf("%s + %x\n", shdr_name(shdr),
+            printf("%s + 0x%x\n", shdr_name(shdr),
                    uint_t_get(shdr_addr(shdr)) + rops->offset);
     
         
@@ -45,7 +45,7 @@ int print_rop_list (struct _elf_shdr * shdr, struct _rop_list * rops)
             
             uint_t_set(&tmp_addr, shdr_addr(shdr));
             uint_t_add_int(&tmp_addr, rop_ins->offset);
-            printf("  %s:  %s  %s\n",
+            printf("  0x%s:  %s  %s\n",
                    uint_t_strx(&tmp_addr),
                    bytes_string,
                    rop_ins->description);
