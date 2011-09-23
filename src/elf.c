@@ -58,6 +58,7 @@ struct _elf * elf_open (char * filename)
 void elf_destroy (struct _elf * elf)
 {
     free(elf->bytes);
+    free(elf);
 }
 
 

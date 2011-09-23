@@ -83,6 +83,7 @@ static int lua_make_rop_table (lua_State * L)
     int                shdr_i;
     int                rop_list_count = 1;
     int                rop_ins_count;
+    int                mode;
     
     filename  = (char *) luaL_checkstring(L, 1);
     rop_depth = luaL_checkint(L, 2);
@@ -95,9 +96,17 @@ static int lua_make_rop_table (lua_State * L)
         elf_shdr(elf, &shdr, shdr_i);
         // for each executable shdr
         if (shdr_exec(&shdr)) {
+            switch (elf_class(elf)) {
+            case ELFCLASS32 :
+                mode = 32;
+                break;
+            case ELFCLASS64 :
+                mode = 64;
+                break;
+            }
             rop_list = rop_ret_rops(shdr_data(&shdr),
                                     int_t_get(shdr_size(&shdr)),
-                                    rop_depth);
+                                    rop_depth, mode);
             rop_list_first = rop_list;
             // for each rop sequence
             while (rop_list != NULL) {
@@ -134,6 +143,8 @@ static int lua_make_rop_table (lua_State * L)
             rop_list_destroy(rop_list_first);
         }
     }
+    
+    elf_destroy(elf);
     
     return 1;
 }
