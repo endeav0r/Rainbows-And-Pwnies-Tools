@@ -8,11 +8,24 @@
 #define INT_T_32 1
 #define INT_T_64 2
 
+#define INT_T_TYPE_ERROR -2
+#define INT_T_ERROR      -3
+
 #define UINT_T_16 16
 #define UINT_T_32 17
 #define UINT_T_64 18
 
+#define UINT_T_TYPE_ERROR -4
+#define UINT_T_ERROR      -5
+
 #define INT_STRLEN 24
+
+#define INT_T_BITS(x) (x->type == INT_T_16 ? 16 : \
+                       (x->type == INT_T_32 ? 32 : 64) \
+                      )
+#define UINT_T_BITS(x) (x->type == UINT_T_16 ? 16 : \
+                        (x->type == UINT_T_32 ? 32 : 64) \
+                       )
 
 typedef struct int_s {
     union {
@@ -37,12 +50,19 @@ typedef struct uint_s {
 void    int_t_16_set (int_t * intt, int16_t i);
 void    int_t_32_set (int_t * intt, int32_t i);
 void    int_t_64_set (int_t * intt, int64_t i);
+void    int_t_set    (int_t * dst, int_t * src);
 int16_t int_t_16_get (int_t * intt);
 int32_t int_t_32_get (int_t * intt);
 int64_t int_t_64_get (int_t * intt);
 int     int_t_get    (int_t * intt);
 char *  int_t_str    (int_t * i);
 char *  int_t_strx   (int_t * i);
+int     int_t_cmp    (int_t * a, int_t * b);
+int     int_t_add    (int_t * dst, int_t * b);
+int     int_t_sub    (int_t * dst, int_t * b);
+int     int_t_mul    (int_t * dst, int_t * b);
+int     int_t_div    (int_t * dst, int_t * b);
+int     int_t_mod    (int_t * dst, int_t * b);
 
 void         uint_t_16_set  (uint_t * uintt, uint16_t i);
 void         uint_t_32_set  (uint_t * uintt, uint32_t i);
@@ -56,7 +76,11 @@ char *       uint_t_str     (uint_t * i);
 char *       uint_t_strx    (uint_t * i);
 int          uint_t_cmp     (uint_t * a, uint_t * b);
 void         uint_t_add_int (uint_t * dst, int i);
-void         uint_t_sub     (uint_t * dst, uint_t * b);
-void         uint_t_make    (uint_t * dst, uint_t * type_src);
+int          uint_t_sub     (uint_t * dst, uint_t * b);
+int          uint_t_add     (uint_t * dst, uint_t * b);
+int          uint_t_sub     (uint_t * dst, uint_t * b);
+int          uint_t_mul     (uint_t * dst, uint_t * b);
+int          uint_t_div     (uint_t * dst, uint_t * b);
+int          uint_t_mod     (uint_t * dst, uint_t * b);
 
 #endif

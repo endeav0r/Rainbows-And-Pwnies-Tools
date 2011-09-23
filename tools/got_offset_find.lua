@@ -17,8 +17,8 @@ TARGET_MNEMONICS = {"add", "sub"} -- set to nil to show all possibilities
 LIBC_FILENAME = "/lib/i386-linux-gnu/libc-2.13.so"
 TARGET_FILENAME = "/path/to/target"
 
-libc = elf_open(LIBC_FILENAME)
-sublog = elf_open(TARGET_FILENAME)
+libc   = elf_read(LIBC_FILENAME)
+sublog = elf_read(TARGET_FILENAME)
 
 -- find all symbols that are GLIBC in TARGET
 glibc_symbols = {}

@@ -10,11 +10,12 @@
 
 #include "aux.h"
 #include "elf.h"
+#include "lua_types.h"
 #include "rop.h"
 #include "strings.h"
 #include "types.h"
 
-int lua_run_file (char * filename);
+int lua_run_file (char * filename, char * args[], int argc);
 
 //static int lua_make_rop_table (lua_State * L);
 

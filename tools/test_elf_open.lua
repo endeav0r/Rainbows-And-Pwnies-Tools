@@ -14,7 +14,7 @@ dofile("tools/rop_tools.lua")
                 ["type"] string
 ]]
 
-elf = elf_open("rop_tools")
+elf = elf_read("rop_tools")
 
 print("shnum " .. tostring(elf["shnum"]))
 

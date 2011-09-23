@@ -29,6 +29,33 @@ struct _sym_list * sym_list_insert (struct _sym_list * sym_list,
 }
 
 
+int aux_func_sym_at_address (struct _elf * elf, struct _elf_sym * sym,
+                             uint_t * address)
+{
+    struct _elf_shdr shdr;
+    uint_t top_addr;
+    int shdr_i;
+    int sym_i;
+    
+    for (shdr_i = 0; shdr_i < int_t_get(elf_shnum(elf)); shdr_i++) {
+        elf_shdr(elf, &shdr, shdr_i);
+        if (int_t_get(shdr_type(&shdr)) == SHT_SYMTAB) {
+            for (sym_i = 0; sym_i < shdr_num(&shdr); sym_i++) {
+                shdr_sym(&shdr, sym, sym_i);
+                uint_t_set(&top_addr, sym_value(sym));
+                uint_t_add_int(&top_addr, int_t_get(sym_size(sym)));
+                if (    (uint_t_cmp(sym_value(sym), address) <= 0)
+                     && (uint_t_cmp(&top_addr, address) >= 0))
+                    return 1;
+            }
+        }
+    }
+    
+    return 0;
+}
+            
+
+
 struct _sym_list * aux_func_syms (struct _elf * elf)
 {
     struct _elf_shdr shdr;

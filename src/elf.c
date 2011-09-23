@@ -262,7 +262,9 @@ int elf_sym_func_addr (struct _elf * elf,
     struct _elf_shdr shdr;
     struct _elf_sym sym_tmp;
     
-    uint_t_make(&best_sym_addr, addr);
+    // sets best_sym_addr same size as addr and zeroes it out
+    uint_t_set(&best_sym_addr, addr);
+    uint_t_sub(&best_sym_addr, addr);
     
     // check all shdr to see if they're SHT_SYMTAB
     for (i = 0; i < int_t_get(elf_shnum(elf)); i++) {

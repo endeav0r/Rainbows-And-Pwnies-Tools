@@ -134,12 +134,28 @@ static int lua_dis_by_function (lua_State * L)
     while (sym_list != NULL) {
         elf_shdr(elf, &shdr, sym_list->shdr_i);
         shdr_sym(&shdr, &sym, sym_list->sym_i);
+        if (int_t_get(sym_size(&sym)) == 0) {
+            sym_list = sym_list->next;
+            continue;
+        }
+        
         elf_shdr(elf, &text_shdr, uint_t_get(sym_shndx(&sym)));
         uint_t_set(&data_offset, sym_value(&sym));
         uint_t_sub(&data_offset, shdr_addr(&text_shdr));
         data = shdr_data(&text_shdr);
         data = &(data[uint_t_get(&data_offset)]);
+        
+        lua_newtable(L);
         lua_dis_table(L, sym_value(&sym), data, int_t_get(sym_size(&sym)), mode);
+        lua_pushstring(L, "instructions");
+        lua_insert(L, -2);
+        lua_settable(L, -3);
+        lua_pushstring(L, "size");
+        lua_pushinteger(L, int_t_get(sym_size(&sym)));
+        lua_settable(L, -3);
+        lua_pushstring(L, "address");
+        lua_pushinteger(L, uint_t_get(sym_value(&sym)));
+        lua_settable(L, -3);
         lua_pushstring(L, sym_name(&sym));
         lua_insert(L, -2);
         lua_settable(L, -3);
@@ -358,7 +374,7 @@ int lua_elf_open_shdrs (lua_State * L, struct _elf * elf)
 }
 
 
-static int lua_elf_open (lua_State * L)
+static int lua_elf_read (lua_State * L)
 {
     char * filename;
     struct _elf * elf;
@@ -387,21 +403,69 @@ static int lua_elf_open (lua_State * L)
 }
 
 
-int lua_run_file (char * filename)
+static int lua_elf_open (lua_State * L)
+{
+    char * filename;
+    struct _elf * elf;
+    
+    filename = (char *) luaL_checkstring(L, 1);
+    lua_pop(L, 1);
+    
+    elf = elf_open(filename);
+    
+    lua_pushlightuserdata(L, elf);
+    
+    return 1;
+}
+
+
+static int lua_elf_destroy (lua_State * L)
+{
+    struct _elf * elf;
+    
+    if (lua_islightuserdata(L, 1) == 0)
+        luaL_error(L, "elf_close requires result of elf_open as argument");
+    
+    elf = (struct _elf *) lua_touserdata(L, 1);
+    lua_pop(L, 1);
+    
+    elf_destroy(elf);
+    
+    return 0;
+}
+
+
+int lua_run_file (char * filename, char * argv[], int argc)
 {
     int error;
+    int args_i;
     
     lua_State * L = lua_open();
     luaL_openlibs(L);
+    lua_open_int_t(L);
+    lua_open_uint_t(L);
+        
+    lua_newtable(L);
+    for (args_i = 0; args_i < argc; args_i++) {
+        lua_pushinteger(L, (lua_Integer) args_i + 1);
+        lua_pushstring(L, argv[args_i]);
+        lua_settable(L, -3);
+    }
+    lua_setglobal(L, "argv");
+    
     
     lua_pushcfunction(L, lua_make_rop_table);
     lua_setglobal(L, "make_rop_table");
+    lua_pushcfunction(L, lua_elf_read);
+    lua_setglobal(L, "elf_read");
     lua_pushcfunction(L, lua_elf_open);
     lua_setglobal(L, "elf_open");
+    lua_pushcfunction(L, lua_elf_destroy);
+    lua_setglobal(L, "elf_destroy");
     lua_pushcfunction(L, lua_dis_by_function);
     lua_setglobal(L, "dis_by_function");
     
-    error =luaL_loadfile(L, filename);
+    error = luaL_loadfile(L, filename);
     switch (error) {
     case LUA_ERRSYNTAX :
         lua_error(L);

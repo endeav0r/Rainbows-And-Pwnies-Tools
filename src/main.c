@@ -175,7 +175,7 @@ int main (int argc, char * argv[])
         printf("rop_tools\n");
         printf("brought to you by rainbowsandpwnies\n");
         printf("\n");
-        printf("%s [-cjr] [-d depth] (-e <elf> | -l <lua_file)\n", argv[0]);
+        printf("%s [-cjr] [-d depth] (-e <elf> | -l <lua_file> [args])\n", argv[0]);
         printf("  -c         search for call reg gadgets\n");
         printf("  -d <depth> depth, in instructions, to search backwards\n");
         printf("  -e <elf>   filename of elf to analyze\n");
@@ -189,7 +189,7 @@ int main (int argc, char * argv[])
     
     
     if (lua_run)
-        lua_run_file(filename);
+        lua_run_file(filename, &(argv[optind]), argc - optind);
     else {
         elf = elf_open(filename);
         if (elf != NULL) {

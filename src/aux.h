@@ -18,8 +18,12 @@ struct _sym_list {
 * @return a sym_list sorted by value ascending
 */
 struct _sym_list * aux_func_syms           (struct _elf * elf);
-struct _sym_list * sym_list_insert (struct _sym_list * sym_list,
-                                    struct _elf_sym * sym);
+int                aux_func_sym_at_address (struct _elf * elf,
+                                            struct _elf_sym * sym,
+                                            uint_t * address);
+struct _sym_list * sym_list_insert         (struct _sym_list * sym_list,
+                                            struct _elf_sym * sym);
 void               sym_list_destroy        (struct _sym_list * sym_list);
+
 
 #endif
