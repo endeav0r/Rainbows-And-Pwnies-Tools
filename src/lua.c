@@ -87,6 +87,9 @@ void lua_dis_table (lua_State * L, uint_t * address,
         lua_pushinteger(L, (lua_Integer) uint_t_get(address) 
                                          + ud_insn_off(&ud_obj));
         lua_settable(L, -3);
+        lua_pushstring(L, "mnemonic");
+        lua_pushstring(L, mnemonic_strings[ud_obj.mnemonic]);
+        lua_settable(L, -3);
         lua_pushstring(L, "description");
         lua_pushstring(L, ud_insn_asm(&ud_obj));
         lua_settable(L, -3);
@@ -136,7 +139,7 @@ static int lua_dis_by_function (lua_State * L)
         uint_t_sub(&data_offset, shdr_addr(&text_shdr));
         data = shdr_data(&text_shdr);
         data = &(data[uint_t_get(&data_offset)]);
-        lua_dis_table(L, shdr_addr(&shdr), data, int_t_get(sym_size(&sym)), mode);
+        lua_dis_table(L, sym_value(&sym), data, int_t_get(sym_size(&sym)), mode);
         lua_pushstring(L, sym_name(&sym));
         lua_insert(L, -2);
         lua_settable(L, -3);
