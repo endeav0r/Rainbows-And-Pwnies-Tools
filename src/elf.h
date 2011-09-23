@@ -48,6 +48,8 @@ struct _elf_sym {
     int    type;
     uint_t value;
     int_t  name;
+    int_t  size;
+    uint_t shndx;
 };
 
 struct _elf_rel {
@@ -70,9 +72,9 @@ void          elf_destroy (struct _elf * elf);
 
 unsigned char elf_class      (struct _elf * elf);
 int_t *       elf_shnum      (struct _elf * elf);
-uint_t *       elf_shoff      (struct _elf * elf);
+uint_t *      elf_shoff      (struct _elf * elf);
 int_t *       elf_shstrndx   (struct _elf * elf);
-char        * elf_strtab_str (struct _elf * elf, int strtab, int offset);
+char *        elf_strtab_str (struct _elf * elf, int strtab, int offset);
 
 int elf_shdr (struct _elf * elf, struct _elf_shdr * shdr, int index);
 int shdr_sym (struct _elf_shdr * shdr, struct _elf_sym * sym, int index);
@@ -81,6 +83,8 @@ int shdr_rel (struct _elf_shdr * shdr, struct _elf_rel * rel, int index);
 int      sym_type  (struct _elf_sym * sym);
 uint_t * sym_value (struct _elf_sym * sym);
 char *   sym_name  (struct _elf_sym * sym);
+int_t *  sym_size  (struct _elf_sym * sym);
+uint_t * sym_shndx (struct _elf_sym * sym);
 
 char *   rel_name   (struct _elf_rel * rel);
 uint_t * rel_offset (struct _elf_rel * rel);

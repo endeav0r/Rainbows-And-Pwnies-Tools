@@ -8,6 +8,7 @@
 #include <lua5.1/lualib.h>
 #include <udis86.h>
 
+#include "aux.h"
 #include "elf.h"
 #include "rop.h"
 #include "strings.h"

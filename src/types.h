@@ -56,6 +56,7 @@ char *       uint_t_str     (uint_t * i);
 char *       uint_t_strx    (uint_t * i);
 int          uint_t_cmp     (uint_t * a, uint_t * b);
 void         uint_t_add_int (uint_t * dst, int i);
+void         uint_t_sub     (uint_t * dst, uint_t * b);
 void         uint_t_make    (uint_t * dst, uint_t * type_src);
 
 #endif

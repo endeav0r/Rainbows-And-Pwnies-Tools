@@ -224,6 +224,25 @@ void uint_t_add_int (uint_t * dst, int i)
 }
 
 
+void uint_t_sub (uint_t * dst, uint_t * b)
+{
+    // silently fail is probably better than violently fail
+    if (dst->type != b->type)
+        return;
+    switch (dst->type) {
+    case UINT_T_16 :
+        dst->uints.uint16 -= b->uints.uint16;
+        break;
+    case UINT_T_32 :
+        dst->uints.uint32 -= b->uints.uint32;
+        break;
+    case UINT_T_64 :
+        dst->uints.uint64 -= b->uints.uint64;
+        break;
+    }
+}
+
+
 void uint_t_make (uint_t * dst, uint_t * type_src)
 {
     switch (type_src->type) {

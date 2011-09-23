@@ -134,12 +134,16 @@ int shdr_sym (struct _elf_shdr * shdr, struct _elf_sym * sym, int index)
         sym->type  = ELF32_ST_TYPE(sym->s.sym32->st_info);
         uint_t_32_set(&(sym->value), sym->s.sym32->st_value);
         int_t_32_set (&(sym->name), sym->s.sym32->st_name);
+        int_t_32_set (&(sym->size), sym->s.sym32->st_size);
+        uint_t_16_set(&(sym->shndx), sym->s.sym32->st_shndx);
         break;
     case ELFCLASS64 :
         sym->s.sym64 = (Elf64_Sym *) &(data[int_t_get(shdr_entsize(shdr)) * index]);
         sym->type  = ELF64_ST_TYPE(sym->s.sym64->st_info);
         uint_t_64_set(&(sym->value), sym->s.sym64->st_value);
         int_t_64_set (&(sym->name), sym->s.sym64->st_name);
+        int_t_64_set (&(sym->size), sym->s.sym64->st_size);
+        uint_t_16_set(&(sym->shndx), sym->s.sym64->st_shndx);
         break;
     }
     return 1;
@@ -203,6 +207,8 @@ int shdr_rel (struct _elf_shdr * shdr, struct _elf_rel * rel, int index)
 
 int      sym_type  (struct _elf_sym * sym) { return sym->type; }
 uint_t * sym_value (struct _elf_sym * sym) { return &(sym->value); }
+int_t  * sym_size  (struct _elf_sym * sym) { return &(sym->size); }
+uint_t * sym_shndx (struct _elf_sym * sym) { return &(sym->shndx); }
 char *   sym_name  (struct _elf_sym * sym)
 {
     return elf_strtab_str(sym->elf,
@@ -285,4 +291,3 @@ int elf_sym_func_addr (struct _elf * elf,
     
     return 1;
 }
-

@@ -1,17 +1,16 @@
 #include "lua.h"
 
-
-void lua_rop_ins_operand_table (lua_State * L, struct _rop_ins * rop_ins)
+void lua_operands_table (lua_State * L, unsigned char * data, int size, int mode)
 {
-    int                op_i;
+    int  op_i;
     ud_t ud_obj;
 
     // table for operands
     lua_newtable(L);
 
     ud_init(&ud_obj);
-    ud_set_mode(&ud_obj, 32);
-    ud_set_input_buffer(&ud_obj, rop_ins->bytes, rop_ins->bytes_size);
+    ud_set_mode(&ud_obj, mode);
+    ud_set_input_buffer(&ud_obj, data, size);
     ud_set_syntax(&ud_obj, NULL);
     ud_disassemble(&ud_obj);
     for (op_i = 0; op_i < 3; op_i++) {
@@ -65,9 +64,89 @@ void lua_rop_ins_operand_table (lua_State * L, struct _rop_ins * rop_ins)
         lua_insert(L, -2);
         lua_settable(L, -3);
     }
-    lua_pushstring(L, "operands");
-    lua_insert(L, -2);
-    lua_settable(L, -3);
+}
+
+
+void lua_dis_table (lua_State * L, uint_t * address, 
+                    unsigned char * data, int size, int mode)
+{
+    int ins_i = 1;
+    ud_t ud_obj;
+    
+    ud_init(&ud_obj);
+    ud_set_mode(&ud_obj, mode);
+    ud_set_syntax(&ud_obj, UD_SYN_INTEL);
+    
+    ud_set_input_buffer(&ud_obj, data, size);
+    // table for all instructions
+    lua_newtable(L);
+    while (ud_disassemble(&ud_obj)) {
+        // table for this instruction
+        lua_newtable(L);
+        lua_pushstring(L, "address");
+        lua_pushinteger(L, (lua_Integer) uint_t_get(address) 
+                                         + ud_insn_off(&ud_obj));
+        lua_settable(L, -3);
+        lua_pushstring(L, "description");
+        lua_pushstring(L, ud_insn_asm(&ud_obj));
+        lua_settable(L, -3);
+        lua_operands_table(L, ud_insn_ptr(&ud_obj), ud_insn_len(&ud_obj), mode);
+        lua_pushstring(L, "operands");
+        lua_insert(L, -2);
+        lua_settable(L, -3);
+        lua_pushinteger(L, (lua_Integer) ins_i);
+        lua_insert(L, -2);
+        lua_settable(L, -3);
+        ins_i++;
+    }
+}
+
+
+static int lua_dis_by_function (lua_State * L)
+{
+    struct _elf * elf;
+    struct _elf_shdr shdr;
+    struct _elf_shdr text_shdr;
+    struct _elf_sym sym;
+    struct _sym_list * sym_list;
+    struct _sym_list * sym_list_first;
+    int mode;
+    uint_t data_offset;
+    unsigned char * data;
+    char * filename;
+
+    filename  = (char *) luaL_checkstring(L, 1);
+    lua_pop(L, 1);
+    
+    elf = elf_open(filename);
+    switch (elf_class(elf)) {
+    case ELFCLASS32 : mode = 32; break;
+    case ELFCLASS64 : mode = 64; break;
+    }
+    
+    sym_list_first = aux_func_syms(elf);
+    sym_list = sym_list_first;
+    
+    lua_newtable(L);
+    while (sym_list != NULL) {
+        elf_shdr(elf, &shdr, sym_list->shdr_i);
+        shdr_sym(&shdr, &sym, sym_list->sym_i);
+        elf_shdr(elf, &text_shdr, uint_t_get(sym_shndx(&sym)));
+        uint_t_set(&data_offset, sym_value(&sym));
+        uint_t_sub(&data_offset, shdr_addr(&text_shdr));
+        data = shdr_data(&text_shdr);
+        data = &(data[uint_t_get(&data_offset)]);
+        lua_dis_table(L, shdr_addr(&shdr), data, int_t_get(sym_size(&sym)), mode);
+        lua_pushstring(L, sym_name(&sym));
+        lua_insert(L, -2);
+        lua_settable(L, -3);
+        sym_list = sym_list->next;
+    }
+    
+    sym_list_destroy(sym_list_first);
+    elf_destroy(elf);
+    
+    return 1;
 }
 
 
@@ -97,12 +176,8 @@ static int lua_make_rop_table (lua_State * L)
         // for each executable shdr
         if (shdr_exec(&shdr)) {
             switch (elf_class(elf)) {
-            case ELFCLASS32 :
-                mode = 32;
-                break;
-            case ELFCLASS64 :
-                mode = 64;
-                break;
+            case ELFCLASS32 : mode = 32; break;
+            case ELFCLASS64 : mode = 64; break;
             }
             rop_list = rop_ret_rops(shdr_data(&shdr),
                                     int_t_get(shdr_size(&shdr)),
@@ -126,7 +201,11 @@ static int lua_make_rop_table (lua_State * L)
                     lua_pushstring(L, "mnemonic");
                     lua_pushstring(L, mnemonic_strings[rop_ins->mnemonic]);
                     lua_settable(L, -3);
-                    lua_rop_ins_operand_table(L, rop_ins); 
+                    lua_operands_table(L, rop_ins->bytes,
+                                       rop_ins->bytes_size, mode);
+                    lua_pushstring(L, "operands");
+                    lua_insert(L, -2);
+                    lua_settable(L, -3);
                     lua_pushinteger(L, (lua_Integer) rop_ins_count);
                     lua_insert(L, -2);
                     lua_settable(L, -3);
@@ -316,6 +395,8 @@ int lua_run_file (char * filename)
     lua_setglobal(L, "make_rop_table");
     lua_pushcfunction(L, lua_elf_open);
     lua_setglobal(L, "elf_open");
+    lua_pushcfunction(L, lua_dis_by_function);
+    lua_setglobal(L, "dis_by_function");
     
     error =luaL_loadfile(L, filename);
     switch (error) {

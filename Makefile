@@ -2,7 +2,7 @@ CC=gcc
 CFLAGS= -Wall -O0 -g
 LIBS = -ludis86 -llua5.1
 
-_OBJS = elf.o rop.o lua.o strings.o types.o
+_OBJS = elf.o rop.o lua.o strings.o types.o aux.o
 
 SRCDIR = src
 OBJS = $(patsubst %,$(SRCDIR)/%,$(_OBJS))
