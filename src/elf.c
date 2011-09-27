@@ -9,7 +9,6 @@ struct _elf * elf_open (char * filename)
     FILE * fh;
     
     // read in the ELF binary
-    
     fh = fopen(filename, "rb");
     if (fh == NULL) {
         fprintf(stderr, "failed to open file %s\n", filename);
@@ -17,6 +16,8 @@ struct _elf * elf_open (char * filename)
     }
     
     elf = (struct _elf *) malloc(sizeof(struct _elf));
+    elf->bytes = NULL;
+    elf->filename = NULL;
     
     fseek(fh, 0, SEEK_END);
     elf->bytes_size = ftell(fh);
@@ -33,6 +34,9 @@ struct _elf * elf_open (char * filename)
     }
     
     fclose(fh);
+    
+    elf->filename = (char *) malloc(strlen(filename) + 1);
+    strcpy(elf->filename, filename);
     
     // set up elf based 32 or 64 bit
     elf->e.elf32 = (Elf32_Ehdr *) elf->bytes;
@@ -55,10 +59,23 @@ struct _elf * elf_open (char * filename)
     return elf;
 }
 
+
 void elf_destroy (struct _elf * elf)
 {
+    free(elf->filename);
     free(elf->bytes);
     free(elf);
+}
+
+
+int elf_copy (struct _elf * dst, struct _elf * src)
+{
+    memcpy(dst, src, sizeof(struct _elf));
+    dst->filename = (char *) malloc(strlen(src->filename) + 1);
+    strcpy(dst->filename, src->filename);
+    dst->bytes = (unsigned char *) malloc(src->bytes_size);
+    memcpy(dst->bytes, src->bytes, src->bytes_size);
+    return 0;
 }
 
 

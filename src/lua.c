@@ -444,6 +444,7 @@ int lua_run_file (char * filename, char * argv[], int argc)
     luaL_openlibs(L);
     lua_open_int_t(L);
     lua_open_uint_t(L);
+    lua_open_elf_t(L);
         
     lua_newtable(L);
     for (args_i = 0; args_i < argc; args_i++) {

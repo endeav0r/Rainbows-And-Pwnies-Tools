@@ -4,10 +4,12 @@
 #include <elf.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "types.h"
 
 struct _elf {
+    char * filename;
     size_t bytes_size;
     unsigned char * bytes;
     union {
@@ -69,6 +71,7 @@ struct _elf_rel {
 
 struct _elf * elf_open    (char * filename);
 void          elf_destroy (struct _elf * elf);
+int           elf_copy    (struct _elf * dst, struct _elf * src);
 
 unsigned char elf_class      (struct _elf * elf);
 int_t *       elf_shnum      (struct _elf * elf);
