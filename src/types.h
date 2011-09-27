@@ -4,31 +4,39 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#define INT_T_16 0
-#define INT_T_32 1
-#define INT_T_64 2
+#define INT_T_8  1
+#define INT_T_16 2
+#define INT_T_32 3
+#define INT_T_64 4
 
 #define INT_T_TYPE_ERROR -2
 #define INT_T_ERROR      -3
 
-#define UINT_T_16 16
-#define UINT_T_32 17
-#define UINT_T_64 18
+#define UINT_T_8  17
+#define UINT_T_16 18
+#define UINT_T_32 19
+#define UINT_T_64 20
 
 #define UINT_T_TYPE_ERROR -4
 #define UINT_T_ERROR      -5
 
 #define INT_STRLEN 24
 
-#define INT_T_BITS(x) (x->type == INT_T_16 ? 16 : \
-                       (x->type == INT_T_32 ? 32 : 64) \
+#define INT_T_BITS(x) ((x->type == INT_T_8 ? 8 : \
+                       (x->type == INT_T_16 ? 16 : \
+                        (x->type == INT_T_32 ? 32 : 64) \
+                       ) \
                       )
-#define UINT_T_BITS(x) (x->type == UINT_T_16 ? 16 : \
-                        (x->type == UINT_T_32 ? 32 : 64) \
+#define UINT_T_BITS(x) ((x->type == UINT_T_8 ? 8 : \
+                        (x->type == UINT_T_16 ? 16 : \
+                         (x->type == UINT_T_32 ? 32 : 64) \
+                        ) \
                        )
+
 
 typedef struct int_s {
     union {
+        int8_t  int8;
         int16_t int16;
         int32_t int32;
         int64_t int64;
@@ -39,6 +47,7 @@ typedef struct int_s {
 
 typedef struct uint_s {
     union {
+        uint8_t  uint8;
         uint16_t uint16;
         uint32_t uint32;
         uint64_t uint64;
@@ -47,10 +56,12 @@ typedef struct uint_s {
     char string[INT_STRLEN];
 } uint_t;
 
+void    int_t_8_set  (int_t * intt, int8_t i);
 void    int_t_16_set (int_t * intt, int16_t i);
 void    int_t_32_set (int_t * intt, int32_t i);
 void    int_t_64_set (int_t * intt, int64_t i);
 void    int_t_set    (int_t * dst, int_t * src);
+int8_t  int_t_8_get  (int_t * intt);
 int16_t int_t_16_get (int_t * intt);
 int32_t int_t_32_get (int_t * intt);
 int64_t int_t_64_get (int_t * intt);
@@ -64,10 +75,12 @@ int     int_t_mul    (int_t * dst, int_t * b);
 int     int_t_div    (int_t * dst, int_t * b);
 int     int_t_mod    (int_t * dst, int_t * b);
 
+void         uint_t_8_set   (uint_t * uintt, uint8_t  i);
 void         uint_t_16_set  (uint_t * uintt, uint16_t i);
 void         uint_t_32_set  (uint_t * uintt, uint32_t i);
 void         uint_t_64_set  (uint_t * uintt, uint64_t i);
 void         uint_t_set     (uint_t * dst, uint_t * src);
+uint8_t      uint_t_8_get   (uint_t * uintt);
 uint16_t     uint_t_16_get  (uint_t * uintt);
 uint32_t     uint_t_32_get  (uint_t * uintt);
 uint64_t     uint_t_64_get  (uint_t * uintt);
