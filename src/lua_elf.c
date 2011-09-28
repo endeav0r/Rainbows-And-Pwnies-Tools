@@ -11,6 +11,13 @@
     push_function(L, value_get); \
     return 1;
 
+#define LUA_SYMBOL_T_ACCESSOR(push_function, value_get) \
+    struct _elf_sym * sym; \
+    sym = lua_check_sym(L, 1); \
+    lua_pop(L, 1); \
+    push_function(L, value_get); \
+    return 1;
+
 static const struct luaL_Reg elf_lib_f [] = {
     {"new", lua_elf_t_new},
     {NULL, NULL}
@@ -29,7 +36,6 @@ static const struct luaL_Reg section_lib_f [] = {
     {NULL, NULL}
 };
 
-
 static const struct luaL_Reg section_lib_m [] = {
     {"name",    lua_section_t_name},
     {"address", lua_section_t_address},
@@ -40,17 +46,30 @@ static const struct luaL_Reg section_lib_m [] = {
     {"num",     lua_section_t_num},
     {"entsize", lua_section_t_entsize},
     {"link",    lua_section_t_link},
+    {"symbol",  lua_section_t_symbol},
     {"__gc",    lua_section_t_gc},
     {NULL, NULL}
 };
 
-void lua_elf_t_collect (struct lua_elf_t * elf_t)
+static const struct luaL_Reg symbol_lib_f [] = {
+    {NULL, NULL}
+};
+
+static const struct luaL_Reg symbol_lib_m [] = {
+    {"name",  lua_symbol_t_name},
+    {"value", lua_symbol_t_value},
+    {"type",  lua_symbol_t_type},
+    {"size",  lua_symbol_t_size},
+    {NULL, NULL}
+};
+
+void lua_elf_t_collect (struct lua_elf_t * elf)
 {
-    elf_t->ref_count--;
+    elf->ref_count--;
     
-    if (elf_t->ref_count <= 0) {
-        elf_destroy(elf_t->elf);
-        free(elf_t);
+    if (elf->ref_count <= 0) {
+        elf_destroy(elf->elf);
+        free(elf);
     }
 }
 
@@ -71,27 +90,34 @@ int lua_open_elf_t (lua_State * L)
     luaL_register(L, NULL, section_lib_m);
     luaL_register(L, "section_t", section_lib_f);
     
+    luaL_newmetatable(L, "rop_tools.symbol_t");
+    lua_pushstring(L, "__index");
+    lua_pushvalue(L, -2);
+    lua_settable(L, -3);
+    luaL_register(L, NULL, symbol_lib_m);
+    luaL_register(L, "symbol_t", symbol_lib_f);
+    
     return 1;
 }
 
 
 struct _elf * lua_check_elf (lua_State * L, int position)
 {
-    struct lua_elf_t ** elf_t;
+    struct lua_elf_t ** elf;
     void * userdata = luaL_checkudata(L, position, "rop_tools.elf_t");
     luaL_argcheck(L, userdata != NULL, position, "elf_t expected");
-    elf_t = (struct lua_elf_t **) userdata;
-    return (struct _elf *) (*elf_t)->elf;
+    elf = (struct lua_elf_t **) userdata;
+    return (struct _elf *) (*elf)->elf;
 }
 
 
 struct lua_elf_t * lua_check_elf_t (lua_State * L, int position)
 {
-    struct lua_elf_t ** elf_t;
+    struct lua_elf_t ** elf;
     void * userdata = luaL_checkudata(L, position, "rop_tools.elf_t");
     luaL_argcheck(L, userdata != NULL, position, "elf_t expected");
-    elf_t = (struct lua_elf_t **) userdata;
-    return *elf_t;
+    elf = (struct lua_elf_t **) userdata;
+    return *elf;
 }
 
 
@@ -133,13 +159,13 @@ int lua_elf_t_new (lua_State * L)
 
 int lua_elf_t_gc (lua_State * L) 
 {
-    struct lua_elf_t ** elf_t;
+    struct lua_elf_t ** elf;
     
     void * userdata = luaL_checkudata(L, 1, "rop_tools.elf_t");
     luaL_argcheck(L, userdata != NULL, 1, "elf_t expected");
-    elf_t = (struct lua_elf_t **) userdata;
+    elf = (struct lua_elf_t **) userdata;
     
-    lua_elf_t_collect(*elf_t);
+    lua_elf_t_collect(*elf);
     
     return 0;
 }
@@ -187,25 +213,25 @@ int lua_elf_t_shnum (lua_State * L)
 
 int lua_elf_t_section (lua_State * L)
 {
-    struct lua_elf_t * elf_t;
+    struct lua_elf_t * elf;
     struct _elf_shdr shdr;
     int shdr_i, found;
     struct lua_section_t * section;
     
-    elf_t = lua_check_elf_t(L, 1);
+    elf = lua_check_elf_t(L, 1);
     if (lua_isnumber(L, 2))
         shdr_i = luaL_checkinteger(L, 2);
     else if (lua_isstring(L, 2)) {
         found = 0;
-        for (shdr_i = 0; shdr_i < int_t_get(elf_shnum(elf_t->elf)); shdr_i++) {
-            elf_shdr(elf_t->elf, &shdr, shdr_i);
+        for (shdr_i = 0; shdr_i < int_t_get(elf_shnum(elf->elf)); shdr_i++) {
+            elf_shdr(elf->elf, &shdr, shdr_i);
             if (strcmp(shdr_name(&shdr), lua_tostring(L, 2)) == 0) {
                 found = 1;
                 break;
             }
         }
         if (! found)
-            luaL_error(L, "no section found by name %s", lua_tostring(L, 1));
+            luaL_error(L, "no section found by name %s", lua_tostring(L, 2));
     }
     else
         luaL_error(L, "expected a string or number");
@@ -213,9 +239,9 @@ int lua_elf_t_section (lua_State * L)
     
     lua_push_section_t(L);
     section = lua_check_section_t(L, 1);
-    elf_shdr(elf_t->elf, &(section->shdr), shdr_i);
-    section->elf_t = elf_t;
-    elf_t->ref_count++;
+    elf_shdr(elf->elf, &(section->shdr), shdr_i);
+    section->elf_t = elf;
+    elf->ref_count++;
     
     return 1;
 }
@@ -226,34 +252,34 @@ int lua_elf_t_section (lua_State * L)
 *            SECTION            *
 ********************************/
 
-void lua_section_t_collect (struct lua_section_t * section_t)
+void lua_section_t_collect (struct lua_section_t * section)
 {
-    lua_elf_t_collect(section_t->elf_t);
+    lua_elf_t_collect(section->elf_t);
 
-    section_t->ref_count--;
+    section->ref_count--;
     
-    if (section_t->ref_count <= 0)
-        free(section_t);
+    if (section->ref_count <= 0)
+        free(section);
 }
 
 
 struct _elf_shdr * lua_check_shdr (lua_State * L, int position)
 {
-    struct lua_section_t ** section_t;
+    struct lua_section_t ** section;
     void * userdata = luaL_checkudata(L, position, "rop_tools.section_t");
     luaL_argcheck(L, userdata != NULL, position, "section_t expected");
-    section_t = (struct lua_section_t **) userdata;
-    return (struct _elf_shdr *) &((*section_t)->shdr);
+    section = (struct lua_section_t **) userdata;
+    return (struct _elf_shdr *) &((*section)->shdr);
 }
 
 
 struct lua_section_t * lua_check_section_t (lua_State * L, int position)
 {
-    struct lua_section_t ** section_t;
+    struct lua_section_t ** section;
     void * userdata = luaL_checkudata(L, position, "rop_tools.section_t");
     luaL_argcheck(L, userdata != NULL, position, "section_t expected");
-    section_t = (struct lua_section_t **) userdata;
-    return *section_t;
+    section = (struct lua_section_t **) userdata;
+    return *section;
 }
 
 
@@ -272,13 +298,13 @@ void lua_push_section_t  (lua_State * L)
 
 int lua_section_t_gc (lua_State * L) 
 {
-    struct lua_section_t ** section_t;
+    struct lua_section_t ** section;
     
     void * userdata = luaL_checkudata(L, 1, "rop_tools.section_t");
     luaL_argcheck(L, userdata != NULL, 1, "section_t expected");
-    section_t = (struct lua_section_t **) userdata;
+    section = (struct lua_section_t **) userdata;
 
-    lua_section_t_collect(*section_t);
+    lua_section_t_collect(*section);
     
     return 0;
 }
@@ -336,4 +362,129 @@ int lua_section_t_entsize (lua_State * L)
 int lua_section_t_link (lua_State * L)
 {
     LUA_SECTION_T_ACCESSOR(lua_push_int_t, shdr_link(shdr))
+}
+
+
+int lua_section_t_symbol (lua_State * L)
+{
+    struct lua_section_t * section;
+    struct _elf_sym sym;
+    int sym_i, found;
+    struct lua_symbol_t * symbol;
+    
+    section = lua_check_section_t(L, 1);
+    if (lua_isnumber(L, 2))
+        sym_i = luaL_checkinteger(L, 2);
+    else if (lua_isstring(L, 2)) {
+        found = 0;
+        for (sym_i = 0; sym_i < shdr_num(&(section->shdr)); sym_i++) {
+            shdr_sym(&(section->shdr), &sym, sym_i);
+            if (strcmp(sym_name(&sym), lua_tostring(L, 2)) == 0) {
+                found = 1;
+                break;
+            }
+        }
+        if (! found)
+            luaL_error(L, "no symbol found by name %s", lua_tostring(L, 2));
+    }
+    else
+        luaL_error(L, "expected a string or number");
+    lua_pop(L, 2);
+    
+    lua_push_symbol_t(L);
+    symbol = lua_check_symbol_t(L, 1);
+    shdr_sym(&(section->shdr), &(symbol->sym), sym_i);
+    symbol->section_t = section;
+    section->elf_t->ref_count++;
+    section->ref_count++;
+    
+    return 1;
+}
+
+
+
+/********************************
+*            SYMBOL             *
+********************************/
+
+void lua_symbol_t_collect (struct lua_symbol_t * symbol)
+{
+    lua_section_t_collect(symbol->section_t);
+
+    symbol->ref_count--;
+    
+    if (symbol->ref_count <= 0)
+        free(symbol);
+}
+
+
+struct _elf_sym * lua_check_sym (lua_State * L, int position)
+{
+    struct lua_symbol_t ** symbol;
+    void * userdata = luaL_checkudata(L, position, "rop_tools.symbol_t");
+    luaL_argcheck(L, userdata != NULL, position, "symbol_t expected");
+    symbol = (struct lua_symbol_t **) userdata;
+    return (struct _elf_sym *) &((*symbol)->sym);
+}
+
+
+struct lua_symbol_t * lua_check_symbol_t (lua_State * L, int position)
+{
+    struct lua_symbol_t ** symbol;
+    void * userdata = luaL_checkudata(L, position, "rop_tools.symbol_t");
+    luaL_argcheck(L, userdata != NULL, position, "section_t expected");
+    symbol = (struct lua_symbol_t **) userdata;
+    return *symbol;
+}
+
+
+void lua_push_symbol_t  (lua_State * L)
+{
+    struct lua_symbol_t ** new_symbol;
+    
+    new_symbol = lua_newuserdata(L, sizeof(struct lua_symbol_t **));
+    luaL_getmetatable(L, "rop_tools.symbol_t");
+    lua_setmetatable(L, -2);
+    
+    *new_symbol = (struct lua_symbol_t *) malloc(sizeof(struct lua_symbol_t));
+    (*new_symbol)->ref_count = 1;
+}
+
+
+int lua_symbol_t_gc (lua_State * L)
+{
+    struct lua_symbol_t ** symbol;
+    
+    void * userdata = luaL_checkudata(L, 1, "rop_tools.symbol_t");
+    luaL_argcheck(L, userdata != NULL, 1, "section_t expected");
+    symbol = (struct lua_symbol_t **) userdata;
+
+    lua_symbol_t_collect(*symbol);
+    
+    return 0;
+}
+
+
+int lua_symbol_t_name (lua_State * L)
+{
+    LUA_SYMBOL_T_ACCESSOR(lua_pushstring, sym_name(sym))
+}
+
+
+int lua_symbol_t_value (lua_State * L)
+{
+    LUA_SYMBOL_T_ACCESSOR(lua_push_uint_t, sym_value(sym))
+}
+
+
+int lua_symbol_t_type (lua_State * L)
+{
+    LUA_SYMBOL_T_ACCESSOR(lua_pushstring, \
+        sym_type_strings[sym_type(sym)])
+}
+
+
+int lua_symbol_t_size (lua_State * L)
+{
+    LUA_SYMBOL_T_ACCESSOR(lua_push_int_t, sym_size(sym))
 }

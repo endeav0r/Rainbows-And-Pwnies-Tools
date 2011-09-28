@@ -19,3 +19,11 @@ end
 
 section = dontcollect("rop_tools", ".text")
 print("section 14 of rop_tools is " .. section:name())
+
+symtab = elf:section(".symtab")
+for i = 0,symtab:num()-1 do
+    symbol = symtab:symbol(i)
+    if #symbol:name() > 0 then
+        print(symbol:name())
+    end
+end
