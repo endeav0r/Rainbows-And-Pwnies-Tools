@@ -60,6 +60,7 @@ static const struct luaL_Reg symbol_lib_m [] = {
     {"value", lua_symbol_t_value},
     {"type",  lua_symbol_t_type},
     {"size",  lua_symbol_t_size},
+    {"__gc",  lua_symbol_t_gc},
     {NULL, NULL}
 };
 
