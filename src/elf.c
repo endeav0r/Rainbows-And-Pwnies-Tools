@@ -62,14 +62,21 @@ struct _elf * elf_open (char * filename)
 
 void elf_destroy (struct _elf * elf)
 {
+    elf_destroy_resources(elf);
+    free(elf);
+}
+
+
+void elf_destroy_resources (struct _elf * elf)
+{
     free(elf->filename);
     free(elf->bytes);
-    free(elf);
 }
 
 
 int elf_copy (struct _elf * dst, struct _elf * src)
 {
+    if (dst == NULL) dst = (struct _elf *) malloc(sizeof(struct _elf));
     memcpy(dst, src, sizeof(struct _elf));
     dst->filename = (char *) malloc(strlen(src->filename) + 1);
     strcpy(dst->filename, src->filename);
@@ -80,10 +87,11 @@ int elf_copy (struct _elf * dst, struct _elf * src)
 
 
 // returns byte for ELFCLASSNONE, ELFCLASS32 or ELFCLASS64
-unsigned char elf_class  (struct _elf * elf) { return elf->type; }
-int_t * elf_shnum    (struct _elf * elf) { return &(elf->shnum); }
-uint_t * elf_shoff    (struct _elf * elf) { return &(elf->shoff); }
-int_t * elf_shstrndx (struct _elf * elf) { return &(elf->shstrndx); }
+unsigned char elf_class    (struct _elf * elf) { return elf->type; }
+char *        elf_filename (struct _elf * elf) { return elf->filename; }
+int_t *       elf_shnum    (struct _elf * elf) { return &(elf->shnum); }
+uint_t *      elf_shoff    (struct _elf * elf) { return &(elf->shoff); }
+int_t *       elf_shstrndx (struct _elf * elf) { return &(elf->shstrndx); }
 
 
 // returns string from section strtab at offset
@@ -240,7 +248,6 @@ uint_t * rel_offset (struct _elf_rel * rel) { return &(rel->offset); }
 int      rel_type   (struct _elf_rel * rel) { return rel->type; }
 
 
-
 uint_t * shdr_addr    (struct _elf_shdr * shdr) { return &(shdr->addr); }
 int_t *  shdr_size    (struct _elf_shdr * shdr) { return &(shdr->size); }
 uint_t * shdr_offset  (struct _elf_shdr * shdr) { return &(shdr->offset); }
@@ -248,6 +255,10 @@ int_t *  shdr_type    (struct _elf_shdr * shdr) { return &(shdr->type); }
 int_t *  shdr_link    (struct _elf_shdr * shdr) { return &(shdr->link); }
 int_t *  shdr_entsize (struct _elf_shdr * shdr) { return &(shdr->entsize); }
 
+void shdr_copy (struct _elf_shdr * dst, struct _elf_shdr * src)
+{
+    memcpy(dst, src, sizeof(struct _elf_shdr));
+}
 
 int shdr_exec (struct _elf_shdr * shdr) {
     return int_t_get(&(shdr->flags)) & SHF_EXECINSTR; }

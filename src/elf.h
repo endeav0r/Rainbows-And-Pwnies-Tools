@@ -69,11 +69,13 @@ struct _elf_rel {
     int type;
 };
 
-struct _elf * elf_open    (char * filename);
-void          elf_destroy (struct _elf * elf);
-int           elf_copy    (struct _elf * dst, struct _elf * src);
+struct _elf * elf_open              (char * filename);
+void          elf_destroy           (struct _elf * elf);
+void          elf_destroy_resources (struct _elf * elf);
+int           elf_copy              (struct _elf * dst, struct _elf * src);
 
 unsigned char elf_class      (struct _elf * elf);
+char *        elf_filename   (struct _elf * elf);
 int_t *       elf_shnum      (struct _elf * elf);
 uint_t *      elf_shoff      (struct _elf * elf);
 int_t *       elf_shstrndx   (struct _elf * elf);
@@ -93,6 +95,7 @@ char *   rel_name   (struct _elf_rel * rel);
 uint_t * rel_offset (struct _elf_rel * rel);
 int      rel_type   (struct _elf_rel * rel);
 
+void            shdr_copy    (struct _elf_shdr * dst, struct _elf_shdr * src);
 char *          shdr_name    (struct _elf_shdr * shdr);
 uint_t *        shdr_addr    (struct _elf_shdr * shdr);
 int             shdr_exec    (struct _elf_shdr * shdr);

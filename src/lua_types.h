@@ -23,6 +23,7 @@ int lua_int_t_mod  (lua_State * L);
 int lua_int_t_eq   (lua_State * L);
 int lua_int_t_lt   (lua_State * L);
 int lua_int_t_le   (lua_State * L);
+int lua_int_t_int  (lua_State * L);
 
 int      lua_open_uint_t  (lua_State * L);
 uint_t * lua_check_uint_t (lua_State * L, int position);
@@ -39,5 +40,6 @@ int lua_uint_t_mod  (lua_State * L);
 int lua_uint_t_eq   (lua_State * L);
 int lua_uint_t_lt   (lua_State * L);
 int lua_uint_t_le   (lua_State * L);
+int lua_uint_t_int  (lua_State * L);
 
 #endif

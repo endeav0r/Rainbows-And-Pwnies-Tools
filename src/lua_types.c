@@ -8,6 +8,7 @@ static const struct luaL_Reg int_t_lib_f [] = {
 
 static const struct luaL_Reg int_t_lib_m [] = {
     {"__tostring", lua_int_t_str},
+    {"int", lua_int_t_int},
     {"__add", lua_int_t_add},
     {"__sub", lua_int_t_sub},
     {"__mul", lua_int_t_mul},
@@ -16,7 +17,7 @@ static const struct luaL_Reg int_t_lib_m [] = {
     {"__eq",  lua_int_t_eq},
     {"__lt",  lua_int_t_lt},
     {"__le",  lua_int_t_le},
-    {"strx", lua_int_t_strx},
+    {"strx",  lua_int_t_strx},
     {NULL, NULL}
 };
 
@@ -29,6 +30,7 @@ static const struct luaL_Reg uint_t_lib_f [] = {
 
 static const struct luaL_Reg uint_t_lib_m [] = {
     {"__tostring", lua_uint_t_str},
+    {"int",   lua_uint_t_int},
     {"__add", lua_uint_t_add},
     {"__sub", lua_uint_t_sub},
     {"__mul", lua_uint_t_mul},
@@ -37,7 +39,7 @@ static const struct luaL_Reg uint_t_lib_m [] = {
     {"__eq",  lua_uint_t_eq},
     {"__lt",  lua_uint_t_lt},
     {"__le",  lua_uint_t_le},
-    {"strx", lua_uint_t_strx},
+    {"strx",  lua_uint_t_strx},
     {NULL, NULL}
 };
 
@@ -117,6 +119,19 @@ int lua_int_t_str (lua_State * L)
     lua_pop(L, 1);
     
     lua_pushstring(L, int_t_str(intt));
+    
+    return 1;
+}
+
+
+int lua_int_t_int (lua_State * L)
+{
+    int_t * intt;
+    
+    intt = lua_check_int_t(L, 1);
+    lua_pop(L, 1);
+    
+    lua_pushinteger(L, (lua_Integer) int_t_get(intt));
     
     return 1;
 }
@@ -372,7 +387,7 @@ int lua_int_t_le (lua_State * L)
     }
     
     return 1;
-} 
+}
 
 
 int lua_open_uint_t (lua_State * L)
@@ -450,6 +465,19 @@ int lua_uint_t_str (lua_State * L)
     lua_pop(L, 1);
     
     lua_pushstring(L, uint_t_str(uintt));
+    
+    return 1;
+}
+
+
+int lua_uint_t_int (lua_State * L)
+{
+    uint_t * uintt;
+    
+    uintt = lua_check_uint_t(L, 1);
+    lua_pop(L, 1);
+    
+    lua_pushinteger(L, (lua_Integer) uint_t_get(uintt));
     
     return 1;
 }

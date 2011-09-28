@@ -22,12 +22,12 @@
 
 #define INT_STRLEN 24
 
-#define INT_T_BITS(x) ((x->type == INT_T_8 ? 8 : \
+#define INT_T_BITS(x) (x->type == INT_T_8 ? 8 : \
                        (x->type == INT_T_16 ? 16 : \
                         (x->type == INT_T_32 ? 32 : 64) \
                        ) \
                       )
-#define UINT_T_BITS(x) ((x->type == UINT_T_8 ? 8 : \
+#define UINT_T_BITS(x) (x->type == UINT_T_8 ? 8 : \
                         (x->type == UINT_T_16 ? 16 : \
                          (x->type == UINT_T_32 ? 32 : 64) \
                         ) \
