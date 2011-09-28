@@ -7,6 +7,7 @@
 
 #include "elf.h"
 #include "lua_types.h"
+#include "strings.h"
 
 /*
     Because lua does automatic garbage collection and are elf library has
@@ -63,7 +64,15 @@ struct _elf_shdr *     lua_check_shdr (lua_State * L, int position);
 // ref_count for the section will be set to 1
 void lua_push_section_t (lua_State * L);
 
-int lua_section_t_gc   (lua_State * L);
-int lua_section_t_name (lua_State * L);
+int lua_section_t_gc      (lua_State * L);
+int lua_section_t_name    (lua_State * L);
+int lua_section_t_address (lua_State * L);
+int lua_section_t_exec    (lua_State * L);
+int lua_section_t_size    (lua_State * L);
+int lua_section_t_offset  (lua_State * L);
+int lua_section_t_type    (lua_State * L);
+int lua_section_t_num     (lua_State * L);
+int lua_section_t_entsize (lua_State * L);
+int lua_section_t_link    (lua_State * L);
 
 #endif

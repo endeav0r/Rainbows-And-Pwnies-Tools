@@ -110,6 +110,8 @@ int elf_shdr (struct _elf * elf, struct _elf_shdr * shdr, int index)
 {
     shdr->elf  = elf;
     shdr->index = index;
+    if (index >= int_t_get(elf_shnum(elf)))
+        return 0;
     switch (elf_class(elf)) {
     case ELFCLASS32 :
         shdr->s.shdr32 = (Elf32_Shdr *) &(elf->bytes[uint_t_get(elf_shoff(elf))
@@ -135,6 +137,8 @@ int elf_shdr (struct _elf * elf, struct _elf_shdr * shdr, int index)
         int_t_64_set (&(shdr->link),    shdr->s.shdr64->sh_link);
         int_t_64_set (&(shdr->entsize), shdr->s.shdr64->sh_entsize);
         break;
+    default :
+        return 0;
     }
     return 1;
 }

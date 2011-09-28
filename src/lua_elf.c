@@ -4,11 +4,17 @@
 *              ELF              *
 ********************************/
 
+#define LUA_SECTION_T_ACCESSOR(push_function, value_get) \
+    struct _elf_shdr * shdr; \
+    shdr = lua_check_shdr(L, 1); \
+    lua_pop(L, 1); \
+    push_function(L, value_get); \
+    return 1;
+
 static const struct luaL_Reg elf_lib_f [] = {
     {"new", lua_elf_t_new},
     {NULL, NULL}
 };
-
 
 static const struct luaL_Reg elf_lib_m [] = {
     {"class",    lua_elf_t_class},
@@ -25,11 +31,18 @@ static const struct luaL_Reg section_lib_f [] = {
 
 
 static const struct luaL_Reg section_lib_m [] = {
-    {"name", lua_section_t_name},
-    {"__gc", lua_section_t_gc},
+    {"name",    lua_section_t_name},
+    {"address", lua_section_t_address},
+    {"exec",    lua_section_t_exec},
+    {"size",    lua_section_t_size},
+    {"offset",  lua_section_t_offset},
+    {"type",    lua_section_t_type},
+    {"num",     lua_section_t_num},
+    {"entsize", lua_section_t_entsize},
+    {"link",    lua_section_t_link},
+    {"__gc",    lua_section_t_gc},
     {NULL, NULL}
 };
-
 
 void lua_elf_t_collect (struct lua_elf_t * elf_t)
 {
@@ -175,23 +188,37 @@ int lua_elf_t_shnum (lua_State * L)
 int lua_elf_t_section (lua_State * L)
 {
     struct lua_elf_t * elf_t;
-    int section_index;
+    struct _elf_shdr shdr;
+    int shdr_i, found;
     struct lua_section_t * section;
     
     elf_t = lua_check_elf_t(L, 1);
-    section_index = luaL_checkinteger(L, 2);
+    if (lua_isnumber(L, 2))
+        shdr_i = luaL_checkinteger(L, 2);
+    else if (lua_isstring(L, 2)) {
+        found = 0;
+        for (shdr_i = 0; shdr_i < int_t_get(elf_shnum(elf_t->elf)); shdr_i++) {
+            elf_shdr(elf_t->elf, &shdr, shdr_i);
+            if (strcmp(shdr_name(&shdr), lua_tostring(L, 2)) == 0) {
+                found = 1;
+                break;
+            }
+        }
+        if (! found)
+            luaL_error(L, "no section found by name %s", lua_tostring(L, 1));
+    }
+    else
+        luaL_error(L, "expected a string or number");
     lua_pop(L, 2);
     
     lua_push_section_t(L);
     section = lua_check_section_t(L, 1);
-    elf_shdr(elf_t->elf, &(section->shdr), section_index);
+    elf_shdr(elf_t->elf, &(section->shdr), shdr_i);
     section->elf_t = elf_t;
     elf_t->ref_count++;
     
     return 1;
 }
-    
-
 
 
 
@@ -259,11 +286,54 @@ int lua_section_t_gc (lua_State * L)
 
 int lua_section_t_name (lua_State * L)
 {
-    struct _elf_shdr * shdr;
-    
-    shdr = lua_check_shdr(L, 1);
-    lua_pop(L, 1);
-    
-    lua_pushstring(L, shdr_name(shdr));
-    return 1;
+    LUA_SECTION_T_ACCESSOR(lua_pushstring, shdr_name(shdr))
+}
+
+
+int lua_section_t_address (lua_State * L)
+{
+    LUA_SECTION_T_ACCESSOR(lua_push_uint_t, shdr_addr(shdr))
+}
+
+
+int lua_section_t_exec (lua_State * L)
+{
+    LUA_SECTION_T_ACCESSOR(lua_pushboolean, shdr_exec(shdr))
+}
+
+
+int lua_section_t_size (lua_State * L)
+{
+    LUA_SECTION_T_ACCESSOR(lua_push_int_t, shdr_size(shdr))
+}
+
+
+int lua_section_t_offset (lua_State * L)
+{
+    LUA_SECTION_T_ACCESSOR(lua_push_uint_t, shdr_offset(shdr))
+}
+
+
+int lua_section_t_type (lua_State * L)
+{
+    LUA_SECTION_T_ACCESSOR(lua_pushstring,
+        shdr_type_strings[int_t_get(shdr_type(shdr))])
+}
+
+
+int lua_section_t_num (lua_State * L)
+{
+    LUA_SECTION_T_ACCESSOR(lua_pushinteger, shdr_num(shdr))
+}
+
+
+int lua_section_t_entsize (lua_State * L)
+{
+    LUA_SECTION_T_ACCESSOR(lua_push_int_t, shdr_entsize(shdr))
+}
+
+
+int lua_section_t_link (lua_State * L)
+{
+    LUA_SECTION_T_ACCESSOR(lua_push_int_t, shdr_link(shdr))
 }
