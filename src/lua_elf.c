@@ -18,6 +18,13 @@
     push_function(L, value_get); \
     return 1;
 
+#define LUA_RELOCATION_T_ACCESSOR(push_function, value_get) \
+    struct _elf_rel * rel; \
+    rel = lua_check_rel(L, 1); \
+    lua_pop(L, 1); \
+    push_function(L, value_get); \
+    return 1;
+
 static const struct luaL_Reg elf_lib_f [] = {
     {"new", lua_elf_t_new},
     {NULL, NULL}
@@ -37,17 +44,18 @@ static const struct luaL_Reg section_lib_f [] = {
 };
 
 static const struct luaL_Reg section_lib_m [] = {
-    {"name",    lua_section_t_name},
-    {"address", lua_section_t_address},
-    {"exec",    lua_section_t_exec},
-    {"size",    lua_section_t_size},
-    {"offset",  lua_section_t_offset},
-    {"type",    lua_section_t_type},
-    {"num",     lua_section_t_num},
-    {"entsize", lua_section_t_entsize},
-    {"link",    lua_section_t_link},
-    {"symbol",  lua_section_t_symbol},
-    {"__gc",    lua_section_t_gc},
+    {"name",       lua_section_t_name},
+    {"address",    lua_section_t_address},
+    {"exec",       lua_section_t_exec},
+    {"size",       lua_section_t_size},
+    {"offset",     lua_section_t_offset},
+    {"type",       lua_section_t_type},
+    {"num",        lua_section_t_num},
+    {"entsize",    lua_section_t_entsize},
+    {"link",       lua_section_t_link},
+    {"symbol",     lua_section_t_symbol},
+    {"relocation", lua_section_t_relocation},
+    {"__gc",       lua_section_t_gc},
     {NULL, NULL}
 };
 
@@ -61,6 +69,18 @@ static const struct luaL_Reg symbol_lib_m [] = {
     {"type",  lua_symbol_t_type},
     {"size",  lua_symbol_t_size},
     {"__gc",  lua_symbol_t_gc},
+    {NULL, NULL}
+};
+
+static const struct luaL_Reg relocation_lib_f [] = {
+    {NULL, NULL}
+};
+
+static const struct luaL_Reg relocation_lib_m [] = {
+    {"name",   lua_relocation_t_name},
+    {"offset", lua_relocation_t_offset},
+    {"type",   lua_relocation_t_type},
+    {"__gc",   lua_relocation_t_gc},
     {NULL, NULL}
 };
 
@@ -97,6 +117,13 @@ int lua_open_elf_t (lua_State * L)
     lua_settable(L, -3);
     luaL_register(L, NULL, symbol_lib_m);
     luaL_register(L, "symbol_t", symbol_lib_f);
+    
+    luaL_newmetatable(L, "rop_tools.relocation_t");
+    lua_pushstring(L, "__index");
+    lua_pushvalue(L, -2);
+    lua_settable(L, -3);
+    luaL_register(L, NULL, relocation_lib_m);
+    luaL_register(L, "relocation_t", relocation_lib_f);
     
     return 1;
 }
@@ -403,6 +430,43 @@ int lua_section_t_symbol (lua_State * L)
 }
 
 
+int lua_section_t_relocation (lua_State * L)
+{
+    struct lua_section_t * section;
+    struct _elf_rel rel;
+    int rel_i, found;
+    struct lua_relocation_t * relocation;
+    
+    section = lua_check_section_t(L, 1);
+    if (lua_isnumber(L, 2))
+        rel_i = luaL_checkinteger(L, 2);
+    else if (lua_isstring(L, 2)) {
+        found = 0;
+        for (rel_i = 0; rel_i < shdr_num(&(section->shdr)); rel_i++) {
+            shdr_rel(&(section->shdr), &rel, rel_i);
+            if (strcmp(rel_name(&rel), lua_tostring(L, 2)) == 0) {
+                found = 1;
+                break;
+            }
+        }
+        if (! found)
+            luaL_error(L, "no symbol found by name %s", lua_tostring(L, 2));
+    }
+    else
+        luaL_error(L, "expected a string or number");
+    lua_pop(L, 2);
+    
+    lua_push_relocation_t(L);
+    relocation = lua_check_relocation_t(L, 1);
+    shdr_rel(&(section->shdr), &(relocation->rel), rel_i);
+    relocation->section_t = section;
+    section->elf_t->ref_count++;
+    section->ref_count++;
+    
+    return 1;
+}
+
+
 
 /********************************
 *            SYMBOL             *
@@ -488,4 +552,84 @@ int lua_symbol_t_type (lua_State * L)
 int lua_symbol_t_size (lua_State * L)
 {
     LUA_SYMBOL_T_ACCESSOR(lua_push_int_t, sym_size(sym))
+}
+
+
+
+/********************************
+*          RELOCATION           *
+********************************/
+
+void lua_relocation_t_collect (struct lua_relocation_t * relocation)
+{
+    lua_section_t_collect(relocation->section_t);
+
+    relocation->ref_count--;
+    
+    if (relocation->ref_count <= 0)
+        free(relocation);
+}
+
+
+struct _elf_rel * lua_check_rel (lua_State * L, int position)
+{
+    struct lua_relocation_t ** relocation;
+    void * userdata = luaL_checkudata(L, position, "rop_tools.relocation_t");
+    luaL_argcheck(L, userdata != NULL, position, "relocation_t expected");
+    relocation = (struct lua_relocation_t **) userdata;
+    return (struct _elf_rel *) &((*relocation)->rel);
+}
+
+
+struct lua_relocation_t * lua_check_relocation_t (lua_State * L, int position)
+{
+    struct lua_relocation_t ** relocation;
+    void * userdata = luaL_checkudata(L, position, "rop_tools.relocation_t");
+    luaL_argcheck(L, userdata != NULL, position, "relocation_t expected");
+    relocation = (struct lua_relocation_t **) userdata;
+    return *relocation;
+}
+
+
+void lua_push_relocation_t  (lua_State * L)
+{
+    struct lua_relocation_t ** new_relocation;
+    
+    new_relocation = lua_newuserdata(L, sizeof(struct lua_relocation_t **));
+    luaL_getmetatable(L, "rop_tools.relocation_t");
+    lua_setmetatable(L, -2);
+    
+    *new_relocation = (struct lua_relocation_t *)
+                       malloc(sizeof(struct lua_relocation_t));
+    (*new_relocation)->ref_count = 1;
+}
+
+
+int lua_relocation_t_gc (lua_State * L)
+{
+    struct lua_relocation_t ** relocation;
+    
+    void * userdata = luaL_checkudata(L, 1, "rop_tools.relocation_t");
+    luaL_argcheck(L, userdata != NULL, 1, "relocation_t expected");
+    relocation = (struct lua_relocation_t **) userdata;
+
+    lua_relocation_t_collect(*relocation);
+    
+    return 0;
+}
+
+
+int lua_relocation_t_name (lua_State * L)
+{
+    LUA_RELOCATION_T_ACCESSOR(lua_pushstring, rel_name(rel))
+}
+
+int lua_relocation_t_offset (lua_State * L)
+{
+    LUA_RELOCATION_T_ACCESSOR(lua_push_uint_t, rel_offset(rel))
+}
+
+int lua_relocation_t_type (lua_State * L)
+{
+    LUA_RELOCATION_T_ACCESSOR(lua_pushstring, rel_type_strings[rel_type(rel)])
 }

@@ -27,3 +27,14 @@ for i = 0,symtab:num()-1 do
         print(symbol:name())
     end
 end
+
+
+relplt = elf:section(".rela.plt")
+print(relplt:name())
+for i = 0,relplt:num()-1 do
+    relocation = relplt:relocation(i)
+    print(relocation:offset():strx() .. " " ..
+          relocation:type() .. " " ..
+          relocation:name())
+end
+

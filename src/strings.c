@@ -756,3 +756,44 @@ char sym_type_strings [16][16] = {
 };
 
 
+char rel_type_strings [39][16] = {
+    "none",            // 0
+    "64",              // 1
+    "pc32",            // 2
+    "got32",           // 3
+    "plt32",           // 4
+    "copy",            // 5
+    "glob_dat",        // 6
+    "jump_slot",       // 7
+    "relative",        // 8
+    "gotpcrel",        // 9
+    "32",              // 10
+    "32s",             // 11
+    "16",              // 12
+    "pc16",            // 13
+    "8",               // 14
+    "pc8",             // 15
+    "dtpmod64",        // 16
+    "dtpoff64",        // 17
+    "tpoff64",         // 18
+    "tlsgd",           // 19
+    "tlsld",           // 20
+    "dtopoff32",       // 21
+    "gottpoff",        // 22
+    "tcpoff32",        // 23
+    "pc64",            // 24
+    "gotoff64",        // 25
+    "gotpc32",         // 26
+    "got64",           // 27
+    "gotpcrel64",      // 28
+    "gotpc64",         // 29
+    "gotplt64",        // 30
+    "pltoff64",        // 31
+    "size32",          // 32
+    "size64",          // 33
+    "gotpc32_tlsdesc", // 34
+    "tlsdesc_call",    // 35
+    "tlsdesc",         // 36
+    "irelative",       // 37
+    "num"              // 38
+};
