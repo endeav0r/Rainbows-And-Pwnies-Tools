@@ -10,14 +10,7 @@ for i = 0,elf:shnum():int()-1 do
     print(section:address():strx() .. " " .. section:name())
 end
 
-function dontcollect (filename, section_index)
-    elf3 = elf_t.new(filename)
-    elf2 = elf3
-    section = elf2:section(section_index)
-    return section
-end
-
-section = dontcollect(argv[1], ".text")
+section = elf:section(".text")
 print("section 14 of " .. argv[1] .. " is " .. section:name() .. " with " .. 
       tostring(section:size()) .. " bytes")
 
