@@ -6,11 +6,13 @@
 #include <lua5.1/lualib.h>
 
 #include "elf.h"
+#include "lua_dis.h"
 #include "lua_types.h"
+#include "rop.h"
 #include "strings.h"
 
 /*
-    Because lua does automatic garbage collection and are elf library has
+    Because lua does automatic garbage collection and our elf library has
     everything maintain pointers to struct * _elf, we need to do do some
     manual garbage-collection trickery ourselves.
     
@@ -73,18 +75,20 @@ struct _elf_shdr *     lua_check_shdr        (lua_State * L, int position);
 // ref_count for the section will be set to 1
 void lua_push_section_t (lua_State * L);
 
-int lua_section_t_gc         (lua_State * L);
-int lua_section_t_name       (lua_State * L);
-int lua_section_t_address    (lua_State * L);
-int lua_section_t_exec       (lua_State * L);
-int lua_section_t_size       (lua_State * L);
-int lua_section_t_offset     (lua_State * L);
-int lua_section_t_type       (lua_State * L);
-int lua_section_t_num        (lua_State * L);
-int lua_section_t_entsize    (lua_State * L);
-int lua_section_t_link       (lua_State * L);
-int lua_section_t_symbol     (lua_State * L);
-int lua_section_t_relocation (lua_State * L);
+int lua_section_t_gc          (lua_State * L);
+int lua_section_t_name        (lua_State * L);
+int lua_section_t_address     (lua_State * L);
+int lua_section_t_exec        (lua_State * L);
+int lua_section_t_size        (lua_State * L);
+int lua_section_t_offset      (lua_State * L);
+int lua_section_t_type        (lua_State * L);
+int lua_section_t_num         (lua_State * L);
+int lua_section_t_entsize     (lua_State * L);
+int lua_section_t_link        (lua_State * L);
+int lua_section_t_symbol      (lua_State * L);
+int lua_section_t_relocation  (lua_State * L);
+int lua_section_t_disassemble (lua_State * L);
+int lua_section_t_rop_table   (lua_State * L);
 
 void                  lua_symbol_t_collect (struct lua_symbol_t * symbol_t);
 struct _elf_sym *     lua_check_sym        (lua_State * L, int position);

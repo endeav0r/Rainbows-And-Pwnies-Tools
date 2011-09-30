@@ -10,6 +10,7 @@
 
 #include "aux.h"
 #include "elf.h"
+#include "lua_dis.h"
 #include "lua_elf.h"
 #include "lua_types.h"
 #include "rop.h"

@@ -135,6 +135,7 @@ struct _rop_list * rop_find_rops (unsigned char * data,
                     next->offset = d - (d - backtrack);
                     next->bytes_size = d - backtrack + ins_size;
                     next->bytes = (unsigned char *) malloc(next->bytes_size);
+                    memcpy(next->bytes, &(data[backtrack]), next->bytes_size);
                     next->ins = rop_ins_create(next->bytes,
                                                next->bytes_size,
                                                next->offset,

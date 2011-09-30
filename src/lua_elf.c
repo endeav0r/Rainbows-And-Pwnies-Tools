@@ -44,18 +44,20 @@ static const struct luaL_Reg section_lib_f [] = {
 };
 
 static const struct luaL_Reg section_lib_m [] = {
-    {"name",       lua_section_t_name},
-    {"address",    lua_section_t_address},
-    {"exec",       lua_section_t_exec},
-    {"size",       lua_section_t_size},
-    {"offset",     lua_section_t_offset},
-    {"type",       lua_section_t_type},
-    {"num",        lua_section_t_num},
-    {"entsize",    lua_section_t_entsize},
-    {"link",       lua_section_t_link},
-    {"symbol",     lua_section_t_symbol},
-    {"relocation", lua_section_t_relocation},
-    {"__gc",       lua_section_t_gc},
+    {"name",        lua_section_t_name},
+    {"address",     lua_section_t_address},
+    {"exec",        lua_section_t_exec},
+    {"size",        lua_section_t_size},
+    {"offset",      lua_section_t_offset},
+    {"type",        lua_section_t_type},
+    {"num",         lua_section_t_num},
+    {"entsize",     lua_section_t_entsize},
+    {"link",        lua_section_t_link},
+    {"symbol",      lua_section_t_symbol},
+    {"relocation",  lua_section_t_relocation},
+    {"disassemble", lua_section_t_disassemble},
+    {"rop_table",   lua_section_t_rop_table},
+    {"__gc",        lua_section_t_gc},
     {NULL, NULL}
 };
 
@@ -243,7 +245,8 @@ int lua_elf_t_section (lua_State * L)
 {
     struct lua_elf_t * elf;
     struct _elf_shdr shdr;
-    int shdr_i, found;
+    int shdr_i = -1;
+    int found;
     struct lua_section_t * section;
     
     elf = lua_check_elf_t(L, 1);
@@ -397,7 +400,8 @@ int lua_section_t_symbol (lua_State * L)
 {
     struct lua_section_t * section;
     struct _elf_sym sym;
-    int sym_i, found;
+    int sym_i = 0;
+    int found;
     struct lua_symbol_t * symbol;
     
     section = lua_check_section_t(L, 1);
@@ -434,7 +438,8 @@ int lua_section_t_relocation (lua_State * L)
 {
     struct lua_section_t * section;
     struct _elf_rel rel;
-    int rel_i, found;
+    int rel_i = 0;
+    int found;
     struct lua_relocation_t * relocation;
     
     section = lua_check_section_t(L, 1);
@@ -466,6 +471,58 @@ int lua_section_t_relocation (lua_State * L)
     return 1;
 }
 
+
+int lua_section_t_disassemble (lua_State * L)
+{
+    struct _elf_shdr * shdr;
+    
+    shdr = lua_check_shdr(L, 1);
+    lua_pop(L, 1);
+    
+    lua_dis_table(L, shdr_addr(shdr), shdr_data(shdr),
+                  int_t_get(shdr_size(shdr)), ELF_CLASS(shdr->elf));
+
+    return 1;
+}
+
+
+int lua_section_t_rop_table (lua_State * L)
+{
+    struct _elf_shdr * shdr;
+    struct _rop_list * rop_list;
+    struct _rop_list * rop_list_first;
+    struct _rop_ins  * rop_ins;
+    int                rop_depth;
+    int                rop_i;
+    uint_t             address;
+    
+    shdr = lua_check_shdr(L, 1);
+    rop_depth = luaL_checkinteger(L, 2);
+    lua_pop(L, 2);
+    
+    rop_list_first = rop_ret_rops(shdr_data(shdr), shdr_size(shdr),
+                                  rop_depth, ELF_CLASS(shdr->elf));
+    rop_list = rop_list_first;
+    
+    rop_i = 1;
+    lua_newtable(L);
+    while (rop_list != NULL) {
+        rop_ins = rop_list_ins(rop_list);
+        uint_t_set(&address, shdr_addr(shdr));
+        uint_t_add_int(&address, rop_list->offset);
+        lua_dis_table(L, &address, rop_list->bytes,
+                      rop_list->bytes_size, ELF_CLASS(shdr->elf));
+        lua_pushinteger(L, (lua_Integer) rop_i);
+        lua_insert(L, -2);
+        lua_settable(L, -3);
+        rop_i++;
+        rop_list = rop_list->next;
+    }
+    
+    rop_list_destroy(rop_list_first);
+    
+    return 1;
+}
 
 
 /********************************

@@ -8,6 +8,8 @@
 
 #include "types.h"
 
+#define ELF_CLASS(e) (elf_class(e) == ELFCLASS32 ? 32 : 64)
+
 struct _elf {
     char * filename;
     size_t bytes_size;
@@ -106,8 +108,6 @@ int_t *         shdr_type    (struct _elf_shdr * shdr);
 int             shdr_num     (struct _elf_shdr * shdr);
 int_t *         shdr_entsize (struct _elf_shdr * shdr);
 int_t *         shdr_link    (struct _elf_shdr * shdr);
-
-
 
 int elf_sym_func_addr (struct _elf * elf,
                        struct _elf_sym * sym,
