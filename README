@@ -8,7 +8,7 @@ building of rop chains. Coded in C, it quickly identifies rop gadgets in large
 binaries. It makes this information available to lua scripts for rop chain
 scripting goodness.
 
-Currently only supports 32-bit ELF binaries
+Currently supports 32-bit and 64-bit ELF binaries
 
 /*************** 
 * REQUIREMENTS *
@@ -25,7 +25,7 @@ http://www.lua.org/
 rop_tools
 brought to you by rainbowsandpwnies
 
-./rop_tools [-cjr] [-d depth] (-e <elf> | -l <lua_file)
+./rop_tools [-cjr] [-d depth] (-e <elf> | -l <lua_file> [args])
   -c         search for call reg gadgets
   -d <depth> depth, in instructions, to search backwards
   -e <elf>   filename of elf to analyze
@@ -63,31 +63,32 @@ _fini + 19
 /*******************************************************************************
 *******************************************************************************/
 
-time ./rop_tools -e /lib/i386-linux-gnu/libc-2.13.so -c -j -r -d 3 | tail -n 20
+time ./rop_tools -e /lib/x86_64-linux-gnu/libc-2.13.so -r -d 4 | tail -n 20
+  0x000000000013d5ab:  c7 45 00 00 -- -- -- --   add rsp, 0x8
+  0x000000000013d5af:  48 -- -- -- -- -- -- --   pop rbx
+  0x000000000013d5b0:  31 -- -- -- -- -- -- --   pop rbp
+  0x000000000013d5b1:  00 -- -- -- -- -- -- --   ret 
 
-__libc_thread_freeres_fn + 12234a
-  0012234a:  8b 7d fc -- -- -- -- --   mov edi, [ebp-0x4]
-  0012234d:  89 ec -- -- -- -- -- --   mov esp, ebp
-  0012234f:  5d -- -- -- -- -- -- --   pop ebp
-  00122350:  c3 -- -- -- -- -- -- --   ret 
+__libc_thread_freeres_fn + 0x13d5a3
+  0x000000000013d5a3:  48 c7 45 00 00 00 00 00   mov qword [rbp+0x0], 0x0
+  0x000000000013d5ab:  48 c7 45 00 -- -- -- --   add rsp, 0x8
+  0x000000000013d5af:  48 -- -- -- -- -- -- --   pop rbx
+  0x000000000013d5b0:  64 -- -- -- -- -- -- --   pop rbp
+  0x000000000013d5b1:  8c -- -- -- -- -- -- --   ret 
 
-__libc_thread_freeres_fn + 1222b0
-  001222b0:  00 89 45 f0 e8 87 -- --   add [ecx+0x87e8f045], cl
-  001222b6:  6e -- -- -- -- -- -- --   outsb 
-  001222b7:  fd -- -- -- -- -- -- --   std 
-  001222b8:  ff e8 -- -- -- -- -- --   jmp eax
+__libc_thread_freeres_fn + 0x13d5a2
+  0x000000000013d5a2:  64 48 c7 45 00 00 00 00   mov qword [fs:rbp+0x0], 0x0
+  0x000000000013d5ab:  64 48 c7 45 -- -- -- --   add rsp, 0x8
+  0x000000000013d5af:  48 -- -- -- -- -- -- --   pop rbx
+  0x000000000013d5b0:  00 -- -- -- -- -- -- --   pop rbp
+  0x000000000013d5b1:  00 -- -- -- -- -- -- --   ret 
 
-__libc_thread_freeres_fn + 1222ba
-  001222ba:  52 -- -- -- -- -- -- --   push edx
-  001222bb:  2f -- -- -- -- -- -- --   das 
-  001222bc:  fd -- -- -- -- -- -- --   std 
-  001222bd:  ff e8 -- -- -- -- -- --   jmp eax
+10164 gadgets
 
-10431 gadgets
+real	0m1.738s
+user	0m1.730s
+sys	0m0.000s
 
-real	0m4.999s
-user	0m4.300s
-sys	0m0.380s
 
 /*******************************************************************************
 *******************************************************************************/
