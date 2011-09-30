@@ -71,6 +71,7 @@ void lua_push_int_t (lua_State * L, int_t * i)
     int_t * new_intt;
     
     lua_pushinteger(L, INT_T_BITS(i));
+    lua_pushinteger(L, 0);
     lua_int_t_new(L);
     
     new_intt = lua_check_int_t(L, -1);
@@ -84,18 +85,20 @@ int lua_int_t_new (lua_State * L)
     int value = 0;
     int_t * new_intt;
     
-    bits = luaL_checkinteger(L, 1);
+    if (lua_isnumber(L, -2)) {
+        bits = luaL_checkinteger(L, -2);
+        value = luaL_checkinteger(L, -1);
+        lua_pop(L, 2);
+    }
+    else {
+        bits = luaL_checkinteger(L, -1);
+        lua_pop(L, 1);
+    }
+
     if (    (bits != 16)
          && (bits != 32)
          && (bits != 64))
-        luaL_error(L, "int_t accepts bit sizes of 16, 32 or 64");
-    
-    if (lua_gettop(L) == 2) {
-        value = luaL_checkinteger(L, 2);
-        lua_pop(L, 2);
-    }
-    else
-        lua_pop(L, 1);
+        luaL_error(L, "uint_t accepts bit sizes of 16, 32 or 64");
     
     new_intt = lua_newuserdata(L, sizeof(int_t));
     luaL_getmetatable(L, "rop_tools.int_t");
@@ -417,6 +420,7 @@ void lua_push_uint_t (lua_State * L, uint_t * u)
     uint_t * new_uintt;
     
     lua_pushinteger(L, UINT_T_BITS(u));
+    lua_pushinteger(L, 0);
     lua_uint_t_new(L);
     
     new_uintt = lua_check_uint_t(L, -1);
@@ -430,18 +434,21 @@ int lua_uint_t_new (lua_State * L)
     int value = 0;
     uint_t * new_uintt;
     
-    bits = luaL_checkinteger(L, 1);
+    if (lua_isnumber(L, -2)) {
+        bits = luaL_checkinteger(L, -2);
+        value = luaL_checkinteger(L, -1);
+        lua_pop(L, 2);
+    }
+    else {
+        bits = luaL_checkinteger(L, -1);
+        lua_pop(L, 1);
+    }
+
     if (    (bits != 16)
          && (bits != 32)
          && (bits != 64))
         luaL_error(L, "uint_t accepts bit sizes of 16, 32 or 64");
-    
-    if (lua_gettop(L) == 2) {
-        value = luaL_checkinteger(L, 2);
-        lua_pop(L, 2);
-    }
-    else
-        lua_pop(L, 1);
+
     
     new_uintt = lua_newuserdata(L, sizeof(uint_t));
     luaL_getmetatable(L, "rop_tools.uint_t");
