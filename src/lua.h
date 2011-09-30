@@ -19,6 +19,4 @@
 
 int lua_run_file (char * filename, char * args[], int argc);
 
-//static int lua_make_rop_table (lua_State * L);
-
 #endif
