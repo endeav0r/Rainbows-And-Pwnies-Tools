@@ -57,6 +57,7 @@ static const struct luaL_Reg section_lib_m [] = {
     {"relocation",  lua_section_t_relocation},
     {"disassemble", lua_section_t_disassemble},
     {"rop_table",   lua_section_t_rop_table},
+    {"mem_at_address", lua_section_t_mem_at_address},
     {"__gc",        lua_section_t_gc},
     {NULL, NULL}
 };
@@ -475,12 +476,30 @@ int lua_section_t_relocation (lua_State * L)
 int lua_section_t_disassemble (lua_State * L)
 {
     struct _elf_shdr * shdr;
+    uint_t * address;
+    uint_t   address_tmp;
+    unsigned char * data;
+    int disassemble_address = 0;
     
     shdr = lua_check_shdr(L, 1);
-    lua_pop(L, 1);
+    if (lua_isuserdata(L, 2)) {
+        address = lua_check_uint_t(L, 2);
+        disassemble_address = 1;
+        lua_pop(L, 2);
+    }
+    else
+        lua_pop(L, 1);
     
-    lua_dis_table(L, shdr_addr(shdr), shdr_data(shdr),
-                  int_t_get(shdr_size(shdr)), ELF_CLASS(shdr->elf));
+    if (disassemble_address) {
+        uint_t_set(&address_tmp, address);
+        uint_t_sub(&address_tmp, shdr_addr(shdr));
+        data = shdr_data(shdr);
+        lua_dis_instruction(L, &(data[uint_t_get(&address_tmp)]),
+                            ELF_CLASS(shdr->elf));
+    }
+    else
+        lua_dis_table(L, shdr_addr(shdr), shdr_data(shdr),
+                      int_t_get(shdr_size(shdr)), ELF_CLASS(shdr->elf));
 
     return 1;
 }
@@ -523,6 +542,65 @@ int lua_section_t_rop_table (lua_State * L)
     
     return 1;
 }
+
+
+int lua_section_t_mem_at_address (lua_State * L)
+{
+    struct _elf_shdr * shdr;
+    uint_t * address;
+    uint_t   address_tmp;
+    int      member_number;
+    int      member_size;
+    int      i;
+    uint_t   uintt;
+    unsigned char * data;
+    int offset;
+    
+    shdr = lua_check_shdr(L, 1);
+    address = lua_check_uint_t(L, 2);
+    member_number = luaL_checkinteger(L, 3);
+    member_size = luaL_checkinteger(L, 4);
+    lua_pop(L, 4);
+    
+    data = shdr_data(shdr);
+    offset = uint_t_get(shdr_addr(shdr)) - uint_t_get(address);
+    uint_t_set(&address_tmp, address);
+    lua_newtable(L);
+    for (i = 0; i < member_number; i++) {
+        switch (member_size) {
+        case 8 :
+            lua_push_uint_t(L, &address_tmp);
+            uint_t_8_set(&uintt, *((uint8_t *) &(data[offset + i])));
+            lua_push_uint_t(L, &uintt);
+            lua_settable(L, -3);
+            uint_t_add_int(&address_tmp, 1);
+            break;
+        case 16 :
+            lua_push_uint_t(L, &address_tmp);
+            uint_t_16_set(&uintt, *((uint16_t *) &(data[offset + i])));
+            lua_push_uint_t(L, &uintt);
+            lua_settable(L, -3);
+            uint_t_add_int(&address_tmp, 2);
+            break;
+        case 32 :
+            lua_push_uint_t(L, &address_tmp);
+            uint_t_32_set(&uintt, *((uint32_t *) &(data[offset + i])));
+            lua_push_uint_t(L, &uintt);
+            lua_settable(L, -3);
+            uint_t_add_int(&address_tmp, 4);
+            break;
+        case 64 :
+            lua_push_uint_t(L, &address_tmp);
+            uint_t_64_set(&uintt, *((uint64_t *) &(data[offset + i])));
+            lua_push_uint_t(L, &uintt);
+            lua_settable(L, -3);
+            uint_t_add_int(&address_tmp, 8);
+            break;
+        }
+    }
+    
+    return 1;
+}   
 
 
 /********************************

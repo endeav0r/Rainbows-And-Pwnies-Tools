@@ -74,6 +74,7 @@ int     int_t_sub    (int_t * dst, int_t * b);
 int     int_t_mul    (int_t * dst, int_t * b);
 int     int_t_div    (int_t * dst, int_t * b);
 int     int_t_mod    (int_t * dst, int_t * b);
+void    int_t_uint_t (int_t * dst, uint_t * src);
 
 void         uint_t_8_set   (uint_t * uintt, uint8_t  i);
 void         uint_t_16_set  (uint_t * uintt, uint16_t i);
@@ -95,5 +96,6 @@ int          uint_t_sub     (uint_t * dst, uint_t * b);
 int          uint_t_mul     (uint_t * dst, uint_t * b);
 int          uint_t_div     (uint_t * dst, uint_t * b);
 int          uint_t_mod     (uint_t * dst, uint_t * b);
+void         uint_t_int_t   (uint_t * dst, int_t * src);
 
 #endif

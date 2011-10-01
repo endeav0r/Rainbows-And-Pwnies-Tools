@@ -13,5 +13,5 @@
 void lua_dis_table      (lua_State * L, uint_t * address,
                          unsigned char * data, int size, int mode);
 void lua_operands_table (lua_State * L, ud_t * ud_obj);
-
+int lua_dis_instruction (lua_State * L, unsigned char * data, int mode);
 #endif

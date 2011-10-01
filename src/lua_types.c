@@ -8,16 +8,17 @@ static const struct luaL_Reg int_t_lib_f [] = {
 
 static const struct luaL_Reg int_t_lib_m [] = {
     {"__tostring", lua_int_t_str},
-    {"int", lua_int_t_int},
-    {"__add", lua_int_t_add},
-    {"__sub", lua_int_t_sub},
-    {"__mul", lua_int_t_mul},
-    {"__div", lua_int_t_div},
-    {"__mod", lua_int_t_mod},
-    {"__eq",  lua_int_t_eq},
-    {"__lt",  lua_int_t_lt},
-    {"__le",  lua_int_t_le},
-    {"strx",  lua_int_t_strx},
+    {"int",        lua_int_t_int},
+    {"uint_t",     lua_int_t_uint_t},
+    {"__add",      lua_int_t_add},
+    {"__sub",      lua_int_t_sub},
+    {"__mul",      lua_int_t_mul},
+    {"__div",      lua_int_t_div},
+    {"__mod",      lua_int_t_mod},
+    {"__eq",       lua_int_t_eq},
+    {"__lt",       lua_int_t_lt},
+    {"__le",       lua_int_t_le},
+    {"strx",       lua_int_t_strx},
     {NULL, NULL}
 };
 
@@ -31,6 +32,7 @@ static const struct luaL_Reg uint_t_lib_f [] = {
 static const struct luaL_Reg uint_t_lib_m [] = {
     {"__tostring", lua_uint_t_str},
     {"int",   lua_uint_t_int},
+    {"int_t", lua_uint_t_int_t},
     {"__add", lua_uint_t_add},
     {"__sub", lua_uint_t_sub},
     {"__mul", lua_uint_t_mul},
@@ -95,7 +97,8 @@ int lua_int_t_new (lua_State * L)
         lua_pop(L, 1);
     }
 
-    if (    (bits != 16)
+    if (    (bits != 8)
+         && (bits != 16)
          && (bits != 32)
          && (bits != 64))
         luaL_error(L, "uint_t accepts bit sizes of 16, 32 or 64");
@@ -105,6 +108,7 @@ int lua_int_t_new (lua_State * L)
     lua_setmetatable(L, -2);
     
     switch (bits) {
+        case 8  : int_t_8_set (new_intt, value); break;
         case 16 : int_t_16_set(new_intt, value); break;
         case 32 : int_t_32_set(new_intt, value); break;
         case 64 : int_t_64_set(new_intt, value); break;
@@ -135,6 +139,21 @@ int lua_int_t_int (lua_State * L)
     lua_pop(L, 1);
     
     lua_pushinteger(L, (lua_Integer) int_t_get(intt));
+    
+    return 1;
+}
+
+
+int lua_int_t_uint_t (lua_State * L)
+{
+    int_t * src;
+    uint_t dst;
+    
+    src = lua_check_int_t(L, 1);
+    lua_pop(L, 1);
+    
+    uint_t_int_t(&dst, src);
+    lua_push_uint_t(L, &dst);
     
     return 1;
 }
@@ -444,7 +463,8 @@ int lua_uint_t_new (lua_State * L)
         lua_pop(L, 1);
     }
 
-    if (    (bits != 16)
+    if (    (bits != 8)
+         && (bits != 16)
          && (bits != 32)
          && (bits != 64))
         luaL_error(L, "uint_t accepts bit sizes of 16, 32 or 64");
@@ -455,6 +475,7 @@ int lua_uint_t_new (lua_State * L)
     lua_setmetatable(L, -2);
     
     switch (bits) {
+        case 8 :  uint_t_8_set (new_uintt, value); break;
         case 16 : uint_t_16_set(new_uintt, value); break;
         case 32 : uint_t_32_set(new_uintt, value); break;
         case 64 : uint_t_64_set(new_uintt, value); break;
@@ -485,6 +506,21 @@ int lua_uint_t_int (lua_State * L)
     lua_pop(L, 1);
     
     lua_pushinteger(L, (lua_Integer) uint_t_get(uintt));
+    
+    return 1;
+}
+
+
+int lua_uint_t_int_t (lua_State * L)
+{
+    uint_t * src;
+    int_t dst;
+    
+    src = lua_check_uint_t(L, 1);
+    lua_pop(L, 1);
+    
+    int_t_uint_t(&dst, src);
+    lua_push_int_t(L, &dst);
     
     return 1;
 }
@@ -740,4 +776,5 @@ int lua_uint_t_le (lua_State * L)
     }
     
     return 1;
-} 
+}
+

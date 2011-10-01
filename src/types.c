@@ -341,6 +341,17 @@ int int_t_mod (int_t * dst, int_t * b)
 }
 
 
+void int_t_uint_t (int_t * dst, uint_t * src)
+{
+    switch (src->type) {
+        case UINT_T_8  : int_t_8_set (dst, (int8_t)  (src->uints.uint8)); break;
+        case UINT_T_16 : int_t_16_set(dst, (int16_t) (src->uints.uint16)); break;
+        case UINT_T_32 : int_t_32_set(dst, (int32_t) (src->uints.uint32)); break;
+        case UINT_T_64 : int_t_64_set(dst, (int64_t) (src->uints.uint64)); break;
+    }
+}
+
+
 
 void uint_t_8_set  (uint_t * uintt, uint8_t i)
 {
@@ -684,4 +695,15 @@ int uint_t_mod (uint_t * dst, uint_t * b)
         return UINT_T_ERROR;
     }
     return 0;
+}
+
+
+void uint_t_int_t (uint_t * dst, int_t * src)
+{
+    switch (src->type) {
+        case INT_T_8  : uint_t_8_set (dst, (uint8_t)  (src->ints.int8)); break;
+        case INT_T_16 : uint_t_16_set(dst, (uint16_t) (src->ints.int16)); break;
+        case INT_T_32 : uint_t_32_set(dst, (uint32_t) (src->ints.int32)); break;
+        case INT_T_64 : uint_t_64_set(dst, (uint64_t) (src->ints.int64)); break;
+    }
 }

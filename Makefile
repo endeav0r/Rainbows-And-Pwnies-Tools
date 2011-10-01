@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS= -Wall -O0 -g
+CFLAGS= -Wall -O2 -g
 LIBS = -ludis86 -llua5.1
 
 _OBJS = elf.o rop.o lua.o strings.o types.o aux.o lua_types.o lua_elf.o \
