@@ -1,0 +1,155 @@
+#ifndef pe_spec_HEADER
+#define pe_spec_HEADER
+
+#include <stdint.h>
+
+#define PE_SIGNATURE         "PE\0\0"
+#define PE_SIGNATURE_SIZE    4
+#define PE_FILE_OFFSET       0x3c
+// gcc sizeof(Pe_SymbolHeader) is returning values with alignment
+#define PE_SYMBOLHEADER_SIZE 18
+
+#define PE_SYM_TYPE_BASE(TYPE)    (TYPE & 0x0000000F)
+#define PE_SYM_TYPE_COMPLEX(TYPE) ((TYPE >> 4) & 0x0000000F)
+
+
+typedef struct _Pe_Fileheader {
+    uint16_t Machine;              // 2
+    uint16_t NumberOfSections;     // 4
+    uint32_t TimeDateStamp;        // 8
+    uint32_t PointerToSymbolTable; // 12
+    uint32_t NumberOfSymbols;      // 16
+    uint16_t SizeOfOptionalHeader; // 18
+    uint16_t Characteristics;      // 20
+} Pe_FileHeader;
+
+
+typedef struct _Pe_SectionHeader {
+    char Name[8];                  // 8
+    uint32_t VirtualSize;          // 12
+    uint32_t VirtualAddress;       // 16
+    uint32_t SizeOfRawData;        // 20
+    uint32_t PointerToRawData;     // 24
+    uint32_t PointerToRelocations; // 28
+    uint32_t PointerToLinenumbers; // 32
+    uint16_t NumberOfRelocations;  // 34
+    uint16_t NumberOfLinenumbers;  // 36
+    uint32_t Characteristics;      // 40
+} Pe_SectionHeader;
+
+
+// value is defined as SIGNED in the PE SPEC, but we're treating it as unsigned
+// here. We will almost always use it unsigned. If you need it signed, cast it
+// to a signed type
+typedef struct _Pe_SymbolHeader {
+    char Name[8];                // 8
+    uint32_t Value;              // 12
+    uint16_t SectionNumber;      // 14
+    uint16_t Type;               // 16
+    uint8_t  StorageClass;       // 17
+    uint8_t  NumberOfAuxSymbols; // 18
+} Pe_SymbolHeader;
+
+#define IMAGE_FILE_MACHINE_UNKNOWN   0x0
+#define IMAGE_FILE_MACHINE_ALPHA     0x184
+#define IMAGE_FILE_MACHINE_ARM       0x1c0
+#define IMAGE_FILE_MACHINE_ALPHA64   0x284
+#define IMAGE_FILE_MACHINE_I386      0x14c
+#define IMAGE_FILE_MACHINE_IA64      0x200
+#define IMAGE_FILE_MACHINE_M68K      0x268
+#define IMAGE_FILE_MACHINE_MIPS16    0x266
+#define IMAGE_FILE_MACHINE_MIPSFPU   0x366
+#define IMAGE_FILE_MACHINE_MIPSFPU16 0x266
+#define IMAGE_FILE_MACHINE_POWERPC   0x1f0
+#define IMAGE_FILE_MACHINE_R3000     0x162
+#define IMAGE_FILE_MACHINE_R4000     0x166
+#define IMAGE_FILE_MACHINE_R10000    0x168
+#define IMAGE_FILE_MACHINE_SH3       0x1a2
+#define IMAGE_FILE_MACHINE_SH4       0x1a6
+#define IMAGE_FILE_MACHINE_THUMB     0x1c2
+
+#define IMAGE_FILE_RELOCS_STRIPPED         0x0001
+#define IMAGE_FILE_EXECUTABLE_IMAGE        0x0002
+#define IMAGE_FILE_LINE_NUMS_STRIPPED      0x0004
+#define IMAGE_FILE_LOCAL_SYMS_STRIPPED     0x0008
+#define IMAGE_FILE_AGRESSIVE_WS_TRIM       0x0010
+#define IMAGE_FILE_LARGE_ADDRESS_AWARE     0x0020
+#define IMAGE_FILE_16BIT_MACHINE           0x0040
+#define IMAGE_FILE_BYTES_REVERSED_LO       0x0080
+#define IMAGE_FILE_32BIT_MACHINE           0x0100
+#define IMAGE_FILE_DEBUG_STRIPPED          0x0200
+#define IMAGE_FILE_REMOVABLE_RUN_FROM_SWAP 0x0400
+#define IMAGE_FILE_SYSTEM                  0x1000
+#define IMAGE_FILE_DLL                     0x2000
+#define IMAGE_FILE_UP_SYSTEM_ONLY          0x4000
+#define IMAGE_FILE_BYTES_REVERSE_HI        0x8000
+
+#define IMAGE_SCN_TYPE_REG               0x00000000
+#define IMAGE_SCN_TYPE_DSECT             0x00000001
+#define IMAGE_SCN_TYPE_NOLOAD            0x00000002
+#define IMAGE_SCN_TYPE_GROUP             0x00000004
+#define IMAGE_SCN_TYPE_NO_PAD            0x00000008
+#define IMAGE_SCN_TYPE_COPY              0x00000010
+#define IMAGE_SCN_CNT_CODE               0x00000020
+#define IMAGE_SCN_CNT_INITIALIZED_DATA   0x00000040
+#define IMAGE_SCN_CNT_UNINITIALIZED_DATA 0x00000080
+#define IMAGE_SCN_LNK_OTHER              0x00000100
+#define IMAGE_SCN_LNK_INFO               0x00000200
+#define IMAGE_SCN_TYPE_OVER              0x00000400
+#define IMAGE_SCN_LNK_REMOVE             0x00000800
+#define IMAGE_SCN_LNK_COMDAT             0x00001000
+#define IMAGE_SCN_MEM_FARDATA            0x00008000
+#define IMAGE_SCN_MEM_PURGEABLE          0x00020000
+#define IMAGE_SCN_MEM_16BIT              0x00020000
+#define IMAGE_SCN_MEM_LOCKED             0x00040000
+#define IMAGE_SCN_MEM_PRELOAD            0x00080000
+#define IMAGE_SCN_ALIGN_1BYTES           0x00100000
+#define IMAGE_SCN_ALIGN_2BYTES           0x00200000
+#define IMAGE_SCN_ALIGN_4BYTES           0x00300000
+#define IMAGE_SCN_ALIGN_8BYTES           0x00400000
+#define IMAGE_SCN_ALIGN_16BYTES          0x00500000
+#define IMAGE_SCN_ALIGN_32BYTES          0x00600000
+#define IMAGE_SCN_ALIGN_64BYTES          0x00700000
+#define IMAGE_SCN_ALIGN_128BYTES         0x00800000
+#define IMAGE_SCN_ALIGN_256BYTES         0x00900000
+#define IMAGE_SCN_ALIGN_512BYTES         0x00A00000
+#define IMAGE_SCN_ALIGN_1024BYTES        0x00B00000
+#define IMAGE_SCN_ALIGN_2048BYTES        0x00C00000
+#define IMAGE_SCN_ALIGN_4096BYTES        0x00D00000
+#define IMAGE_SCN_ALIGN_8192BYTES        0x00E00000
+#define IMAGE_SCN_LNK_NRELOC_OVFL        0x01000000
+#define IMAGE_SCN_MEM_DISCARDABLE        0x02000000
+#define IMAGE_SCN_MEM_NOT_CACHED         0x04000000
+#define IMAGE_SCN_MEM_NOT_PAGED          0x08000000
+#define IMAGE_SCN_MEM_SHARED             0x10000000
+#define IMAGE_SCN_MEM_EXECUTE            0x20000000
+#define IMAGE_SCN_MEM_READ               0x40000000
+#define IMAGE_SCN_MEM_WRITE              0x80000000
+
+#define IMAGE_SYM_UNDEFINED  0
+#define IMAGE_SYM_ABSOLUTE  -1
+#define IMAGE_SYM_DEBUG     -2
+
+#define IMAGE_SYM_TYPE_NULL   0
+#define IMAGE_SYM_TYPE_VOID   1
+#define IMAGE_SYM_TYPE_CHAR   2
+#define IMAGE_SYM_TYPE_SHORT  3
+#define IMAGE_SYM_TYPE_INT    4
+#define IMAGE_SYM_TYPE_LONG   5
+#define IMAGE_SYM_TYPE_FLOAT  6
+#define IMAGE_SYM_TYPE_DOUBLE 8
+#define IMAGE_SYM_TYPE_UNION  9
+#define IMAGE_SYM_TYPE_ENUM   10
+#define IMAGE_SYM_TYPE_MOE    11
+#define IMAGE_SYM_TYPE_BYTE   12
+#define IMAGE_SYM_TYPE_WORD   13
+#define IMAGE_SYM_TYPE_UINT   14
+#define IMAGE_SYM_TYPE_DWORD  15
+
+#define IMAGE_SYM_DTYPE_NULL     0
+#define IMAGE_SYM_DTYPE_POINTER  1
+#define IMAGE_SYM_DTYPE_FUNCTION 2
+#define IMAGE_SYM_DTYPE_ARRAY    3
+#define IMAGE_SYM_MSFT_FUNCTION  0x20
+
+#endif
