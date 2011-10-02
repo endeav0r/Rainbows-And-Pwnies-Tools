@@ -714,35 +714,37 @@ int lua_section_t_mem_at_address (lua_State * L)
     lua_pop(L, 4);
     
     data = shdr_data(shdr);
-    offset = uint_t_get(shdr_addr(shdr)) - uint_t_get(address);
+    uint_t_set(&address_tmp, address);
+    uint_t_sub(&address_tmp, shdr_addr(shdr));
+    offset = uint_t_get(&address_tmp);
     uint_t_set(&address_tmp, address);
     lua_newtable(L);
     for (i = 0; i < member_number; i++) {
         switch (member_size) {
         case 8 :
-            lua_push_uint_t(L, &address_tmp);
+            lua_pushinteger(L, (lua_Integer) i + 1);
             uint_t_8_set(&uintt, *((uint8_t *) &(data[offset + i])));
             lua_push_uint_t(L, &uintt);
             lua_settable(L, -3);
             uint_t_add_int(&address_tmp, 1);
             break;
         case 16 :
-            lua_push_uint_t(L, &address_tmp);
-            uint_t_16_set(&uintt, *((uint16_t *) &(data[offset + i])));
+            lua_pushinteger(L, (lua_Integer) i + 1);
+            uint_t_16_set(&uintt, *((uint16_t *) &(data[offset + i*2])));
             lua_push_uint_t(L, &uintt);
             lua_settable(L, -3);
             uint_t_add_int(&address_tmp, 2);
             break;
         case 32 :
-            lua_push_uint_t(L, &address_tmp);
-            uint_t_32_set(&uintt, *((uint32_t *) &(data[offset + i])));
+            lua_pushinteger(L, (lua_Integer) i + 1);
+            uint_t_32_set(&uintt, *((uint32_t *) &(data[offset + i*4])));
             lua_push_uint_t(L, &uintt);
             lua_settable(L, -3);
             uint_t_add_int(&address_tmp, 4);
             break;
         case 64 :
-            lua_push_uint_t(L, &address_tmp);
-            uint_t_64_set(&uintt, *((uint64_t *) &(data[offset + i])));
+            lua_pushinteger(L, (lua_Integer) i + 1);
+            uint_t_64_set(&uintt, *((uint64_t *) &(data[offset + i*8])));
             lua_push_uint_t(L, &uintt);
             lua_settable(L, -3);
             uint_t_add_int(&address_tmp, 8);
