@@ -58,12 +58,13 @@ int                lua_open_elf_t    (lua_State * L);
 struct _elf *      lua_check_elf     (lua_State * L, int position);
 struct lua_elf_t * lua_check_elf_t   (lua_State * L, int position);
 void               lua_push_elf      (lua_State * L, struct _elf * elf);
-int lua_elf_t_new      (lua_State * L);
-int lua_elf_t_gc       (lua_State * L);
-int lua_elf_t_class    (lua_State * L);
-int lua_elf_t_filename (lua_State * L);
-int lua_elf_t_shnum    (lua_State * L);
-int lua_elf_t_section  (lua_State * L);
+int lua_elf_t_new            (lua_State * L);
+int lua_elf_t_gc             (lua_State * L);
+int lua_elf_t_class          (lua_State * L);
+int lua_elf_t_filename       (lua_State * L);
+int lua_elf_t_shnum          (lua_State * L);
+int lua_elf_t_section        (lua_State * L);
+int lua_elf_t_section_exists (lua_State * L);
 
 
 void                   lua_section_t_collect (struct lua_section_t * section_t);

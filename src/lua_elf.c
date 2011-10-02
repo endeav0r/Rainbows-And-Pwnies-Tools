@@ -31,11 +31,12 @@ static const struct luaL_Reg elf_lib_f [] = {
 };
 
 static const struct luaL_Reg elf_lib_m [] = {
-    {"class",    lua_elf_t_class},
-    {"shnum",    lua_elf_t_shnum},
-    {"filename", lua_elf_t_filename},
-    {"section",  lua_elf_t_section},
-    {"__gc",     lua_elf_t_gc},
+    {"class",          lua_elf_t_class},
+    {"shnum",          lua_elf_t_shnum},
+    {"filename",       lua_elf_t_filename},
+    {"section",        lua_elf_t_section},
+    {"section_exists", lua_elf_t_section_exists},
+    {"__gc",           lua_elf_t_gc},
     {NULL, NULL}
 };
 
@@ -274,6 +275,36 @@ int lua_elf_t_section (lua_State * L)
     elf_shdr(elf->elf, &(section->shdr), shdr_i);
     section->elf_t = elf;
     elf->ref_count++;
+    
+    return 1;
+}
+
+
+int lua_elf_t_section_exists (lua_State * L)
+{
+    struct _elf * elf;
+    struct _elf_shdr shdr;
+    int shdr_i;
+    int found;
+    char * name;
+    
+    elf = lua_check_elf(L, 1);
+    name = (char *) luaL_checkstring(L, 2);
+    lua_pop(L, 2);
+    
+    found = 0;
+    for (shdr_i = 0; shdr_i < int_t_get(elf_shnum(elf)); shdr_i++) {
+        elf_shdr(elf, &shdr, shdr_i);
+        if (strcmp(shdr_name(&shdr), name) == 0) {
+            found = 1;
+            break;
+        }
+    }
+    
+    if (found)
+        lua_pushboolean(L, 1);
+    else
+        lua_pushboolean(L, 0);
     
     return 1;
 }
