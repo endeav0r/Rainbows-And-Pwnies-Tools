@@ -193,6 +193,8 @@ function print_instructions (elf, instructions)
                     else
                         jump_path = jump_path .. '/'
                     end
+                elseif jump_origin or jump_destination then
+                    jump_path = jump_path .. '+'
                 else
                     jump_path = jump_path .. '|'
                 end
