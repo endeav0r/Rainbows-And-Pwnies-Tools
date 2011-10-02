@@ -57,6 +57,7 @@ static const struct luaL_Reg section_lib_m [] = {
     {"symbol",      lua_section_t_symbol},
     {"symbols",     lua_section_t_symbols},
     {"relocation",  lua_section_t_relocation},
+    {"relocations", lua_section_t_relocations},
     {"disassemble", lua_section_t_disassemble},
     {"rop_table",   lua_section_t_rop_table},
     {"mem_at_address", lua_section_t_mem_at_address},
@@ -442,6 +443,9 @@ int lua_section_t_symbol (lua_State * L)
     struct lua_symbol_t * symbol;
     
     section = lua_check_section_t(L, 1);
+    if (    (int_t_get(shdr_type(&(section->shdr))) != SHT_SYMTAB)
+         && (int_t_get(shdr_type(&(section->shdr))) != SHT_DYNSYM))
+        luaL_error(L, "can only call symbol() on section_t of type (symtab|dynsym)");
     if (lua_isnumber(L, 2))
         sym_i = luaL_checkinteger(L, 2);
     else if (lua_isstring(L, 2)) {
@@ -478,6 +482,9 @@ int lua_section_t_symbols (lua_State * L)
     struct lua_symbol_t * symbol;
     
     section = lua_check_section_t(L, 1);
+    if (    (int_t_get(shdr_type(&(section->shdr))) != SHT_SYMTAB)
+         && (int_t_get(shdr_type(&(section->shdr))) != SHT_DYNSYM))
+        luaL_error(L, "can only call symbols() on section_t of type (symtab|dynsym)");
     lua_pop(L, 1);
     
     lua_newtable(L);
@@ -506,6 +513,10 @@ int lua_section_t_relocation (lua_State * L)
     struct lua_relocation_t * relocation;
     
     section = lua_check_section_t(L, 1);
+    if (    (int_t_get(shdr_type(&(section->shdr))) != SHT_REL)
+         && (int_t_get(shdr_type(&(section->shdr))) != SHT_RELA))
+        luaL_error(L, "can only call relocation() on section_t of type (rel|rela)");
+        
     if (lua_isnumber(L, 2))
         rel_i = luaL_checkinteger(L, 2);
     else if (lua_isstring(L, 2)) {
@@ -530,6 +541,35 @@ int lua_section_t_relocation (lua_State * L)
     relocation->section_t = section;
     section->elf_t->ref_count++;
     section->ref_count++;
+    
+    return 1;
+}
+
+
+int lua_section_t_relocations (lua_State * L)
+{
+    struct lua_section_t * section;
+    int rel_i;
+    struct lua_relocation_t * relocation;
+    
+    section = lua_check_section_t(L, 1);
+    if (    (int_t_get(shdr_type(&(section->shdr))) != SHT_REL)
+         && (int_t_get(shdr_type(&(section->shdr))) != SHT_RELA))
+        luaL_error(L, "can only call relocation() on section_t of type (rel|rela)");
+    lua_pop(L, 1);
+    
+    lua_newtable(L);
+    for (rel_i = 0; rel_i < shdr_num(&(section->shdr)); rel_i++) {
+        lua_push_relocation_t(L);
+        relocation = lua_check_relocation_t(L, -1);
+        shdr_rel(&(section->shdr), &(relocation->rel), rel_i);
+        relocation->section_t = section;
+        section->elf_t->ref_count++;
+        section->ref_count++;
+        lua_pushinteger(L, rel_i + 1);
+        lua_insert(L, -2);
+        lua_settable(L, -3);
+    }
     
     return 1;
 }
