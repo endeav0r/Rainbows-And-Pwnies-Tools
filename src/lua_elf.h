@@ -65,6 +65,7 @@ int lua_elf_t_filename       (lua_State * L);
 int lua_elf_t_shnum          (lua_State * L);
 int lua_elf_t_section        (lua_State * L);
 int lua_elf_t_section_exists (lua_State * L);
+int lua_elf_t_symbols        (lua_State * L);
 
 
 void                   lua_section_t_collect (struct lua_section_t * section_t);
@@ -89,6 +90,7 @@ int lua_section_t_link           (lua_State * L);
 int lua_section_t_symbol         (lua_State * L);
 int lua_section_t_symbols        (lua_State * L);
 int lua_section_t_relocation     (lua_State * L);
+int lua_section_t_relocations    (lua_State * L);
 int lua_section_t_disassemble    (lua_State * L);
 int lua_section_t_rop_table      (lua_State * L);
 int lua_section_t_mem_at_address (lua_State * L);

@@ -84,9 +84,7 @@ function relative_offset_description (elf, instruction)
     end
     
     -- check symbols
-    local symtab = elf:section(".symtab")
-    for i = 0,symtab:num()-1 do
-        local symbol = symtab:symbol(i)
+    for i, symbol in pairs(elf:symbols()) do
         if symbol:type() == "func" and
            symbol:value() <= target_address and
            symbol:value() + symbol:size():uint_t() >= target_address then
@@ -132,8 +130,7 @@ function relative_offset_description (elf, instruction)
 end
 
 
-function disassemble_function (elf, symbol)
-    local instructions = symbol:disassemble()
+function print_instructions (elf, instructions)
     
     -- first pass, find addresses we jump to in this function
     local jump_destinations = {}
@@ -163,8 +160,6 @@ function disassemble_function (elf, symbol)
     end
         
     -- last pass, print it all out
-    print(TERM_COLOR_MAGENTA .. TERM_BOLD .. symbol:value():str0x() ..
-          " " .. symbol:name() .. ':' .. TERM_NORMAL .. TERM_COLOR_DEFAULT)
     for index,instruction in pairs(instructions) do
         -- is this address one of our jump locations
         local address = TERM_COLOR_GREEN .. instruction["address"]:strx() .. 
@@ -261,12 +256,19 @@ end
 print(argv[1])
 elf = elf_t.new(argv[1])
 text = elf:section(".text")
-for i, symbol in pairs(elf:section(".symtab"):symbols()) do
+symbols = elf:symbols()
+table.sort(symbols, function(a,b) return a:value() < b:value() end)
+for i, symbol in pairs(symbols) do
     if symbol:type() == "func" and
+        symbol:value():int() > 0 then
+    --[[and
        symbol:value() >= text:address() and
        symbol:value() + symbol:size():uint_t() <= text:address() + text:size():uint_t() then
-
-        disassemble_function(elf, symbol)
+]]
+        print(TERM_COLOR_MAGENTA .. TERM_BOLD .. symbol:value():str0x() ..
+              " " .. symbol:name() .. ':' .. TERM_NORMAL .. TERM_COLOR_DEFAULT)
+        print_instructions(elf, symbol:disassemble())
+        print()
         --symbol:disassemble()
     end
 end

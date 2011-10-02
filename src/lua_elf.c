@@ -36,6 +36,7 @@ static const struct luaL_Reg elf_lib_m [] = {
     {"filename",       lua_elf_t_filename},
     {"section",        lua_elf_t_section},
     {"section_exists", lua_elf_t_section_exists},
+    {"symbols",        lua_elf_t_symbols},
     {"__gc",           lua_elf_t_gc},
     {NULL, NULL}
 };
@@ -311,6 +312,54 @@ int lua_elf_t_section_exists (lua_State * L)
         lua_pushboolean(L, 1);
     else
         lua_pushboolean(L, 0);
+    
+    return 1;
+}
+
+
+
+int lua_elf_t_symbols (lua_State * L)
+{
+    struct lua_elf_t * elf_t;
+    struct lua_section_t * section;
+    struct _elf_shdr shdr;
+    struct _elf * elf;
+    int shdr_i;
+    int sym_i;
+    int symbols_i = 1;
+    struct lua_symbol_t * symbol;
+    
+    elf_t = lua_check_elf_t(L, 1);
+    lua_pop(L, 1);
+    
+    elf = elf_t->elf;
+    
+    lua_newtable(L);
+    for (shdr_i = 0; shdr_i < int_t_get(elf_shnum(elf)); shdr_i++) {
+        elf_shdr(elf, &shdr, shdr_i);
+        if (    (int_t_get(shdr_type(&shdr)) == SHT_SYMTAB)
+             || (int_t_get(shdr_type(&shdr)) == SHT_DYNSYM)) {
+             
+            lua_push_section_t(L);
+            section = lua_check_section_t(L, -1);
+            lua_pop(L, 1);
+            elf_shdr(elf, &(section->shdr), shdr_i);
+            section->elf_t = elf_t;
+            elf_t->ref_count++;
+            
+            for (sym_i = 0; sym_i < shdr_num(&shdr); sym_i++) {
+                lua_pushinteger(L, (lua_Integer) symbols_i++);
+                lua_push_symbol_t(L);
+                symbol = lua_check_symbol_t(L, -1);
+                shdr_sym(&shdr, &(symbol->sym), sym_i);
+                symbol->section_t = section;
+                section->ref_count++;
+                elf_t->ref_count++;
+                lua_settable(L, -3);
+            }
+            
+        }
+    }
     
     return 1;
 }
@@ -821,6 +870,8 @@ int lua_symbol_t_disassemble (lua_State * L)
                 if (    (sym_type(&sym) == STT_FUNC)
                      && (uint_t_cmp(sym_value(&(symbol->sym)),
                                     sym_value(&sym)) < 0)
+                     && (uint_t_cmp(sym_shndx(&sym), sym_shndx(&(symbol->sym)))
+                         == 0)
                      && (    (uint_t_cmp(sym_value(&sym), &end_address) < 0)
                           || (end_address_set == 0)
                         )
@@ -838,6 +889,7 @@ int lua_symbol_t_disassemble (lua_State * L)
         uint_t_int_t(&end_address, shdr_size(&shdr));
         uint_t_add(&end_address, shdr_addr(&shdr));
     }
+    
     
     // load the linked section
     elf_shdr(elf, &shdr, uint_t_get(sym_shndx(&(symbol->sym))));

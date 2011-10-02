@@ -1,7 +1,6 @@
 #include "elf.h"
 
 
-
 struct _elf * elf_open (char * filename)
 {
     struct _elf * elf;
@@ -30,7 +29,7 @@ struct _elf * elf_open (char * filename)
     if (bytes_read != elf->bytes_size) {
         fprintf(stderr, "reading %s, filesize: %d but read %d bytes\n",
                 filename, (int) elf->bytes_size, (int) bytes_read);
-        exit(-1);
+        return NULL;
     }
     
     fclose(fh);
