@@ -10,9 +10,21 @@ TERM_NORMAL        = "\027[22m"
 
 function is_jump (mnemonic)
     if mnemonic == "jmp" or
-       mnemonic == "jle" or
+       mnemonic == "jo" or
+       mnemonic == "jno" or
+       mnemonic == "jb" or
+       mnemonic == "jae" or
+       mnemonic == "jz" or
        mnemonic == "jnz" or
-       mnemonic == "jz" then
+       mnemonic == "jbe" or
+       mnemonic == "ja" or
+       mnemonic == "js" or
+       mnemonic == "jp" or
+       mnemonic == "jnp" or
+       mnemonic == "jl" or
+       mnemonic == "jge" or
+       mnemonic == "jle" or
+       mnemonic == "jg" then
         return true
     end
     return false
@@ -36,38 +48,37 @@ function disassemble_function (elf, function_name)
 end
 
 
-function operand_address (operand, address, size)
-    local op_address = operand["lval"]
+function operand_abs (operand, address, size)
+    local absolute = address + uint_t.new(32, size)
     
-    if operand["base"] == "rip" then
-        op_address = op_address + address:int_t() + int_t.new(32, size)
+    if operand["lval"]:int() < 0 then
+        absolute = absolute - (operand["lval"] * int_t.new(8, -1)):uint_t()
+    else
+        absolute = absolute + operand["lval"]:uint_t()
     end
-    return op_address
+    
+    return absolute
 end
 
 
 function relative_offset_description (elf, instruction)
-    local address = instruction["address"] + uint_t.new(32, instruction["size"])
-    local lval = instruction["operands"][1]["lval"]
+    local target_address
     local description = nil
     
-    if lval:int() < 0 then
-        lval = lval * int_t.new(8, -1)
-        address = address - lval:uint_t()
-    else
-        address = address + lval:uint_t()
-    end
+    target_address = operand_abs(instruction["operands"][1],
+                                 instruction["address"],
+                                 instruction["size"])
     
     -- check symbols
     local symtab = elf:section(".symtab")
     for i = 0,symtab:num()-1 do
         local symbol = symtab:symbol(i)
-        if symbol:value() <= address and
-           symbol:value() + symbol:size():uint_t() > address then
+        if symbol:value() <= target_address and
+           symbol:value() + symbol:size():uint_t() > target_address then
             --address = address - symbol:value()
             description = symbol:name() .. 
-                          " ( " .. address:strx() .. " | " .. 
-                          tostring(address - symbol:value()) .. " )"
+                          " ( " .. target_address:strx() .. " | " .. 
+                          tostring(target_address - symbol:value()) .. " )"
             break
         end
     end
@@ -75,12 +86,12 @@ function relative_offset_description (elf, instruction)
     -- maybe it's in PLT?
     if description == nil then
         local plt = elf:section(".plt")
-        if address >= plt:address() and
-           address < plt:address() + plt:size():uint_t() then
-            local plt_jmp = plt:disassemble(address)
-            local op_address = operand_address(plt_jmp["operands"][1],
-                                         address,
-                                         plt_jmp["size"])
+        if target_address >= plt:address() and
+           target_address < plt:address() + plt:size():uint_t() then
+            local plt_jmp = plt:disassemble(target_address)
+            local op_address = operand_abs(plt_jmp["operands"][1],
+                                           target_address,
+                                           plt_jmp["size"])
             -- find relocation for op_address
             local relplt
             if elf:section_exists(".rel.plt") then
@@ -90,7 +101,7 @@ function relative_offset_description (elf, instruction)
             end
             for i = 0,relplt:num()-1 do
                 local relocation = relplt:relocation(i)
-                if relocation:offset() == op_address:uint_t() then
+                if relocation:offset() == op_address then
                     description = relocation:name() .. "@PLT"
                     break
                 end
@@ -102,7 +113,7 @@ function relative_offset_description (elf, instruction)
     if description ~= nil then
         return description
     else
-        return "(" .. address:strx() .. ")"
+        return "(" .. target_address:strx() .. ")"
     end
 end
 
