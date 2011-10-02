@@ -19,6 +19,7 @@ static const struct luaL_Reg int_t_lib_m [] = {
     {"__lt",       lua_int_t_lt},
     {"__le",       lua_int_t_le},
     {"strx",       lua_int_t_strx},
+    {"str0x",       lua_int_t_strx},
     {NULL, NULL}
 };
 
@@ -42,6 +43,7 @@ static const struct luaL_Reg uint_t_lib_m [] = {
     {"__lt",  lua_uint_t_lt},
     {"__le",  lua_uint_t_le},
     {"strx",  lua_uint_t_strx},
+    {"str0x",  lua_uint_t_str0x},
     {NULL, NULL}
 };
 
@@ -167,6 +169,19 @@ int lua_int_t_strx (lua_State * L)
     lua_pop(L, 1);
     
     lua_pushstring(L, int_t_strx(intt));
+    
+    return 1;
+}
+
+
+int lua_int_t_str0x (lua_State * L)
+{
+    int_t * intt;
+    
+    intt = lua_check_int_t(L, 1);
+    lua_pop(L, 1);
+    
+    lua_pushstring(L, int_t_str0x(intt));
     
     return 1;
 }
@@ -534,6 +549,19 @@ int lua_uint_t_strx (lua_State * L)
     lua_pop(L, 1);
     
     lua_pushstring(L, uint_t_strx(uintt));
+    
+    return 1;
+}
+
+
+int lua_uint_t_str0x (lua_State * L)
+{
+    uint_t * uintt;
+    
+    uintt = lua_check_uint_t(L, 1);
+    lua_pop(L, 1);
+    
+    lua_pushstring(L, uint_t_str0x(uintt));
     
     return 1;
 }

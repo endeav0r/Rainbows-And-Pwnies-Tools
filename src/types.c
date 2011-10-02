@@ -85,6 +85,30 @@ char * int_t_strx (int_t * intt)
 {
     switch (intt->type) {
     case INT_T_8 :
+        snprintf(intt->string, INT_STRLEN, "%x", intt->ints.int8);
+        break;
+    case INT_T_16 :
+        snprintf(intt->string, INT_STRLEN, "%x", intt->ints.int16);
+        break;
+    case INT_T_32 :
+        snprintf(intt->string, INT_STRLEN, "%x", intt->ints.int32);
+        break;
+    case INT_T_64 :
+        snprintf(intt->string, INT_STRLEN,
+                 "%llx", (long long int) intt->ints.int64);
+        break;
+    default :
+        snprintf(intt->string, INT_STRLEN, "INVALID_INT_T");
+    }
+    
+    return intt->string;
+}
+
+
+char * int_t_str0x (int_t * intt)
+{
+    switch (intt->type) {
+    case INT_T_8 :
         snprintf(intt->string, INT_STRLEN, "%02x", intt->ints.int8);
         break;
     case INT_T_16 :
@@ -435,6 +459,30 @@ char * uint_t_str (uint_t * uintt)
 
 
 char * uint_t_strx (uint_t * uintt)
+{
+    switch (uintt->type) {
+    case UINT_T_8 :
+        snprintf(uintt->string, INT_STRLEN, "%x", uintt->uints.uint8);
+        break;
+    case UINT_T_16 :
+        snprintf(uintt->string, INT_STRLEN, "%x", uintt->uints.uint16);
+        break;
+    case UINT_T_32 :
+        snprintf(uintt->string, INT_STRLEN, "%x", uintt->uints.uint32);
+        break;
+    case UINT_T_64 :
+        snprintf(uintt->string, INT_STRLEN,
+                 "%llx", (unsigned long long int) uintt->uints.uint64);
+        break;
+    default :
+        snprintf(uintt->string, INT_STRLEN, "INVALID_uint_T");
+    }
+    
+    return uintt->string;
+}
+
+
+char * uint_t_str0x (uint_t * uintt)
 {
     switch (uintt->type) {
     case UINT_T_8 :

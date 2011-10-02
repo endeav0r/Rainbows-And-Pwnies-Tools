@@ -87,6 +87,7 @@ int lua_section_t_num            (lua_State * L);
 int lua_section_t_entsize        (lua_State * L);
 int lua_section_t_link           (lua_State * L);
 int lua_section_t_symbol         (lua_State * L);
+int lua_section_t_symbols        (lua_State * L);
 int lua_section_t_relocation     (lua_State * L);
 int lua_section_t_disassemble    (lua_State * L);
 int lua_section_t_rop_table      (lua_State * L);
@@ -99,10 +100,11 @@ int                   lua_symbol_t_gc      (lua_State * L);
 // like lua_section_t, contents need to be filled. sets ref_count = 1
 void                  lua_push_symbol_t    (lua_State * L);
 
-int lua_symbol_t_name  (lua_State * L);
-int lua_symbol_t_value (lua_State * L);
-int lua_symbol_t_type  (lua_State * L);
-int lua_symbol_t_size  (lua_State * L);
+int lua_symbol_t_name        (lua_State * L);
+int lua_symbol_t_value       (lua_State * L);
+int lua_symbol_t_type        (lua_State * L);
+int lua_symbol_t_size        (lua_State * L);
+int lua_symbol_t_disassemble (lua_State * L);
 
 
 void            lua_relocation_t_collect (struct lua_relocation_t * relocation);
