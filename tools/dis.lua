@@ -258,23 +258,25 @@ end
 print(argv[1])
 elf = elf_t.new(argv[1])
 text = elf:section(".text")
-symbols = elf:symbols()
-table.sort(symbols, function(a,b) return a:value() < b:value() end)
-for i, symbol in pairs(symbols) do
-    if symbol:type() == "func" and
-        symbol:value():int() > 0 then
-    --[[and
-       symbol:value() >= text:address() and
-       symbol:value() + symbol:size():uint_t() <= text:address() + text:size():uint_t() then
-]]
-        print(TERM_COLOR_MAGENTA .. TERM_BOLD .. symbol:value():str0x() ..
-              " " .. symbol:name() .. ':' .. TERM_NORMAL .. TERM_COLOR_DEFAULT)
-        print_instructions(elf, symbol:disassemble())
-        print()
-        --symbol:disassemble()
+if argv[2] ~= nil then
+    symbol = elf:section(".symtab"):symbol(argv[2])
+    print(TERM_COLOR_MAGENTA .. TERM_BOLD .. symbol:value():str0x() ..
+          " " .. symbol:name() .. ':' .. TERM_NORMAL .. TERM_COLOR_DEFAULT)
+    print_instructions(elf, symbol:disassemble())
+else
+    symbols = elf:symbols()
+    table.sort(symbols, function(a,b) return a:value() < b:value() end)
+    for i, symbol in pairs(symbols) do
+        if symbol:type() == "func" and
+            symbol:value():int() > 0 then
+            print(TERM_COLOR_MAGENTA .. TERM_BOLD .. symbol:value():str0x() ..
+                  " " .. symbol:name() .. ':' .. TERM_NORMAL .. TERM_COLOR_DEFAULT)
+            print_instructions(elf, symbol:disassemble())
+            print()
+            --symbol:disassemble()
+        end
     end
 end
-
 
 if uint_t.new(8, 0) == int_t.new(16, 0) then
     print("OK")
