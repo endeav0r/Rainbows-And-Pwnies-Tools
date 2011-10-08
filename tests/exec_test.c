@@ -7,6 +7,7 @@ int main (int argc, char * argv[])
     
     struct _exec         * exec;
     struct _exec_section section;
+    struct _exec_symbol  symbol;
     int i;
     
     if (argc != 2) {
@@ -22,6 +23,7 @@ int main (int argc, char * argv[])
     }
     
     printf("num_sections: %d\n", exec_num_sections(exec));
+    printf("num_symbols: %d\n",  exec_num_symbols(exec));
 
     for (i = 0; i < exec_num_sections(exec); i++) {
         exec_section(exec, &section, i);
@@ -41,6 +43,17 @@ int main (int argc, char * argv[])
         printf(" ");
         printf("%s %d\n", exec_section_name(&section),
                exec_section_size(&section));
+    }
+    
+    //                                             :p
+    for (i = 0; (i < exec_num_symbols(exec)); i++) {
+        if (exec_symbol(exec, &symbol, i))
+            printf("error loading symbol %d\n", i);
+        printf("symbol %d (%s) %s %s %s\n", i,
+               exec_symbol_description(&symbol),
+               uint_t_strx(exec_symbol_address(&symbol)),
+               uint_t_strx(exec_symbol_value(&symbol)),
+               exec_symbol_name(&symbol));
     }
 
     exec_destroy(exec);
