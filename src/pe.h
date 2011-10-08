@@ -84,16 +84,17 @@ unsigned char pe_symbol_type     (struct _pe * pe, int index);
 
 int pe_section (struct _pe * pe, struct _pe_section * section, int index);
 
-uint_t * pe_section_VirtualSize          (struct _pe_section * section);
-uint_t * pe_section_VirtualAddress       (struct _pe_section * section);
-uint_t * pe_section_SizeOfRawData        (struct _pe_section * section);
-uint_t * pe_section_PointerToRawData     (struct _pe_section * section);
-uint_t * pe_section_PointerToRelocations (struct _pe_section * section);
-uint_t * pe_section_PointerToLinenumbers (struct _pe_section * section);
-uint_t * pe_section_NumberOfRelocations  (struct _pe_section * section);
-uint_t * pe_section_NumberOfLinenumbers  (struct _pe_section * section);
-uint_t * pe_section_Characteristics      (struct _pe_section * section);
-char *   pe_section_Name                 (struct _pe_section * section);
+uint_t *        pe_section_VirtualSize          (struct _pe_section * section);
+uint_t *        pe_section_VirtualAddress       (struct _pe_section * section);
+uint_t *        pe_section_SizeOfRawData        (struct _pe_section * section);
+uint_t *        pe_section_PointerToRawData     (struct _pe_section * section);
+uint_t *        pe_section_PointerToRelocations (struct _pe_section * section);
+uint_t *        pe_section_PointerToLinenumbers (struct _pe_section * section);
+uint_t *        pe_section_NumberOfRelocations  (struct _pe_section * section);
+uint_t *        pe_section_NumberOfLinenumbers  (struct _pe_section * section);
+uint_t *        pe_section_Characteristics      (struct _pe_section * section);
+char *          pe_section_Name                 (struct _pe_section * section);
+unsigned char * pe_section_data                 (struct _pe_section * section);
 
 int pe_symbol (struct _pe * pe, struct _pe_symbol * symbol, int index);
 

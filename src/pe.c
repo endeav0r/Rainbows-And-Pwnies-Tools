@@ -186,6 +186,10 @@ PE_SECTION_ACCESSOR(NumberOfRelocations)
 PE_SECTION_ACCESSOR(Characteristics)
 char * pe_section_Name (struct _pe_section * section) { return section->Name; }
 
+unsigned char * pe_section_data (struct _pe_section * section)
+{
+    return &(section->pe->bytes[uint_t_get(pe_section_PointerToRawData(section))]);
+}
 
 // this doesn't handle aux symbols. fuck you microsoft you fucking cocksuckers.
 // We can either make iterating through all symbols a n^2 type deal, or be
