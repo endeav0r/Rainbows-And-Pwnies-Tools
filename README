@@ -8,7 +8,10 @@ building of rop chains. Coded in C, it quickly identifies rop gadgets in large
 binaries. It makes this information available to lua scripts for rop chain
 scripting goodness.
 
-Currently supports 32-bit and 64-bit ELF binaries
+Currently supports x86(|-64) ELF and x86 PE executables (no PE+, or 64-bit)
+PE+ support _is_coming_
+
+
 
 /*************** 
 * REQUIREMENTS *
@@ -17,109 +20,118 @@ udis86 and lua5.1
 http://udis86.sourceforge.net/
 http://www.lua.org/
 
+
+
+/********
+* BUILD *
+********/
+Make sure you have the necessary dependencies. There is no Ubuntu package for
+udis86. For lua, you will need the Ubuntu package liblua5.1-0-dev
+
+Then just run make
+
+
+
 /***********
 * EXAMPLES *
 ***********/
 
-./rop_tools 
+$ ./rop_tools 
 rop_tools
 brought to you by rainbowsandpwnies
 
-./rop_tools [-cjr] [-d depth] (-e <elf> | -l <lua_file> [args])
-  -c         search for call reg gadgets
-  -d <depth> depth, in instructions, to search backwards
-  -e <elf>   filename of elf to analyze
-  -j         search for jmp reg gadgets
-  -k         search for conditional jmp reg gadgets (for when your day is 
-             really going that bad, and probably won't return anything)
-  -l <lua>   runs lua script
-  -r         search for ret gadgets
+./rop_tools [-cjr] [-d depth] (-e <executable> | -l <lua_file> [args])
+  -c              search for call reg gadgets
+  -d <depth>      depth, in instructions, to search backwards
+  -e <executable> filename of executable to analyze
+  -j              search for jmp reg gadgets
+  -k              search for conditional jmp reg gadgets (for when your day is 
+                  really going that bad, and probably won't return anything)
+  -l <lua>        runs lua script
+  -r              search for ret gadgets
 
 /*******************************************************************************
 *******************************************************************************/
 
-./rop_tools -e rop_tools -c -j -r -d 2 | tail -n 20
-  0804d518:  83 eb 04 -- -- -- -- --   sub ebx, 0x4
-  0804d51b:  ff d0 -- -- -- -- -- --   call eax
+$ ls -lh /lib/x86_64-linux-gnu/libc-2.13.so 
+-rwxr-xr-x 1 root root 1.6M 2011-04-11 07:26 /lib/x86_64-linux-gnu/libc-2.13.so
+$ time ./rop_tools -e /lib/x86_64-linux-gnu/libc-2.13.so -r | tail -n 20
 
-__do_global_ctors_aux + 15
-  0804d515:  08 66 90 -- -- -- -- --   or [esi-0x70], ah
-  0804d518:  83 eb 04 -- -- -- -- --   sub ebx, 0x4
-  0804d51b:  ff d0 -- -- -- -- -- --   call eax
+  0x13d3fc:  08 5b 5d -- -- -- -- --   or [rbx+0x5d], bl
+  0x13d3ff:  08 -- -- -- -- -- -- --   ret 
 
-section: .fini
-_fini + 9
-  0804d535:  00 00 -- -- -- -- -- --   add [eax], al
-  0804d537:  00 5b 81 -- -- -- -- --   add [ebx-0x7f], bl
-  0804d53a:  c3 -- -- -- -- -- -- --   ret 
+  0x13d506:  5d -- -- -- -- -- -- --   pop rbp
+  0x13d507:  5d -- -- -- -- -- -- --   ret 
 
-_fini + 19
-  0804d545:  5b -- -- -- -- -- -- --   pop ebx
-  0804d546:  c9 -- -- -- -- -- -- --   leave 
-  0804d547:  c3 -- -- -- -- -- -- --   ret 
+  0x13d504:  08 5b 5d -- -- -- -- --   or [rbx+0x5d], bl
+  0x13d507:  08 -- -- -- -- -- -- --   ret 
 
-227 gadgets
+  0x13d594:  00 48 39 -- -- -- -- --   add [rax+0x39], cl
+  0x13d597:  00 -- -- -- -- -- -- --   ret 
 
-/*******************************************************************************
-*******************************************************************************/
+  0x13d5b0:  5d -- -- -- -- -- -- --   pop rbp
+  0x13d5b1:  5d -- -- -- -- -- -- --   ret 
 
-time ./rop_tools -e /lib/x86_64-linux-gnu/libc-2.13.so -r -d 4 | tail -n 20
-  0x000000000013d5ab:  c7 45 00 00 -- -- -- --   add rsp, 0x8
-  0x000000000013d5af:  48 -- -- -- -- -- -- --   pop rbx
-  0x000000000013d5b0:  31 -- -- -- -- -- -- --   pop rbp
-  0x000000000013d5b1:  00 -- -- -- -- -- -- --   ret 
+  0x13d5ae:  08 5b 5d -- -- -- -- --   or [rbx+0x5d], bl
+  0x13d5b1:  08 -- -- -- -- -- -- --   ret 
 
-__libc_thread_freeres_fn + 0x13d5a3
-  0x000000000013d5a3:  48 c7 45 00 00 00 00 00   mov qword [rbp+0x0], 0x0
-  0x000000000013d5ab:  48 c7 45 00 -- -- -- --   add rsp, 0x8
-  0x000000000013d5af:  48 -- -- -- -- -- -- --   pop rbx
-  0x000000000013d5b0:  64 -- -- -- -- -- -- --   pop rbp
-  0x000000000013d5b1:  8c -- -- -- -- -- -- --   ret 
+10610 gadgets
 
-__libc_thread_freeres_fn + 0x13d5a2
-  0x000000000013d5a2:  64 48 c7 45 00 00 00 00   mov qword [fs:rbp+0x0], 0x0
-  0x000000000013d5ab:  64 48 c7 45 -- -- -- --   add rsp, 0x8
-  0x000000000013d5af:  48 -- -- -- -- -- -- --   pop rbx
-  0x000000000013d5b0:  00 -- -- -- -- -- -- --   pop rbp
-  0x000000000013d5b1:  00 -- -- -- -- -- -- --   ret 
-
-10164 gadgets
-
-real	0m1.738s
-user	0m1.730s
+real	0m1.646s
+user	0m1.610s
 sys	0m0.000s
 
+/*******************************************************************************
+*******************************************************************************/
+
+$ ls -lh test_programs/bin/ls.exe 
+-rw-r--r-- 1 endeavor endeavor 177K 2005-04-20 14:41 test_programs/bin/ls.exe
+$ time ./rop_tools -e test_programs/bin/ls.exe -r | tail -n 20 
+
+  0x42984d:  94 -- -- -- -- -- -- --   xchg esp, eax
+  0x42984e:  94 -- -- -- -- -- -- --   ret 
+
+  0x4298ce:  ff 89 44 24 20 89 -- --   dec dword [ecx+0x89202444]
+  0x4298d4:  ff 89 44 -- -- -- -- --   ret 0xfac1
+
+  0x429a58:  c0 74 0d 0f be -- -- --   shl byte [ebp+ecx+0xf], 0xbe
+  0x429a5d:  c0 74 0d -- -- -- -- --   ret 0xe883
+
+  0x429b02:  c0 74 0b 0f be -- -- --   shl byte [ebx+ecx+0xf], 0xbe
+  0x429b07:  c0 74 0b -- -- -- -- --   ret 0xe883
+
+  0x42a5ec:  c0 5b ae 0b -- -- -- --   rcr byte [ebx-0x52], 0xb
+  0x42a5f0:  c0 5b ae -- -- -- -- --   ret 0xb22a
+
+  0x42a5fc:  c0 5b ae 0b -- -- -- --   rcr byte [ebx-0x52], 0xb
+  0x42a600:  c0 -- -- -- -- -- -- --   ret 
+
+793 gadgets
+
+real	0m0.201s
+user	0m0.190s
+sys	0m0.000s
 
 /*******************************************************************************
 *******************************************************************************/
 
-time ./rop_tools -l tools/test1.lua | tail -n 24
-      size	0
-  0804d529 ret 
-0804d537
-  0804d537 add [ebx-0x7f], bl
-    1
-      offset	bh
-      type	mem
-      index	none
-      scale	none
-      lval	-127
-      base	ebx
-      size	8
-    2
-      offset	none
-      type	reg
-      index	none
-      scale	none
-      lval	0
-      base	bl
-      size	8
-  0804d53a ret 
-0804d546
-  0804d546 leave 
-  0804d547 ret 
-
-real	0m0.183s
-user	0m0.032s
-sys	0m0.084s
+// this is colored in your terminal
+$ ./rop_tools -l tools/dis.lua rop_tools exec_section_name
+rop_tools
+00000000004096b0 exec_section_name:
+4096b0 488b07..........     mov rax, [rdi]
+4096b3 8b00............     mov eax, [rax]
+4096b5 83f801..........     cmp eax, 0x1
+4096b8 740e............ /-< jz exec_section_name+24 (4096c8)
+4096ba 83f802.......... |   cmp eax, 0x2
+4096bd 7419............ |/< jz exec_section_name+40 (4096d8)
+4096bf 31c0............ ||  xor eax, eax
+4096c1 c3.............. ||  ret 
+4096c2 660f1f440000.... ||  o16 nop [rax+rax+0x0]
+4096c8 4883c708........ \+> add rdi, 0x8
+4096cc e90f93ffff......  |  jmp elf_section_name+0 (4029e0)
+4096d1 0f1f8000000000..  |  nop [rax+0x0]
+4096d8 4883c708........  \> add rdi, 0x8
+4096dc e9eff7ffff......     jmp pe_section_Name+0 (408ed0)
+4096e1 6666666666662e0f     o16 nop [cs:rax+rax+0x0]
 

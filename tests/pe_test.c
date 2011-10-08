@@ -36,9 +36,18 @@ int main (int argc, char * argv[])
          section_i < uint_t_get(pe_NumberOfSections(pe));
          section_i++) {
         pe_section(pe, &section, section_i);
-        printf("%d %s %d\n", section_i, pe_section_Name(&section),
-               uint_t_get(pe_section_PointerToRelocations(&section)));
+        printf("%d %s %s %s %s %d %d\n", section_i, pe_section_Name(&section),
+               uint_t_str0x(pe_section_address(&section)),
+               uint_t_strx(pe_section_VirtualSize(&section)),
+               uint_t_strx(pe_section_SizeOfRawData(&section)),
+               uint_t_get(pe_section_PointerToRelocations(&section)),
+               uint_t_get(pe_section_Characteristics(&section))
+               & IMAGE_SCN_MEM_EXECUTE);
     }
+    printf("ImageBase: %s\n", uint_t_strx(&(pe->ImageBase)));
+    printf("%s\n", uint_t_strx(&(pe->BaseOfCode)));
+    printf("%s\n", uint_t_strx(&(pe->AddressOfEntryPoint)));
+    printf("%d\n", sizeof(Pe_FileHeader));
     
     pe_destroy(pe);
     

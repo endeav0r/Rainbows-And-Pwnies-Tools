@@ -61,7 +61,7 @@ int print_rops (struct _exec * exec, int rop_depth, int ret_rop, int jmp_rop,
     for (i = 0; i < exec_num_sections(exec); i++) {
         exec_section(exec, &section, i);
         
-        if (exec_section_types(&section) & EXEC_SECTION_TYPE_TEXT) {
+        if (exec_section_types(&section) & EXEC_SECTION_TYPE_EXECUTABLE) {
             printf("section: %s\n", exec_section_name(&section));
             
             if (ret_rop) {
@@ -157,14 +157,14 @@ int main (int argc, char * argv[])
         printf("brought to you by rainbowsandpwnies\n");
         printf("\n");
         printf("%s [-cjr] [-d depth] (-e <executable> | -l <lua_file> [args])\n", argv[0]);
-        printf("  -c         search for call reg gadgets\n");
-        printf("  -d <depth> depth, in instructions, to search backwards\n");
-        printf("  -e <elf>   filename of elf to analyze\n");
-        printf("  -j         search for jmp reg gadgets\n");
-        printf("  -k         search for conditional jmp reg gadgets (for when your day is \n");
-        printf("             really going that bad, and probably won't return anything)\n");
-        printf("  -l <lua>   runs lua script\n");
-        printf("  -r         search for ret gadgets\n");
+        printf("  -c              search for call reg gadgets\n");
+        printf("  -d <depth>      depth, in instructions, to search backwards\n");
+        printf("  -e <executable> filename of executable to analyze\n");
+        printf("  -j              search for jmp reg gadgets\n");
+        printf("  -k              search for conditional jmp reg gadgets (for when your day is \n");
+        printf("                  really going that bad, and probably won't return anything)\n");
+        printf("  -l <lua>        runs lua script\n");
+        printf("  -r              search for ret gadgets\n");
         exit(-1);
     }
     

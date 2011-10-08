@@ -136,7 +136,14 @@ function print_instructions (elf, instructions)
     local jump_destinations = {}
     local jump_origins = {}
     for index, instruction in pairs(instructions) do
-        if is_jump(instruction["mnemonic"]) then
+        if is_jump(instruction["mnemonic"]) and 
+           operand_abs(instruction["operands"][1],
+                       instruction["address"],
+                       instruction["size"]) >= instructions[1]["address"] and
+           operand_abs(instruction["operands"][1],
+                       instruction["address"],
+                       instruction["size"]) <= instructions[#instructions]["address"] +
+                        uint_t.new(32, instructions[#instructions]["size"]) then
             table.insert(jump_origins, instruction["address"])
             table.insert(jump_destinations, (instruction["address"]:int_t() + 
                                              instruction["operands"][1]["lval"] +
@@ -276,11 +283,5 @@ else
             --symbol:disassemble()
         end
     end
-end
-
-if uint_t.new(8, 0) == int_t.new(16, 0) then
-    print("OK")
-else
-    print("WTF")
 end
 

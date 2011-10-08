@@ -183,19 +183,22 @@ char * exec_section_name (struct _exec_section * section)
 
 int exec_section_types (struct _exec_section * section)
 {
-    int types;
+    int types = 0;
     switch (exec_type(section->exec)) {
     case EXEC_TYPE_ELF :
         switch (int_t_get(elf_section_type(&(section->s.elf_section)))) {
             case SHT_SYMTAB :
             case SHT_DYNSYM :
-                return EXEC_SECTION_TYPE_SYMBOL;
+                types |= EXEC_SECTION_TYPE_SYMBOL;
             case SHT_REL  :
             case SHT_RELA :
-                return EXEC_SECTION_TYPE_RELOCATION;
+                types |= EXEC_SECTION_TYPE_RELOCATION;
             case SHT_PROGBITS :
-                return EXEC_SECTION_TYPE_TEXT;
+                types |= EXEC_SECTION_TYPE_TEXT;
         }
+        if (int_t_get(elf_section_flags(&(section->s.elf_section))) 
+            & SHF_EXECINSTR)
+            types |= EXEC_SECTION_TYPE_EXECUTABLE;
         break;
     case EXEC_TYPE_PE :
         types = 0;
@@ -204,10 +207,12 @@ int exec_section_types (struct _exec_section * section)
             types |= EXEC_SECTION_TYPE_TEXT;
         if (uint_t_get(pe_section_NumberOfRelocations(&(section->s.pe_section))))
             types |= EXEC_SECTION_TYPE_RELOCATION;
-        return types;
+        if (uint_t_get(pe_section_Characteristics(&(section->s.pe_section)))
+            & IMAGE_SCN_MEM_EXECUTE)
+            types |= EXEC_SECTION_TYPE_EXECUTABLE;
         break;
     }
-    return 0;
+    return types;
 }
 
 int exec_section_size (struct _exec_section * section)
@@ -238,7 +243,7 @@ uint_t * exec_section_address (struct _exec_section * section)
     case EXEC_TYPE_ELF :
         return elf_section_addr(&(section->s.elf_section));
     case EXEC_TYPE_PE :
-        return pe_section_VirtualAddress(&(section->s.pe_section));
+        return pe_section_address(&(section->s.pe_section));
     }
     return NULL;
 }

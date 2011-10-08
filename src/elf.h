@@ -106,6 +106,7 @@ uint_t *        elf_section_offset  (struct _elf_section * section);
 unsigned char * elf_section_data    (struct _elf_section * section);
 int_t *         elf_section_type    (struct _elf_section * section);
 int             elf_section_num     (struct _elf_section * section);
+int_t *         elf_section_flags   (struct _elf_section * section);
 int_t *         elf_section_entsize (struct _elf_section * section);
 int_t *         elf_section_link    (struct _elf_section * section);
 

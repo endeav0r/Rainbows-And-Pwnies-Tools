@@ -62,7 +62,7 @@ struct _pe * pe_open (char * filename)
     pe->filename = (char *) malloc(strlen(filename) + 1);
     strcpy(pe->filename, filename);
     
-    pe->FileHeader = (Pe_FileHeader *) &(pe->bytes[file_offset]);
+    pe->FileHeader             = (Pe_FileHeader *) &(pe->bytes[file_offset]);
     
     uint_t_16_set(&(pe->Machine),           pe->FileHeader->Machine);
     uint_t_16_set(&(pe->NumberOfSections),  pe->FileHeader->NumberOfSections);
@@ -73,6 +73,112 @@ struct _pe * pe_open (char * filename)
     uint_t_16_set(&(pe->SizeOfOptionalHeader),
                   pe->FileHeader->SizeOfOptionalHeader);
     uint_t_16_set(&(pe->Characteristics),   pe->FileHeader->Characteristics);
+    
+    // things are now going to change, painfully, on whether we're PE or PE+
+    file_offset += sizeof(Pe_FileHeader);
+    if (*((int16_t *) &(pe->bytes[file_offset])) == IMAGE_FILE_TYPE_PE32) {
+        pe->ohs.OptionalHeaderStandard = (Pe_OptionalHeaderStandard *) 
+                                         &(pe->bytes[file_offset]);
+        file_offset += sizeof(Pe_OptionalHeaderStandard);
+        pe->ohw.OptionalHeaderWindows  = (Pe_OptionalHeaderWindows *)
+                                         &(pe->bytes[file_offset]);
+    
+        // Pe_OptionalHeaderStandard
+        uint_t_16_set(&(pe->Magic), pe->ohs.OptionalHeaderStandard->Magic);
+        uint_t_8_set (&(pe->MajorLinkerVersion),
+                      pe->ohs.OptionalHeaderStandard->MajorLinkerVersion);
+        uint_t_8_set (&(pe->MinorLinkerVersion),
+                      pe->ohs.OptionalHeaderStandard->MinorLinkerVersion);
+        uint_t_32_set(&(pe->SizeOfCode),
+                      pe->ohs.OptionalHeaderStandard->SizeOfCode);
+        uint_t_32_set(&(pe->SizeOfInitializedData),
+                      pe->ohs.OptionalHeaderStandard->SizeOfInitializedData);
+        uint_t_32_set(&(pe->SizeOfUninitializedData),
+                      pe->ohs.OptionalHeaderStandard->SizeOfUninitializedData);
+        uint_t_32_set(&(pe->AddressOfEntryPoint),
+                      pe->ohs.OptionalHeaderStandard->AddressOfEntryPoint);
+        uint_t_32_set(&(pe->BaseOfCode),
+                      pe->ohs.OptionalHeaderStandard->BaseOfCode);
+        uint_t_32_set(&(pe->BaseOfData),
+                      pe->ohs.OptionalHeaderStandard->BaseOfData);
+        // Pe_OptionalHeaderWindows
+        uint_t_32_set(&(pe->ImageBase),
+                      pe->ohw.OptionalHeaderWindows->ImageBase);
+        uint_t_32_set(&(pe->SectionAlignment),
+                      pe->ohw.OptionalHeaderWindows->SectionAlignment);
+        uint_t_32_set(&(pe->FileAlignment),
+                      pe->ohw.OptionalHeaderWindows->FileAlignment);
+        uint_t_16_set(&(pe->MajorOperatingSystemVersion),
+                      pe->ohw.OptionalHeaderWindows->MajorOperatingSystemVersion);
+        uint_t_16_set(&(pe->MinorOperatingSystemVersion),
+                      pe->ohw.OptionalHeaderWindows->MinorOperatingSystemVersion);
+        uint_t_16_set(&(pe->MajorImageVersion),
+                      pe->ohw.OptionalHeaderWindows->MajorImageVersion);
+        uint_t_16_set(&(pe->MinorImageVersion),
+                      pe->ohw.OptionalHeaderWindows->MinorImageVersion);
+        uint_t_16_set(&(pe->MajorSubsystemVersion),
+                      pe->ohw.OptionalHeaderWindows->MajorSubsystemVersion);
+        uint_t_16_set(&(pe->MinorSubsystemVersion),
+                      pe->ohw.OptionalHeaderWindows->MinorSubsystemVersion);
+        uint_t_32_set(&(pe->Win32VersionValue),
+                      pe->ohw.OptionalHeaderWindows->Win32VersionValue);
+        uint_t_32_set(&(pe->SizeOfImage),
+                      pe->ohw.OptionalHeaderWindows->SizeOfImage);
+        uint_t_32_set(&(pe->SizeOfHeaders),
+                      pe->ohw.OptionalHeaderWindows->SizeOfHeaders);
+        uint_t_32_set(&(pe->CheckSum), pe->ohw.OptionalHeaderWindows->CheckSum);
+    }
+    else {
+        pe->ohs.OptionalHeaderStandardPlus = (Pe_OptionalHeaderStandardPlus *) 
+                                             &(pe->bytes[file_offset]);
+        file_offset += sizeof(Pe_OptionalHeaderStandardPlus);
+        pe->ohw.OptionalHeaderWindowsPlus  = (Pe_OptionalHeaderWindowsPlus *)
+                                             &(pe->bytes[file_offset]);
+    
+        // Pe_OptionalHeaderStandardPlus
+        uint_t_16_set(&(pe->Magic), pe->ohs.OptionalHeaderStandardPlus->Magic);
+        uint_t_8_set (&(pe->MajorLinkerVersion),
+                      pe->ohs.OptionalHeaderStandardPlus->MajorLinkerVersion);
+        uint_t_8_set (&(pe->MinorLinkerVersion),
+                      pe->ohs.OptionalHeaderStandardPlus->MinorLinkerVersion);
+        uint_t_32_set(&(pe->SizeOfCode),
+                      pe->ohs.OptionalHeaderStandardPlus->SizeOfCode);
+        uint_t_32_set(&(pe->SizeOfInitializedData),
+                     pe->ohs.OptionalHeaderStandardPlus->SizeOfInitializedData);
+        uint_t_32_set(&(pe->SizeOfUninitializedData),
+                   pe->ohs.OptionalHeaderStandardPlus->SizeOfUninitializedData);
+        uint_t_32_set(&(pe->AddressOfEntryPoint),
+                      pe->ohs.OptionalHeaderStandardPlus->AddressOfEntryPoint);
+        uint_t_32_set(&(pe->BaseOfCode),
+                      pe->ohs.OptionalHeaderStandardPlus->BaseOfCode);
+        // Pe_OptionalHeaderWindowsPlus
+        uint_t_64_set(&(pe->ImageBase),
+                      pe->ohw.OptionalHeaderWindowsPlus->ImageBase);
+        uint_t_32_set(&(pe->SectionAlignment),
+                      pe->ohw.OptionalHeaderWindowsPlus->SectionAlignment);
+        uint_t_32_set(&(pe->FileAlignment),
+                      pe->ohw.OptionalHeaderWindowsPlus->FileAlignment);
+        uint_t_16_set(&(pe->MajorOperatingSystemVersion),
+                pe->ohw.OptionalHeaderWindowsPlus->MajorOperatingSystemVersion);
+        uint_t_16_set(&(pe->MinorOperatingSystemVersion),
+                pe->ohw.OptionalHeaderWindowsPlus->MinorOperatingSystemVersion);
+        uint_t_16_set(&(pe->MajorImageVersion),
+                      pe->ohw.OptionalHeaderWindowsPlus->MajorImageVersion);
+        uint_t_16_set(&(pe->MinorImageVersion),
+                      pe->ohw.OptionalHeaderWindowsPlus->MinorImageVersion);
+        uint_t_16_set(&(pe->MajorSubsystemVersion),
+                      pe->ohw.OptionalHeaderWindowsPlus->MajorSubsystemVersion);
+        uint_t_16_set(&(pe->MinorSubsystemVersion),
+                      pe->ohw.OptionalHeaderWindowsPlus->MinorSubsystemVersion);
+        uint_t_32_set(&(pe->Win32VersionValue),
+                      pe->ohw.OptionalHeaderWindowsPlus->Win32VersionValue);
+        uint_t_32_set(&(pe->SizeOfImage),
+                      pe->ohw.OptionalHeaderWindowsPlus->SizeOfImage);
+        uint_t_32_set(&(pe->SizeOfHeaders),
+                      pe->ohw.OptionalHeaderWindowsPlus->SizeOfHeaders);
+        uint_t_32_set(&(pe->CheckSum),
+                      pe->ohw.OptionalHeaderWindowsPlus->CheckSum);
+    }
     
     // we're going to go through and mark symbols as regular or auxiliary now,
     // so that when we call them up by index later we can query this information
@@ -166,6 +272,8 @@ int pe_section (struct _pe * pe, struct _pe_section * section, int index)
                   section->SectionHeader.NumberOfLinenumbers);
     uint_t_32_set(&(section->Characteristics),
                   section->SectionHeader.Characteristics);
+    uint_t_set(&(section->address), &(section->VirtualAddress));
+    uint_t_add(&(section->address), &(section->pe->ImageBase));
     
     if (section->SectionHeader.Name[0] == '/') {
         offset = atoi(&(section->SectionHeader.Name[1]));
@@ -187,6 +295,7 @@ PE_SECTION_ACCESSOR(PointerToRelocations)
 PE_SECTION_ACCESSOR(PointerToLinenumbers)
 PE_SECTION_ACCESSOR(NumberOfRelocations)
 PE_SECTION_ACCESSOR(Characteristics)
+PE_SECTION_ACCESSOR(address)
 char * pe_section_Name (struct _pe_section * section) { return section->Name; }
 
 unsigned char * pe_section_data (struct _pe_section * section)

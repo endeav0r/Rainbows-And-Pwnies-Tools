@@ -16,6 +16,7 @@
 #define EXEC_SECTION_TYPE_RELOCATION 0x2
 #define EXEC_SECTION_TYPE_TEXT       0x4
 #define EXEC_SECTION_TYPE_UNKNOWN    0x8
+#define EXEC_SECTION_TYPE_EXECUTABLE 0x10
 
 struct _exec {
     int type;

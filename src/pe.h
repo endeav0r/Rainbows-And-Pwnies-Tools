@@ -16,11 +16,23 @@ struct _pe {
     char * filename;
     size_t bytes_size;
     unsigned char * bytes;
-    Pe_FileHeader * FileHeader;
+    
+    Pe_FileHeader *             FileHeader;
+    union {
+        Pe_OptionalHeaderStandard * OptionalHeaderStandard;
+        Pe_OptionalHeaderStandardPlus * OptionalHeaderStandardPlus;
+    } ohs;
+    union {
+        Pe_OptionalHeaderWindows *  OptionalHeaderWindows;
+        Pe_OptionalHeaderWindowsPlus *  OptionalHeaderWindowsPlus;
+    } ohw;
+    
     int FileHeader_offset;
     int total_symbols;
     unsigned char * symbol_types;
     int string_table_offset;
+    
+    // from the regular FileHeader
     uint_t Machine;
     uint_t NumberOfSections;
     uint_t TimeDateStamp;
@@ -28,6 +40,30 @@ struct _pe {
     uint_t NumberOfSymbols;
     uint_t SizeOfOptionalHeader;
     uint_t Characteristics;
+    // from optional standard header
+    uint_t Magic;
+    uint_t MajorLinkerVersion;
+    uint_t MinorLinkerVersion;
+    uint_t SizeOfCode;
+    uint_t SizeOfInitializedData;
+    uint_t SizeOfUninitializedData;
+    uint_t AddressOfEntryPoint;
+    uint_t BaseOfCode;
+    uint_t BaseOfData;
+    // from optional windows header (wtf is up with all these optional headers)
+    uint_t ImageBase;
+    uint_t SectionAlignment;
+    uint_t FileAlignment;
+    uint_t MajorOperatingSystemVersion;
+    uint_t MinorOperatingSystemVersion;
+    uint_t MajorImageVersion;
+    uint_t MinorImageVersion;
+    uint_t MajorSubsystemVersion;
+    uint_t MinorSubsystemVersion;
+    uint_t Win32VersionValue;
+    uint_t SizeOfImage;
+    uint_t SizeOfHeaders;
+    uint_t CheckSum;
 };
 
 struct _pe_section {
@@ -44,6 +80,7 @@ struct _pe_section {
     uint_t NumberOfRelocations;
     uint_t NumberOfLinenumbers;
     uint_t Characteristics;
+    uint_t address;
 };
 
 struct _pe_symbol {
@@ -97,6 +134,7 @@ uint_t *        pe_section_NumberOfLinenumbers  (struct _pe_section * section);
 uint_t *        pe_section_Characteristics      (struct _pe_section * section);
 char *          pe_section_Name                 (struct _pe_section * section);
 unsigned char * pe_section_data                 (struct _pe_section * section);
+uint_t *        pe_section_address              (struct _pe_section * section);
 
 int pe_symbol (struct _pe * pe, struct _pe_symbol * symbol, int index);
 

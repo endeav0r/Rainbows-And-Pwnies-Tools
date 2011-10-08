@@ -270,6 +270,7 @@ uint_t * elf_section_offset  (struct _elf_section * section) { return &(section-
 int_t *  elf_section_type    (struct _elf_section * section) { return &(section->type); }
 int_t *  elf_section_link    (struct _elf_section * section) { return &(section->link); }
 int_t *  elf_section_entsize (struct _elf_section * section) { return &(section->entsize); }
+int_t *  elf_section_flags   (struct _elf_section * section) { return &(section->flags); }
 
 void elf_section_copy (struct _elf_section * dst, struct _elf_section * src)
 {

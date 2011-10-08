@@ -25,6 +25,65 @@ typedef struct _Pe_Fileheader {
 } Pe_FileHeader;
 
 
+typedef struct _Pe_OptionalHeaderStandard {
+    uint16_t Magic;                   // 2
+    uint8_t  MajorLinkerVersion;      // 3
+    uint8_t  MinorLinkerVersion;      // 4
+    uint32_t SizeOfCode;              // 8
+    uint32_t SizeOfInitializedData;   // 12
+    uint32_t SizeOfUninitializedData; // 16
+    uint32_t AddressOfEntryPoint;     // 20
+    uint32_t BaseOfCode;              // 24
+    uint32_t BaseOfData;              // 28
+} Pe_OptionalHeaderStandard;
+
+
+typedef struct _Pe_OptionalHeaderStandardPlus {
+    uint16_t Magic;                   // 2
+    uint8_t  MajorLinkerVersion;      // 3
+    uint8_t  MinorLinkerVersion;      // 4
+    uint32_t SizeOfCode;              // 8
+    uint32_t SizeOfInitializedData;   // 12
+    uint32_t SizeOfUninitializedData; // 16
+    uint32_t AddressOfEntryPoint;     // 20
+    uint32_t BaseOfCode;              // 24
+} Pe_OptionalHeaderStandardPlus;
+
+
+typedef struct _Pe_OptionalHeaderWindows {
+    uint32_t ImageBase;                   // 32
+    uint32_t SectionAlignment;            // 36
+    uint32_t FileAlignment;               // 40
+    uint16_t MajorOperatingSystemVersion; // 42
+    uint16_t MinorOperatingSystemVersion; // 44
+    uint16_t MajorImageVersion;           // 46
+    uint16_t MinorImageVersion;           // 48
+    uint16_t MajorSubsystemVersion;       // 50
+    uint16_t MinorSubsystemVersion;       // 52
+    uint32_t Win32VersionValue;           // 56
+    uint32_t SizeOfImage;                 // 60
+    uint32_t SizeOfHeaders;               // 64
+    uint32_t CheckSum;                    // 68
+} Pe_OptionalHeaderWindows;
+
+
+typedef struct _Pe_OptionalHeaderWindowsPlus {
+    uint64_t ImageBase;                   // 32
+    uint32_t SectionAlignment;            // 36
+    uint32_t FileAlignment;               // 40
+    uint16_t MajorOperatingSystemVersion; // 42
+    uint16_t MinorOperatingSystemVersion; // 44
+    uint16_t MajorImageVersion;           // 46
+    uint16_t MinorImageVersion;           // 48
+    uint16_t MajorSubsystemVersion;       // 50
+    uint16_t MinorSubsystemVersion;       // 52
+    uint32_t Win32VersionValue;           // 56
+    uint32_t SizeOfImage;                 // 60
+    uint32_t SizeOfHeaders;               // 64
+    uint32_t CheckSum;                    // 68
+} Pe_OptionalHeaderWindowsPlus;
+
+
 typedef struct _Pe_SectionHeader {
     char Name[8];                  // 8
     uint32_t VirtualSize;          // 12
@@ -57,6 +116,9 @@ typedef struct _Pe_Relocation {
     uint32_t SymbolTableIndex; // 8
     uint16_t Type;             // 10
 } Pe_Relocation;
+
+#define IMAGE_FILE_TYPE_PE32     0x10b
+#define IMAGE_FILE_TYPE_PE32PLUS 0x20b
 
 #define IMAGE_FILE_MACHINE_UNKNOWN   0x0
 #define IMAGE_FILE_MACHINE_AM33      0x1d3
