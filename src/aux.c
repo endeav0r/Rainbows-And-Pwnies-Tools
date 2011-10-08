@@ -2,15 +2,15 @@
 
 
 struct _sym_list * sym_list_insert (struct _sym_list * sym_list,
-                                    struct _elf_sym * sym)
+                                    struct _elf_symbol * symbol)
 {
     struct _sym_list * next;
     struct _sym_list * new;
     
     new = (struct _sym_list *) malloc(sizeof(struct _sym_list));
-    new->shdr_i = sym->shdr.index;
-    new->sym_i = sym->index;
-    uint_t_set(&(new->value), sym_value(sym));
+    new->section_i = symbol->section.index;
+    new->symbol_i = symbol->index;
+    uint_t_set(&(new->value), elf_symbol_value(symbol));
     new->next = NULL;
     
     if (sym_list == NULL)
@@ -29,22 +29,22 @@ struct _sym_list * sym_list_insert (struct _sym_list * sym_list,
 }
 
 
-int aux_func_sym_at_address (struct _elf * elf, struct _elf_sym * sym,
+int aux_func_sym_at_address (struct _elf * elf, struct _elf_symbol * symbol,
                              uint_t * address)
 {
-    struct _elf_shdr shdr;
+    struct _elf_section section;
     uint_t top_addr;
-    int shdr_i;
-    int sym_i;
+    int section_i;
+    int symbol_i;
     
-    for (shdr_i = 0; shdr_i < int_t_get(elf_shnum(elf)); shdr_i++) {
-        elf_shdr(elf, &shdr, shdr_i);
-        if (int_t_get(shdr_type(&shdr)) == SHT_SYMTAB) {
-            for (sym_i = 0; sym_i < shdr_num(&shdr); sym_i++) {
-                shdr_sym(&shdr, sym, sym_i);
-                uint_t_set(&top_addr, sym_value(sym));
-                uint_t_add_int(&top_addr, int_t_get(sym_size(sym)));
-                if (    (uint_t_cmp(sym_value(sym), address) <= 0)
+    for (section_i = 0; section_i < int_t_get(elf_shnum(elf)); section_i++) {
+        elf_section(elf, &section, section_i);
+        if (int_t_get(elf_section_type(&section)) == SHT_SYMTAB) {
+            for (symbol_i = 0; symbol_i < elf_section_num(&section); symbol_i++) {
+                elf_section_symbol(&section, symbol, symbol_i);
+                uint_t_set(&top_addr, elf_symbol_value(symbol));
+                uint_t_add_int(&top_addr, int_t_get(elf_symbol_size(symbol)));
+                if (    (uint_t_cmp(elf_symbol_value(symbol), address) <= 0)
                      && (uint_t_cmp(&top_addr, address) >= 0))
                     return 1;
             }
@@ -58,20 +58,20 @@ int aux_func_sym_at_address (struct _elf * elf, struct _elf_sym * sym,
 
 struct _sym_list * aux_func_syms (struct _elf * elf)
 {
-    struct _elf_shdr shdr;
-    struct _elf_sym sym;
+    struct _elf_section section;
+    struct _elf_symbol symbol;
     struct _sym_list * sym_list = NULL;
-    int shdr_i;
-    int sym_i;
+    int section_i;
+    int symbol_i;
     
-    for (shdr_i = 0; shdr_i < int_t_get(elf_shnum(elf)); shdr_i++) {
-        elf_shdr(elf, &shdr, shdr_i);
-        if (int_t_get(shdr_type(&shdr)) == SHT_SYMTAB) {
-            for (sym_i = 0; sym_i < shdr_num(&shdr); sym_i++) {
-                shdr_sym(&shdr, &sym, sym_i);
-                if (    (sym_type(&sym) == STT_FUNC)
-                     && (uint_t_get(sym_shndx(&sym)) != 0))
-                    sym_list = sym_list_insert(sym_list, &sym);
+    for (section_i = 0; section_i < int_t_get(elf_shnum(elf)); section_i++) {
+        elf_section(elf, &section, section_i);
+        if (int_t_get(elf_section_type(&section)) == SHT_SYMTAB) {
+            for (symbol_i = 0; symbol_i < elf_section_num(&section); symbol_i++) {
+                elf_section_symbol(&section, &symbol, symbol_i);
+                if (    (elf_symbol_type(&symbol) == STT_FUNC)
+                     && (uint_t_get(elf_symbol_shndx(&symbol)) != 0))
+                    sym_list = sym_list_insert(sym_list, &symbol);
             }
         }
     }

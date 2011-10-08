@@ -96,45 +96,46 @@ int_t *       elf_shstrndx (struct _elf * elf) { return &(elf->shstrndx); }
 // returns string from section strtab at offset
 char * elf_strtab_str (struct _elf * elf, int strtab, int offset)
 {
-    struct _elf_shdr shdr;
+    struct _elf_section section;
     
-    elf_shdr(elf, &shdr, strtab);
+    elf_section(elf, &section, strtab);
     
-    return (char *) &(elf->bytes[uint_t_get(shdr_offset(&shdr)) + offset]);
+    return (char *) &(elf->bytes[uint_t_get(elf_section_offset(&section))
+                                 + offset]);
 }
 
 
-// fills _elf_shdr with Shdr at ndx
-int elf_shdr (struct _elf * elf, struct _elf_shdr * shdr, int index)
+// fills _elf_section with Shdr at ndx
+int elf_section (struct _elf * elf, struct _elf_section * section, int index)
 {
-    shdr->elf  = elf;
-    shdr->index = index;
+    section->elf  = elf;
+    section->index = index;
     if (index >= int_t_get(elf_shnum(elf)))
         return 0;
     switch (elf_class(elf)) {
     case ELFCLASS32 :
-        shdr->s.shdr32 = (Elf32_Shdr *) &(elf->bytes[uint_t_get(elf_shoff(elf))
-                                                     + sizeof(Elf32_Shdr) * index]);
-        int_t_32_set (&(shdr->name),    shdr->s.shdr32->sh_name);
-        int_t_32_set (&(shdr->type),    shdr->s.shdr32->sh_type);
-        int_t_32_set (&(shdr->flags),   shdr->s.shdr32->sh_flags);
-        uint_t_32_set(&(shdr->addr),    shdr->s.shdr32->sh_addr);
-        uint_t_32_set(&(shdr->offset),  shdr->s.shdr32->sh_offset);
-        int_t_32_set (&(shdr->size),    shdr->s.shdr32->sh_size);
-        int_t_32_set (&(shdr->link),    shdr->s.shdr32->sh_link);
-        int_t_32_set (&(shdr->entsize), shdr->s.shdr32->sh_entsize);
+        section->s.shdr32 = (Elf32_Shdr *) &(elf->bytes[uint_t_get(elf_shoff(elf))
+                                                        + sizeof(Elf32_Shdr) * index]);
+        int_t_32_set (&(section->name),    section->s.shdr32->sh_name);
+        int_t_32_set (&(section->type),    section->s.shdr32->sh_type);
+        int_t_32_set (&(section->flags),   section->s.shdr32->sh_flags);
+        uint_t_32_set(&(section->addr),    section->s.shdr32->sh_addr);
+        uint_t_32_set(&(section->offset),  section->s.shdr32->sh_offset);
+        int_t_32_set (&(section->size),    section->s.shdr32->sh_size);
+        int_t_32_set (&(section->link),    section->s.shdr32->sh_link);
+        int_t_32_set (&(section->entsize), section->s.shdr32->sh_entsize);
         break;
     case ELFCLASS64 :
-        shdr->s.shdr64 = (Elf64_Shdr *) &(elf->bytes[uint_t_get(elf_shoff(elf))
-                                                     + sizeof(Elf64_Shdr) * index]);
-        int_t_64_set (&(shdr->name),    shdr->s.shdr64->sh_name);
-        int_t_64_set (&(shdr->type),    shdr->s.shdr64->sh_type);
-        int_t_64_set(&(shdr->flags),    shdr->s.shdr64->sh_flags);
-        uint_t_64_set(&(shdr->addr),    shdr->s.shdr64->sh_addr);
-        uint_t_64_set(&(shdr->offset),  shdr->s.shdr64->sh_offset);
-        int_t_64_set (&(shdr->size),    shdr->s.shdr64->sh_size);
-        int_t_64_set (&(shdr->link),    shdr->s.shdr64->sh_link);
-        int_t_64_set (&(shdr->entsize), shdr->s.shdr64->sh_entsize);
+        section->s.shdr64 = (Elf64_Shdr *) &(elf->bytes[uint_t_get(elf_shoff(elf))
+                                                        + sizeof(Elf64_Shdr) * index]);
+        int_t_64_set (&(section->name),    section->s.shdr64->sh_name);
+        int_t_64_set (&(section->type),    section->s.shdr64->sh_type);
+        int_t_64_set(&(section->flags),    section->s.shdr64->sh_flags);
+        uint_t_64_set(&(section->addr),    section->s.shdr64->sh_addr);
+        uint_t_64_set(&(section->offset),  section->s.shdr64->sh_offset);
+        int_t_64_set (&(section->size),    section->s.shdr64->sh_size);
+        int_t_64_set (&(section->link),    section->s.shdr64->sh_link);
+        int_t_64_set (&(section->entsize), section->s.shdr64->sh_entsize);
         break;
     default :
         return 0;
@@ -143,89 +144,101 @@ int elf_shdr (struct _elf * elf, struct _elf_shdr * shdr, int index)
 }
 
 
-int shdr_sym (struct _elf_shdr * shdr, struct _elf_sym * sym, int index)
+int elf_section_symbol (struct _elf_section * section, 
+                        struct _elf_symbol * symbol, int index)
 {
     unsigned char * data;
     
-    if (    (int_t_get(shdr_type(shdr)) != SHT_SYMTAB)
-         && (int_t_get(shdr_type(shdr)) != SHT_DYNSYM))
+    if (    (int_t_get(elf_section_type(section)) != SHT_SYMTAB)
+         && (int_t_get(elf_section_type(section)) != SHT_DYNSYM))
         return 0;
     
-    sym->elf = shdr->elf;
-    sym->index = index;
-    elf_shdr(shdr->elf, &(sym->shdr), shdr->index);
+    symbol->elf = section->elf;
+    symbol->index = index;
+    elf_section(section->elf, &(symbol->section), section->index);
     
-    data = shdr_data(shdr);
-    switch (elf_class(shdr->elf)) {
+    data = elf_section_data(section);
+    switch (elf_class(section->elf)) {
     case ELFCLASS32 :
-        sym->s.sym32 = (Elf32_Sym *) &(data[int_t_get(shdr_entsize(shdr)) * index]);
-        sym->type  = ELF32_ST_TYPE(sym->s.sym32->st_info);
-        uint_t_32_set(&(sym->value), sym->s.sym32->st_value);
-        int_t_32_set (&(sym->name), sym->s.sym32->st_name);
-        int_t_32_set (&(sym->size), sym->s.sym32->st_size);
-        uint_t_16_set(&(sym->shndx), sym->s.sym32->st_shndx);
+        symbol->s.sym32 = (Elf32_Sym *) &(data[int_t_get(elf_section_entsize(section))
+                                            * index]);
+        symbol->type  = ELF32_ST_TYPE(symbol->s.sym32->st_info);
+        uint_t_32_set(&(symbol->value), symbol->s.sym32->st_value);
+        int_t_32_set (&(symbol->name), symbol->s.sym32->st_name);
+        int_t_32_set (&(symbol->size), symbol->s.sym32->st_size);
+        uint_t_16_set(&(symbol->shndx), symbol->s.sym32->st_shndx);
         break;
     case ELFCLASS64 :
-        sym->s.sym64 = (Elf64_Sym *) &(data[int_t_get(shdr_entsize(shdr)) * index]);
-        sym->type  = ELF64_ST_TYPE(sym->s.sym64->st_info);
-        uint_t_64_set(&(sym->value), sym->s.sym64->st_value);
-        int_t_64_set (&(sym->name), sym->s.sym64->st_name);
-        int_t_64_set (&(sym->size), sym->s.sym64->st_size);
-        uint_t_16_set(&(sym->shndx), sym->s.sym64->st_shndx);
+        symbol->s.sym64 = (Elf64_Sym *) &(data[int_t_get(elf_section_entsize(section))
+                                            * index]);
+        symbol->type  = ELF64_ST_TYPE(symbol->s.sym64->st_info);
+        uint_t_64_set(&(symbol->value), symbol->s.sym64->st_value);
+        int_t_64_set (&(symbol->name), symbol->s.sym64->st_name);
+        int_t_64_set (&(symbol->size), symbol->s.sym64->st_size);
+        uint_t_16_set(&(symbol->shndx), symbol->s.sym64->st_shndx);
         break;
     }
     return 1;
 }
 
 
-int shdr_rel (struct _elf_shdr * shdr, struct _elf_rel * rel, int index)
+int elf_section_relocation (struct _elf_section * section, 
+                            struct _elf_relocation * relocation, int index)
 {
     unsigned char * data;
-    struct _elf_shdr link;
+    struct _elf_section link;
     
-    if (    (int_t_get(shdr_type(shdr)) != SHT_REL)
-         && (int_t_get(shdr_type(shdr)) != SHT_RELA))
+    if (    (int_t_get(elf_section_type(section)) != SHT_REL)
+         && (int_t_get(elf_section_type(section)) != SHT_RELA))
         return 0;
     
-    rel->elf = shdr->elf;
-    rel->index = index;
-    elf_shdr(shdr->elf, &(rel->shdr), shdr->index);
-    data = shdr_data(shdr);
+    relocation->elf = section->elf;
+    relocation->index = index;
+    elf_section(section->elf, &(relocation->section), section->index);
+    data = elf_section_data(section);
     
 
-    switch (elf_class(shdr->elf)) {
+    switch (elf_class(section->elf)) {
     case ELFCLASS32 :
-        if (int_t_get(shdr_type(shdr)) == SHT_REL) {
-            rel->r.rel32 = (Elf32_Rel *) &(data[int_t_get(shdr_entsize(shdr)) * index]);
-            elf_shdr(shdr->elf, &link, int_t_get(shdr_link(shdr)));
-            shdr_sym(&link, &(rel->sym), ELF32_R_SYM(rel->r.rel32->r_info));
-            uint_t_32_set(&(rel->offset), rel->r.rel32->r_offset);
-            rel->type = ELF32_R_TYPE(rel->r.rel32->r_info);
+        if (int_t_get(elf_section_type(section)) == SHT_REL) {
+            relocation->r.rel32 = (Elf32_Rel *)
+                       &(data[int_t_get(elf_section_entsize(section)) * index]);
+            elf_section(section->elf, &link, int_t_get(elf_section_link(section)));
+            elf_section_symbol(&link, &(relocation->symbol), 
+                               ELF32_R_SYM(relocation->r.rel32->r_info));
+            uint_t_32_set(&(relocation->offset), relocation->r.rel32->r_offset);
+            relocation->type = ELF32_R_TYPE(relocation->r.rel32->r_info);
             break;
         }
         else {
-            rel->r.rela32 = (Elf32_Rela *) &(data[int_t_get(shdr_entsize(shdr)) * index]);
-            elf_shdr(shdr->elf, &link, int_t_get(shdr_link(shdr)));
-            shdr_sym(&link, &(rel->sym), ELF32_R_SYM(rel->r.rela32->r_info));
-            uint_t_32_set(&(rel->offset), rel->r.rela32->r_offset);
-            rel->type = ELF32_R_TYPE(rel->r.rela32->r_info);
+            relocation->r.rela32 = (Elf32_Rela *)
+                       &(data[int_t_get(elf_section_entsize(section)) * index]);
+            elf_section(section->elf, &link, int_t_get(elf_section_link(section)));
+            elf_section_symbol(&link, &(relocation->symbol),
+                                     ELF32_R_SYM(relocation->r.rela32->r_info));
+            uint_t_32_set(&(relocation->offset), relocation->r.rela32->r_offset);
+            relocation->type = ELF32_R_TYPE(relocation->r.rela32->r_info);
         }
         break;
     case ELFCLASS64 :
-        if (int_t_get(shdr_type(shdr)) == SHT_REL) {
-            rel->r.rel64 = (Elf64_Rel *) &(data[int_t_get(shdr_entsize(shdr)) * index]);
-            elf_shdr(shdr->elf, &link, int_t_get(shdr_link(shdr)));
-            shdr_sym(&link, &(rel->sym), ELF64_R_SYM(rel->r.rel64->r_info));
-            uint_t_64_set(&(rel->offset), rel->r.rel64->r_offset);
-            rel->type = ELF64_R_TYPE(rel->r.rel64->r_info);
+        if (int_t_get(elf_section_type(section)) == SHT_REL) {
+            relocation->r.rel64 = (Elf64_Rel *)
+                       &(data[int_t_get(elf_section_entsize(section)) * index]);
+            elf_section(section->elf, &link, int_t_get(elf_section_link(section)));
+            elf_section_symbol(&link, &(relocation->symbol),
+                                      ELF64_R_SYM(relocation->r.rel64->r_info));
+            uint_t_64_set(&(relocation->offset), relocation->r.rel64->r_offset);
+            relocation->type = ELF64_R_TYPE(relocation->r.rel64->r_info);
             break;
         }
         else {
-            rel->r.rela64 = (Elf64_Rela *) &(data[int_t_get(shdr_entsize(shdr)) * index]);
-            elf_shdr(shdr->elf, &link, int_t_get(shdr_link(shdr)));
-            shdr_sym(&link, &(rel->sym), ELF64_R_SYM(rel->r.rela64->r_info));
-            uint_t_64_set(&(rel->offset), rel->r.rela64->r_offset);
-            rel->type = ELF64_R_TYPE(rel->r.rela64->r_info);
+            relocation->r.rela64 = (Elf64_Rela *)
+                       &(data[int_t_get(elf_section_entsize(section)) * index]);
+            elf_section(section->elf, &link, int_t_get(elf_section_link(section)));
+            elf_section_symbol(&link, &(relocation->symbol),
+                                     ELF64_R_SYM(relocation->r.rela64->r_info));
+            uint_t_64_set(&(relocation->offset), relocation->r.rela64->r_offset);
+            relocation->type = ELF64_R_TYPE(relocation->r.rela64->r_info);
         }
         break;
     }
@@ -233,82 +246,82 @@ int shdr_rel (struct _elf_shdr * shdr, struct _elf_rel * rel, int index)
 }
                 
 
-int      sym_type  (struct _elf_sym * sym) { return sym->type; }
-uint_t * sym_value (struct _elf_sym * sym) { return &(sym->value); }
-int_t  * sym_size  (struct _elf_sym * sym) { return &(sym->size); }
-uint_t * sym_shndx (struct _elf_sym * sym) { return &(sym->shndx); }
-char *   sym_name  (struct _elf_sym * sym)
+int      elf_symbol_type  (struct _elf_symbol * symbol) { return symbol->type; }
+uint_t * elf_symbol_value (struct _elf_symbol * symbol) { return &(symbol->value); }
+int_t  * elf_symbol_size  (struct _elf_symbol * symbol) { return &(symbol->size); }
+uint_t * elf_symbol_shndx (struct _elf_symbol * symbol) { return &(symbol->shndx); }
+char *   elf_symbol_name  (struct _elf_symbol * symbol)
 {
-    return elf_strtab_str(sym->elf,
-                          int_t_get(shdr_link(&(sym->shdr))),
-                          int_t_get(&(sym->name)));
+    return elf_strtab_str(symbol->elf,
+                          int_t_get(elf_section_link(&(symbol->section))),
+                          int_t_get(&(symbol->name)));
 }
                           
 
 
-char *   rel_name   (struct _elf_rel * rel) { return sym_name(&(rel->sym)); }
-uint_t * rel_offset (struct _elf_rel * rel) { return &(rel->offset); }
-int      rel_type   (struct _elf_rel * rel) { return rel->type; }
+char *   elf_relocation_name   (struct _elf_relocation * relocation) { return elf_symbol_name(&(relocation->symbol)); }
+uint_t * elf_relocation_offset (struct _elf_relocation * relocation) { return &(relocation->offset); }
+int      elf_relocation_type   (struct _elf_relocation * relocation) { return relocation->type; }
 
 
-uint_t * shdr_addr    (struct _elf_shdr * shdr) { return &(shdr->addr); }
-int_t *  shdr_size    (struct _elf_shdr * shdr) { return &(shdr->size); }
-uint_t * shdr_offset  (struct _elf_shdr * shdr) { return &(shdr->offset); }
-int_t *  shdr_type    (struct _elf_shdr * shdr) { return &(shdr->type); }
-int_t *  shdr_link    (struct _elf_shdr * shdr) { return &(shdr->link); }
-int_t *  shdr_entsize (struct _elf_shdr * shdr) { return &(shdr->entsize); }
+uint_t * elf_section_addr    (struct _elf_section * section) { return &(section->addr); }
+int_t *  elf_section_size    (struct _elf_section * section) { return &(section->size); }
+uint_t * elf_section_offset  (struct _elf_section * section) { return &(section->offset); }
+int_t *  elf_section_type    (struct _elf_section * section) { return &(section->type); }
+int_t *  elf_section_link    (struct _elf_section * section) { return &(section->link); }
+int_t *  elf_section_entsize (struct _elf_section * section) { return &(section->entsize); }
 
-void shdr_copy (struct _elf_shdr * dst, struct _elf_shdr * src)
+void elf_section_copy (struct _elf_section * dst, struct _elf_section * src)
 {
-    memcpy(dst, src, sizeof(struct _elf_shdr));
+    memcpy(dst, src, sizeof(struct _elf_section));
 }
 
-int shdr_exec (struct _elf_shdr * shdr) {
-    return int_t_get(&(shdr->flags)) & SHF_EXECINSTR; }
+int elf_section_exec (struct _elf_section * section) {
+    return int_t_get(&(section->flags)) & SHF_EXECINSTR; }
 
-int shdr_num (struct _elf_shdr * shdr) {
-    return int_t_get(&(shdr->size)) / int_t_get(&(shdr->entsize)); }
+int elf_section_num (struct _elf_section * section) {
+    return int_t_get(&(section->size)) / int_t_get(&(section->entsize)); }
 
-unsigned char * shdr_data (struct _elf_shdr * shdr) {
-    return (unsigned char *) &(shdr->elf->bytes[uint_t_get(&(shdr->offset))]); }
+unsigned char * elf_section_data (struct _elf_section * section) {
+    return (unsigned char *) &(section->elf->bytes[uint_t_get(&(section->offset))]); }
 
-char * shdr_name (struct _elf_shdr * shdr)
+char * elf_section_name (struct _elf_section * section)
 {
-    return elf_strtab_str(shdr->elf,
-                          int_t_get(elf_shstrndx(shdr->elf)),
-                          int_t_get(&(shdr->name)));
+    return elf_strtab_str(section->elf,
+                          int_t_get(elf_shstrndx(section->elf)),
+                          int_t_get(&(section->name)));
 }
 
 
 
-
+/*
 int elf_sym_func_addr (struct _elf * elf,
                        struct _elf_sym * sym,
                        uint_t * addr)
 {
     int i, j;
-    int best_shdr = -1;
+    int best_section = -1;
     int best_sym = -1;
     uint_t best_sym_addr;
-    struct _elf_shdr shdr;
+    struct _elf_section section;
     struct _elf_sym sym_tmp;
     
     // sets best_sym_addr same size as addr and zeroes it out
     uint_t_set(&best_sym_addr, addr);
     uint_t_sub(&best_sym_addr, addr);
     
-    // check all shdr to see if they're SHT_SYMTAB
+    // check all sections to see if they're SHT_SYMTAB
     for (i = 0; i < int_t_get(elf_shnum(elf)); i++) {
-        elf_shdr(elf, &shdr, i);
-        if (int_t_get(shdr_type(&shdr)) == SHT_SYMTAB) {
+        elf_section(elf, &section, i);
+        if (int_t_get(elf_section_type(&section)) == SHT_SYMTAB) {
             // load all symbols, pick FUNC symbol with address below and closest
             // to addr 
-            for (j = 0; j < shdr_num(&shdr); j++) {
-                shdr_sym(&shdr, &sym_tmp, j);
+            for (j = 0; j < elf_section_num(&section); j++) {
+                elf_section_sym(&section, &sym_tmp, j);
                 if (    (sym_type(&sym_tmp) == STT_FUNC)
                      && (uint_t_cmp(sym_value(&sym_tmp), addr) < 0)
                      && (uint_t_cmp(sym_value(&sym_tmp), &best_sym_addr) > 0)) {
-                    best_shdr = i;
+                    best_section = i;
                     best_sym = j;
                     uint_t_set(&best_sym_addr, sym_value(&sym_tmp));
                 }
@@ -316,11 +329,12 @@ int elf_sym_func_addr (struct _elf * elf,
         }
     }
      
-    if (best_shdr == -1)
+    if (best_section == -1)
         return 0;
     
-    elf_shdr(elf, &shdr, best_shdr);
-    shdr_sym(&shdr, sym, best_sym);
+    elf_section(elf, &section, best_section);
+    elf_section_sym(&section, sym, best_sym);
     
     return 1;
 }
+*/

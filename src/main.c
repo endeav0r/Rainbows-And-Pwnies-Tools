@@ -6,6 +6,7 @@
 #include "rop.h"
 #include "types.h"
 
+/*
 int print_rop_list (struct _elf_shdr * shdr, struct _rop_list * rops)
 {
     struct _elf * elf = shdr->elf;
@@ -120,11 +121,12 @@ int print_rops (struct _elf * elf, int rop_depth, int ret_rop, int jmp_rop,
     
     return total_gadgets;
 }
+*/
 
 
 int main (int argc, char * argv[])
 {
-    struct _elf * elf;
+    //struct _elf * elf;
     char * filename = NULL;
     int lua_run = 0;
     int ret_rop = 0;
@@ -133,7 +135,7 @@ int main (int argc, char * argv[])
     int call_rop = 0;
     int rop_depth = 1;
     int c;
-    int total_gadgets = 0;
+    //int total_gadgets = 0;
     
     while ((c = getopt(argc, argv, "cd:e:jkl:r")) != -1) {
         switch (c) {
@@ -187,6 +189,7 @@ int main (int argc, char * argv[])
     
     if (lua_run)
         lua_run_file(filename, &(argv[optind]), argc - optind);
+    /*
     else {
         elf = elf_open(filename);
         if (elf != NULL) {
@@ -196,6 +199,7 @@ int main (int argc, char * argv[])
             printf("%d gadgets\n", total_gadgets);
         }
     }
+    */
 
     return 0;
 }

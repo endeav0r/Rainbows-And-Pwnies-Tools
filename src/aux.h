@@ -7,8 +7,8 @@
 #include "types.h"
 
 struct _sym_list {
-    int shdr_i;
-    int sym_i;
+    int section_i;
+    int symbol_i;
     uint_t value;
     struct _sym_list * next;
 };
@@ -19,10 +19,10 @@ struct _sym_list {
 */
 struct _sym_list * aux_func_syms           (struct _elf * elf);
 int                aux_func_sym_at_address (struct _elf * elf,
-                                            struct _elf_sym * sym,
+                                            struct _elf_symbol * symbol,
                                             uint_t * address);
 struct _sym_list * sym_list_insert         (struct _sym_list * sym_list,
-                                            struct _elf_sym * sym);
+                                            struct _elf_symbol * symbol);
 void               sym_list_destroy        (struct _sym_list * sym_list);
 
 

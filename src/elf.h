@@ -24,7 +24,7 @@ struct _elf {
     int_t shstrndx;
 };
 
-struct _elf_shdr {
+struct _elf_section {
     int index;
     struct _elf * elf;
     union {
@@ -41,10 +41,10 @@ struct _elf_shdr {
     int_t  entsize;
 };
 
-struct _elf_sym {
+struct _elf_symbol {
     int index;
     struct _elf * elf;
-    struct _elf_shdr shdr;
+    struct _elf_section section;
     union {
         Elf32_Sym * sym32;
         Elf64_Sym * sym64;
@@ -56,11 +56,11 @@ struct _elf_sym {
     uint_t shndx;
 };
 
-struct _elf_rel {
+struct _elf_relocation {
     int index;
     struct _elf * elf;
-    struct _elf_shdr shdr;
-    struct _elf_sym sym;
+    struct _elf_section section;
+    struct _elf_symbol symbol;
     union {
         Elf32_Rel  * rel32;
         Elf32_Rela * rela32;
@@ -83,34 +83,39 @@ uint_t *      elf_shoff      (struct _elf * elf);
 int_t *       elf_shstrndx   (struct _elf * elf);
 char *        elf_strtab_str (struct _elf * elf, int strtab, int offset);
 
-int elf_shdr (struct _elf * elf, struct _elf_shdr * shdr, int index);
-int shdr_sym (struct _elf_shdr * shdr, struct _elf_sym * sym, int index);
-int shdr_rel (struct _elf_shdr * shdr, struct _elf_rel * rel, int index);
+int elf_section (struct _elf * elf, struct _elf_section * section, int index);
 
-int      sym_type  (struct _elf_sym * sym);
-uint_t * sym_value (struct _elf_sym * sym);
-char *   sym_name  (struct _elf_sym * sym);
-int_t *  sym_size  (struct _elf_sym * sym);
-uint_t * sym_shndx (struct _elf_sym * sym);
 
-char *   rel_name   (struct _elf_rel * rel);
-uint_t * rel_offset (struct _elf_rel * rel);
-int      rel_type   (struct _elf_rel * rel);
+int      elf_symbol_type  (struct _elf_symbol * symbol);
+uint_t * elf_symbol_value (struct _elf_symbol * symbol);
+char *   elf_symbol_name  (struct _elf_symbol * symbol);
+int_t *  elf_symbol_size  (struct _elf_symbol * symbol);
+uint_t * elf_symbol_shndx (struct _elf_symbol * symbol);
 
-void            shdr_copy    (struct _elf_shdr * dst, struct _elf_shdr * src);
-char *          shdr_name    (struct _elf_shdr * shdr);
-uint_t *        shdr_addr    (struct _elf_shdr * shdr);
-int             shdr_exec    (struct _elf_shdr * shdr);
-int_t *         shdr_size    (struct _elf_shdr * shdr);
-uint_t *        shdr_offset  (struct _elf_shdr * shdr);
-unsigned char * shdr_data    (struct _elf_shdr * shdr);
-int_t *         shdr_type    (struct _elf_shdr * shdr);
-int             shdr_num     (struct _elf_shdr * shdr);
-int_t *         shdr_entsize (struct _elf_shdr * shdr);
-int_t *         shdr_link    (struct _elf_shdr * shdr);
+char *   elf_relocation_name   (struct _elf_relocation * relocation);
+uint_t * elf_relocation_offset (struct _elf_relocation * relocation);
+int      elf_relocation_type   (struct _elf_relocation * relocation);
 
-int elf_sym_func_addr (struct _elf * elf,
-                       struct _elf_sym * sym,
-                       uint_t * addr);
+void            elf_section_copy    (struct _elf_section * dst,
+                                     struct _elf_section * src);
+char *          elf_section_name    (struct _elf_section * section);
+uint_t *        elf_section_addr    (struct _elf_section * section);
+int             elf_section_exec    (struct _elf_section * section);
+int_t *         elf_section_size    (struct _elf_section * section);
+uint_t *        elf_section_offset  (struct _elf_section * section);
+unsigned char * elf_section_data    (struct _elf_section * section);
+int_t *         elf_section_type    (struct _elf_section * section);
+int             elf_section_num     (struct _elf_section * section);
+int_t *         elf_section_entsize (struct _elf_section * section);
+int_t *         elf_section_link    (struct _elf_section * section);
+
+int elf_section_symbol     (struct _elf_section * section,
+                            struct _elf_symbol * symbol, int index);
+int elf_section_relocation (struct _elf_section * section,
+                            struct _elf_relocation * relocation, int index);
+
+int elf_symbol_func_addr (struct _elf * elf,
+                          struct _elf_symbol * symbol,
+                          uint_t * addr);
 
 #endif

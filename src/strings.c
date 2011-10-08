@@ -714,7 +714,7 @@ char types_strings [][16] = {
 };
 
 
-char shdr_type_strings [20][16] = {
+char elf_section_type_strings [20][16] = {
     "null",
     "progbits",
     "symtab",
@@ -736,7 +736,7 @@ char shdr_type_strings [20][16] = {
 };
 
 
-char sym_type_strings [16][16] = {
+char elf_symbol_type_strings [16][16] = {
     "notype",    // 0
     "object",    // 1
     "func",      // 2
@@ -756,7 +756,7 @@ char sym_type_strings [16][16] = {
 };
 
 
-char rel_type_strings [39][16] = {
+char elf_relocation_type_strings [39][16] = {
     "none",            // 0
     "64",              // 1
     "pc32",            // 2

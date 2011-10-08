@@ -6,8 +6,8 @@
 
 extern char mnemonic_strings[][16];
 extern char types_strings[][16];
-extern char shdr_type_strings[][16];
-extern char sym_type_strings[][16];
-extern char rel_type_strings[39][16];
+extern char elf_section_type_strings[][16];
+extern char elf_symbol_type_strings[][16];
+extern char elf_relocation_type_strings[39][16];
 
 #endif
