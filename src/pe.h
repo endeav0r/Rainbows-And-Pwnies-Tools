@@ -18,6 +18,7 @@ struct _pe {
     unsigned char * bytes;
     Pe_FileHeader * FileHeader;
     int FileHeader_offset;
+    int total_symbols;
     unsigned char * symbol_types;
     int string_table_offset;
     uint_t Machine;
@@ -81,6 +82,7 @@ uint_t * pe_Characteristics      (struct _pe * pe);
 
 char *        pe_string          (struct _pe * pe, int offset);
 unsigned char pe_symbol_type     (struct _pe * pe, int index);
+int           pe_total_symbols   (struct _pe * pe);
 
 int pe_section (struct _pe * pe, struct _pe_section * section, int index);
 

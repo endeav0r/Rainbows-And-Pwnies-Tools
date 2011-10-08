@@ -74,14 +74,16 @@ struct _pe * pe_open (char * filename)
                   pe->FileHeader->SizeOfOptionalHeader);
     uint_t_16_set(&(pe->Characteristics),   pe->FileHeader->Characteristics);
     
-    // we're going to go through and mark symbols as regular or auxiliar now,
+    // we're going to go through and mark symbols as regular or auxiliary now,
     // so that when we call them up by index later we can query this information
     // in O(1) time
+    pe->total_symbols = 0;
     pe->symbol_types = (unsigned char *) malloc(sizeof(unsigned char) * 
                                             uint_t_get(pe_NumberOfSymbols(pe)));
     symbol_types_i = 0;
     while (symbol_types_i < uint_t_get(pe_NumberOfSymbols(pe))) {
         pe->symbol_types[symbol_types_i] = PE_SYMBOL_TYPE_REGULAR;
+        pe->total_symbols++;
         memcpy(&symbol,
                &(pe->bytes[uint_t_get(pe_PointerToSymbolTable(pe)) + 
                            (PE_SYMBOL_SIZE * symbol_types_i)]),
@@ -128,6 +130,7 @@ char * pe_string (struct _pe * pe, int offset)
 unsigned char pe_symbol_type (struct _pe * pe, int index) {
     return pe->symbol_types[index];
 }
+int pe_total_symbols (struct _pe * pe) { return pe->total_symbols; }
 
 
 int pe_section (struct _pe * pe, struct _pe_section * section, int index)
