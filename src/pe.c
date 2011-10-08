@@ -5,11 +5,13 @@
     (struct _pe_section * section) { return &(section->MX); }
 #define PE_SYMBOL_ACCESSOR(MX) uint_t * pe_symbol_##MX \
     (struct _pe_symbol * symbol) { return &(symbol->MX); }
+#define PE_RELOCATION_ACCESSOR(MX) uint_t * pe_relocation_##MX \
+    (struct _pe_relocation * relocation) { return &(relocation->MX); }
 
 struct _pe * pe_open (char * filename)
 {
     struct _pe * pe;
-    Pe_SymbolHeader SymbolHeader;
+    Pe_Symbol symbol;
     unsigned int symbol_types_i;
     unsigned char aux_symbol_i;
     size_t bytes_read;
@@ -80,19 +82,19 @@ struct _pe * pe_open (char * filename)
     symbol_types_i = 0;
     while (symbol_types_i < uint_t_get(pe_NumberOfSymbols(pe))) {
         pe->symbol_types[symbol_types_i] = PE_SYMBOL_TYPE_REGULAR;
-        memcpy(&SymbolHeader,
+        memcpy(&symbol,
                &(pe->bytes[uint_t_get(pe_PointerToSymbolTable(pe)) + 
-                           (PE_SYMBOLHEADER_SIZE * symbol_types_i)]),
-               sizeof(Pe_SymbolHeader));
+                           (PE_SYMBOL_SIZE * symbol_types_i)]),
+               sizeof(Pe_Symbol));
 
         symbol_types_i++;
-        aux_symbol_i = SymbolHeader.NumberOfAuxSymbols;
+        aux_symbol_i = symbol.NumberOfAuxSymbols;
         
         while (aux_symbol_i--)
             pe->symbol_types[symbol_types_i++] = PE_SYMBOL_TYPE_AUXILIARY;
     }
     pe->string_table_offset = uint_t_get(pe_PointerToSymbolTable(pe)) +
-                              (PE_SYMBOLHEADER_SIZE * 
+                              (PE_SYMBOL_SIZE * 
                                uint_t_get(pe_NumberOfSymbols(pe)));
     
     return pe;
@@ -200,28 +202,28 @@ int pe_symbol (struct _pe * pe, struct _pe_symbol * symbol, int index)
     symbol->index = index;
     symbol->pe = pe;
     offset = (int) uint_t_get(pe_PointerToSymbolTable(pe));
-    offset += PE_SYMBOLHEADER_SIZE * index;
-    memcpy(&(symbol->SymbolHeader), &(pe->bytes[offset]),
-           sizeof(Pe_SymbolHeader));
+    offset += PE_SYMBOL_SIZE * index;
+    memcpy(&(symbol->Symbol), &(pe->bytes[offset]),
+           sizeof(Pe_Symbol));
 
     uint_t_32_set(&(symbol->Value),
-                  symbol->SymbolHeader.Value);
+                  symbol->Symbol.Value);
     uint_t_16_set(&(symbol->SectionNumber),
-                  symbol->SymbolHeader.SectionNumber);
+                  symbol->Symbol.SectionNumber);
     uint_t_16_set(&(symbol->Type),
-                  symbol->SymbolHeader.Type);
+                  symbol->Symbol.Type);
     uint_t_8_set (&(symbol->StorageClass),
-                  symbol->SymbolHeader.StorageClass);
+                  symbol->Symbol.StorageClass);
     uint_t_8_set (&(symbol->NumberOfAuxSymbols),
-                  symbol->SymbolHeader.NumberOfAuxSymbols);
+                  symbol->Symbol.NumberOfAuxSymbols);
     
-    if (symbol->SymbolHeader.Name[0] == '\0') {
-        offset = *((int *) &(symbol->SymbolHeader.Name[4]));
+    if (symbol->Symbol.Name[0] == '\0') {
+        offset = *((int *) &(symbol->Symbol.Name[4]));
         strncpy(symbol->Name, pe_string(pe, offset), PE_NAME_SIZE);
         symbol->Name[PE_NAME_SIZE - 1] = '\0';
     }
     else {
-        strncpy(symbol->Name, symbol->SymbolHeader.Name, 8);
+        strncpy(symbol->Name, symbol->Symbol.Name, 8);
         symbol->Name[8] = '\0';
     }
     
@@ -234,3 +236,35 @@ PE_SYMBOL_ACCESSOR(Type)
 PE_SYMBOL_ACCESSOR(StorageClass)
 PE_SYMBOL_ACCESSOR(NumberOfAuxSymbols)
 char * pe_symbol_Name (struct _pe_symbol * symbol) { return symbol->Name; }
+
+
+int pe_section_relocation (struct _pe_section * section,
+                           struct _pe_relocation * relocation,
+                           int index)
+{
+    unsigned int offset;
+    
+    if (index >= uint_t_get(pe_section_NumberOfRelocations(section)))
+        return 0;
+    
+    relocation->index = index;
+    relocation->pe = section->pe;
+    
+    offset = uint_t_get(pe_section_PointerToRelocations(section));
+    offset += PE_RELOCATION_SIZE * index;
+    
+    memcpy(&(relocation->Relocation), &(section->pe->bytes[offset]),
+           sizeof(Pe_Relocation));
+    
+    uint_t_32_set(&(relocation->VirtualAddress),
+                relocation->Relocation.VirtualAddress);
+    uint_t_32_set(&(relocation->SymbolTableIndex),
+                relocation->Relocation.SymbolTableIndex);
+    uint_t_16_set(&(relocation->Type), relocation->Relocation.Type);
+    
+    return 1;
+}
+
+PE_RELOCATION_ACCESSOR(VirtualAddress)
+PE_RELOCATION_ACCESSOR(SymbolTableIndex)
+PE_RELOCATION_ACCESSOR(Type)

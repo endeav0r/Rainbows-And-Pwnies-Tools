@@ -48,7 +48,7 @@ struct _pe_section {
 struct _pe_symbol {
     int index;
     struct _pe * pe;
-    Pe_SymbolHeader SymbolHeader;
+    Pe_Symbol Symbol;
     char Name[PE_NAME_SIZE];
     uint_t Value;
     uint_t SectionNumber;
@@ -56,6 +56,16 @@ struct _pe_symbol {
     uint_t StorageClass;
     uint_t NumberOfAuxSymbols;
 };
+
+struct _pe_relocation {
+    int index;
+    struct _pe * pe;
+    Pe_Relocation Relocation;
+    uint_t VirtualAddress;
+    uint_t SymbolTableIndex;
+    uint_t Type;
+};
+    
 
 
 struct _pe * pe_open    (char * filename);

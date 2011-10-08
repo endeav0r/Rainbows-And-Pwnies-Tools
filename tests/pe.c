@@ -36,7 +36,8 @@ int main (int argc, char * argv[])
          section_i < uint_t_get(pe_NumberOfSections(pe));
          section_i++) {
         pe_section(pe, &section, section_i);
-        printf("%d %s\n", section_i, pe_section_Name(&section));
+        printf("%d %s %d\n", section_i, pe_section_Name(&section),
+               uint_t_get(pe_section_PointerToRelocations(&section)));
     }
     
     pe_destroy(pe);

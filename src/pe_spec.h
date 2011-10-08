@@ -7,7 +7,8 @@
 #define PE_SIGNATURE_SIZE    4
 #define PE_FILE_OFFSET       0x3c
 // gcc sizeof(Pe_SymbolHeader) is returning values with alignment
-#define PE_SYMBOLHEADER_SIZE 18
+#define PE_SYMBOL_SIZE 18
+#define PE_RELOCATION_SIZE   10
 
 #define PE_SYM_TYPE_BASE(TYPE)    (TYPE & 0x0000000F)
 #define PE_SYM_TYPE_COMPLEX(TYPE) ((TYPE >> 4) & 0x0000000F)
@@ -41,14 +42,21 @@ typedef struct _Pe_SectionHeader {
 // value is defined as SIGNED in the PE SPEC, but we're treating it as unsigned
 // here. We will almost always use it unsigned. If you need it signed, cast it
 // to a signed type
-typedef struct _Pe_SymbolHeader {
+typedef struct _Pe_Symbol {
     char Name[8];                // 8
     uint32_t Value;              // 12
     uint16_t SectionNumber;      // 14
     uint16_t Type;               // 16
     uint8_t  StorageClass;       // 17
     uint8_t  NumberOfAuxSymbols; // 18
-} Pe_SymbolHeader;
+} Pe_Symbol;
+
+
+typedef struct _Pe_Relocation {
+    uint32_t VirtualAddress;   // 4
+    uint32_t SymbolTableIndex; // 8
+    uint16_t Type;             // 10
+} Pe_Relocation;
 
 #define IMAGE_FILE_MACHINE_UNKNOWN   0x0
 #define IMAGE_FILE_MACHINE_ALPHA     0x184
