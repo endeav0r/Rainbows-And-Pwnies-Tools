@@ -80,22 +80,82 @@ int exec_num_sections (struct _exec * exec)
     return -1;
 }
 
-int exec_section (struct _exec * exec, struct _exec_section * exec_section,
-                   int index)
+int exec_num_symbols (struct _exec * exec)
 {
-    exec_section->exec = exec;
+    struct _elf_section section;
+    int i;
+    int symbols_n = 0;
     
     switch (exec_type(exec)) {
     case EXEC_TYPE_ELF :
-        elf_section(exec->e.elf, &(exec_section->s.elf_section), index);
+        for (i = 0; i < int_t_get(elf_shnum(exec->e.elf)); i++) {
+            elf_section(exec->e.elf, &section, i);
+            if (    (int_t_get(elf_section_type(&section)) == SHT_SYMTAB)
+                 || (int_t_get(elf_section_type(&section)) == SHT_DYNSYM))
+                symbols_n += elf_section_num(&section);
+                
+        }
+        return symbols_n;
+    case EXEC_TYPE_PE :
+        return pe_total_symbols(exec->e.pe);
+    }
+    return -1;
+}
+
+int exec_section (struct _exec * exec, struct _exec_section * section,
+                   int index)
+{
+    section->exec = exec;
+    
+    switch (exec_type(exec)) {
+    case EXEC_TYPE_ELF :
+        elf_section(exec->e.elf, &(section->s.elf_section), index);
         break;
     case EXEC_TYPE_PE :
-        pe_section(exec->e.pe, &(exec_section->s.pe_section), index);
+        pe_section(exec->e.pe, &(section->s.pe_section), index);
         break;
     }
     return 0;
 }
 
+int exec_symbol (struct _exec * exec, struct _exec_symbol * symbol, int index)
+{
+    struct _elf_section section;
+    int section_i;
+    int symbol_i;
+    symbol->exec = exec;
+    
+    switch (exec_type(exec)) {
+    case EXEC_TYPE_ELF :
+        for (section_i = 0; section_i < int_t_get(elf_shnum(exec->e.elf));
+             section_i++) {
+            elf_section(exec->e.elf, &section, section_i);
+            if (    (int_t_get(elf_section_type(&section)) == SHT_SYMTAB)
+                 || (int_t_get(elf_section_type(&section)) == SHT_DYNSYM)) {
+                if (elf_section_num(&section) <= index)
+                    index -= elf_section_num(&section);
+                else {
+                    elf_section_symbol(&section, &(symbol->s.elf_symbol), index);
+                    return 0;
+                }
+            }
+        }
+        break;
+    case EXEC_TYPE_PE :
+        // find the non-aux symbol corresponding to this index
+        for (symbol_i = 0;
+             symbol_i < uint_t_get(pe_NumberOfSymbols(exec->e.pe));
+             symbol_i++) {
+            if (pe_symbol_type(exec->e.pe, symbol_i) == PE_SYMBOL_TYPE_REGULAR)
+                index--;
+            if (index < 0)
+                break;
+        }
+        pe_symbol(exec->e.pe, &(symbol->s.pe_symbol), symbol_i);
+        return 0;
+    }
+    return -1;
+}
 
 
 char * exec_section_name (struct _exec_section * section)
@@ -154,6 +214,65 @@ unsigned char * exec_section_data (struct _exec_section * section)
         return elf_section_data(&(section->s.elf_section));
     case EXEC_TYPE_PE :
         return pe_section_data(&(section->s.pe_section));
+    }
+    return NULL;
+}
+
+
+
+uint_t * exec_symbol_value (struct _exec_symbol * symbol)
+{
+    switch (exec_type(symbol->exec)) {
+    case EXEC_TYPE_ELF :
+        return elf_symbol_value(&(symbol->s.elf_symbol));
+    case EXEC_TYPE_PE :
+        return pe_symbol_Value(&(symbol->s.pe_symbol));
+    }
+    return NULL;
+}
+
+
+
+uint_t * exec_symbol_address (struct _exec_symbol * symbol)
+{
+    struct _pe_section section;
+    
+    switch (exec_type(symbol->exec)) {
+    case EXEC_TYPE_ELF :
+        return elf_symbol_value(&(symbol->s.elf_symbol));
+    case EXEC_TYPE_PE :
+        switch (uint_t_get(pe_symbol_StorageClass(&(symbol->s.pe_symbol)))) {
+            case IMAGE_SYM_CLASS_STATIC :
+            pe_section(symbol->exec->e.pe, &section,
+                       uint_t_get(pe_symbol_SectionNumber(&(symbol->s.pe_symbol))));
+            uint_t_set(&(symbol->address), pe_section_VirtualAddress(&section));
+            uint_t_add(&(symbol->address), pe_symbol_Value(&(symbol->s.pe_symbol)));
+            return &(symbol->address);
+        }
+        return pe_symbol_Value(&(symbol->s.pe_symbol));
+    }
+    return NULL;
+}
+
+
+char * exec_symbol_name (struct _exec_symbol * symbol)
+{
+    switch (exec_type(symbol->exec)) {
+    case EXEC_TYPE_ELF : return elf_symbol_name(&(symbol->s.elf_symbol));
+    case EXEC_TYPE_PE  : return pe_symbol_Name(&(symbol->s.pe_symbol));
+    }
+    return NULL;
+}
+
+
+char * exec_symbol_description (struct _exec_symbol * symbol)
+{
+    switch (exec_type(symbol->exec)) {
+    case EXEC_TYPE_ELF :
+        return elf_symbol_type_strings[elf_symbol_type(&(symbol->s.elf_symbol))];
+    case EXEC_TYPE_PE :
+        return pe_symbol_class_strings_helper(
+                    uint_t_get(pe_symbol_StorageClass(&(symbol->s.pe_symbol))));
     }
     return NULL;
 }

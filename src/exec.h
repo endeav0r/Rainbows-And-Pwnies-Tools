@@ -6,6 +6,8 @@
 
 #include "elf.h"
 #include "pe.h"
+#include "strings.h"
+#include "types.h"
 
 #define EXEC_TYPE_ELF 1
 #define EXEC_TYPE_PE  2
@@ -31,17 +33,33 @@ struct _exec_section {
     } s;
 };
 
+struct _exec_symbol {
+    struct _exec * exec;
+    union {
+        struct _elf_symbol elf_symbol;
+        struct _pe_symbol  pe_symbol;
+    } s;
+    uint_t address;
+};
+
 struct _exec * exec_open    (char * filename);
 void           exec_destroy (struct _exec * exec);
 
 int exec_type         (struct _exec * exec);
 int exec_num_sections (struct _exec * exec);
+int exec_num_symbols  (struct _exec * exec);
 
 int exec_section (struct _exec * exec, struct _exec_section * section, int index);
+int exec_symbol  (struct _exec * exec, struct _exec_symbol * symbol,   int index);
 
 char *          exec_section_name  (struct _exec_section * section);
 int             exec_section_types (struct _exec_section * section);
 int             exec_section_size  (struct _exec_section * section);
 unsigned char * exec_section_data  (struct _exec_section * section);
+
+char *   exec_symbol_name        (struct _exec_symbol * symbol);
+uint_t * exec_symbol_value       (struct _exec_symbol * symbol);
+uint_t * exec_symbol_address     (struct _exec_symbol * symbol);
+char *   exec_symbol_description (struct _exec_symbol * symbol);
 
 #endif
