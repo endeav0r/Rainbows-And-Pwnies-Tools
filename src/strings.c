@@ -797,3 +797,40 @@ char elf_relocation_type_strings [39][16] = {
     "irelative",       // 37
     "num"              // 38
 };
+
+char pe_symbol_class_strings [27][32] = {
+    "end_of_function",  // 0
+    "null",             // 1
+    "automatic",        // 2
+    "external",         // 3
+    "static",           // 4
+    "register",         // 5
+    "external_def",     // 6
+    "label",            // 7
+    "undefined_label",  // 8
+    "member_of_struct", // 9
+    "argument",         // 10
+    "struct_tag",       // 11
+    "member_of_union",  // 12
+    "union_tag",        // 13
+    "type_definition",  // 15
+    "undefined_static", // 16
+    "enum_tag",         // 17
+    "member_of_enum",   // 18
+    "register_param",   // 19
+    "bit_field",        // 20
+    "block",            // 21
+    "function",         // 22
+    "end_of_struct",    // 23
+    "file",             // 24
+    "section",          // 25
+    "weak_external"     // 26
+};
+
+char * pe_symbol_class_strings_helper (int class)
+{
+    if (class < 20)
+        return pe_symbol_class_strings[class + 1];
+    else
+        return pe_symbol_class_strings[class - (100 + 21)];
+}
