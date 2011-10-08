@@ -59,8 +59,11 @@ typedef struct _Pe_Relocation {
 } Pe_Relocation;
 
 #define IMAGE_FILE_MACHINE_UNKNOWN   0x0
+#define IMAGE_FILE_MACHINE_AM33      0x1d3
 #define IMAGE_FILE_MACHINE_ALPHA     0x184
+#define IMAGE_FILE_MACHINE_AMD64     0x8664
 #define IMAGE_FILE_MACHINE_ARM       0x1c0
+#define IMAGE_FILE_MACHINE_ARMV7     0x1c4
 #define IMAGE_FILE_MACHINE_ALPHA64   0x284
 #define IMAGE_FILE_MACHINE_I386      0x14c
 #define IMAGE_FILE_MACHINE_IA64      0x200

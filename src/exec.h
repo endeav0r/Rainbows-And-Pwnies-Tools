@@ -48,14 +48,16 @@ void           exec_destroy (struct _exec * exec);
 int exec_type         (struct _exec * exec);
 int exec_num_sections (struct _exec * exec);
 int exec_num_symbols  (struct _exec * exec);
+int exec_mode         (struct _exec * exec);
 
 int exec_section (struct _exec * exec, struct _exec_section * section, int index);
 int exec_symbol  (struct _exec * exec, struct _exec_symbol * symbol,   int index);
 
-char *          exec_section_name  (struct _exec_section * section);
-int             exec_section_types (struct _exec_section * section);
-int             exec_section_size  (struct _exec_section * section);
-unsigned char * exec_section_data  (struct _exec_section * section);
+char *          exec_section_name    (struct _exec_section * section);
+int             exec_section_types   (struct _exec_section * section);
+int             exec_section_size    (struct _exec_section * section);
+unsigned char * exec_section_data    (struct _exec_section * section);
+uint_t *        exec_section_address (struct _exec_section * section);
 
 char *   exec_symbol_name        (struct _exec_symbol * symbol);
 uint_t * exec_symbol_value       (struct _exec_symbol * symbol);

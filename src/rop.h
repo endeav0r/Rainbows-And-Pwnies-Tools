@@ -29,7 +29,7 @@ struct _rop_list {
 * @param data_size the size, in bytes, of data
 * @return a struct _rop_list which contains all the rop gadgets found
 */
-struct _rop_list * rop_ret_rops (unsigned char * data, int_t * data_size,
+struct _rop_list * rop_ret_rops (unsigned char * data, int data_size,
                                  int depth, int mode);
 
 /** finds all 'jmp reg' rops in data
@@ -37,7 +37,7 @@ struct _rop_list * rop_ret_rops (unsigned char * data, int_t * data_size,
 * @param data_size the size, in bytes, of data
 * @return a struct _rop_list which contains all the rop gadgets found
 */
-struct _rop_list * rop_jmp_reg_rops (unsigned char * data, int_t * data_size,
+struct _rop_list * rop_jmp_reg_rops (unsigned char * data, int data_size,
                                      int depth, int mode);
                                      
 /** finds all 'j? reg' rops, other than 'jmp reg' in data (conditional jmps)
@@ -45,7 +45,7 @@ struct _rop_list * rop_jmp_reg_rops (unsigned char * data, int_t * data_size,
 * @param data_size the size, in bytes, of data
 * @return a struct _rop_list which contains all the rop gadgets found
 */
-struct _rop_list * rop_cond_jmp_reg_rops (unsigned char * data, int_t * data_size,
+struct _rop_list * rop_cond_jmp_reg_rops (unsigned char * data, int data_size,
                                           int depth, int mode);
 
 /** finds all 'call reg' rops in data
@@ -53,7 +53,7 @@ struct _rop_list * rop_cond_jmp_reg_rops (unsigned char * data, int_t * data_siz
 * @param data_size the size, in bytes, of data
 * @return a struct _rop_list which contains all the rop gadgets found
 */
-struct _rop_list * rop_call_reg_rops (unsigned char * data, int_t * data_size,
+struct _rop_list * rop_call_reg_rops (unsigned char * data, int data_size,
                                       int depth, int mode);
 
 /** gets the struct _rop_ins from a struct _rop_list

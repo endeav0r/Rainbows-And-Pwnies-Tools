@@ -685,7 +685,7 @@ int lua_elf_section_t_rop_table (lua_State * L)
     lua_pop(L, 2);
     
     rop_list_first = rop_ret_rops(elf_section_data(section),
-                                  elf_section_size(section),
+                                  int_t_get(elf_section_size(section)),
                                   rop_depth,
                                   ELF_CLASS(section->elf));
     rop_list = rop_list_first;

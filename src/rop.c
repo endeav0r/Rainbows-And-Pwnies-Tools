@@ -96,7 +96,7 @@ int rop_detect_call_reg (unsigned char * data, int data_size, int mode)
 
 
 struct _rop_list * rop_find_rops (unsigned char * data,
-                                  int_t * data_size,
+                                  int data_size,
                                   int depth,
                                   int (* detect_callback) (unsigned char * data,
                                                            int data_size,
@@ -114,11 +114,11 @@ struct _rop_list * rop_find_rops (unsigned char * data,
     ud_init(&ud_obj);
     
     ud_set_mode(&ud_obj, mode);
-    ud_set_input_buffer(&ud_obj, data, int_t_get(data_size));
+    ud_set_input_buffer(&ud_obj, data, data_size);
     ud_set_syntax(&ud_obj, NULL);
     
-    for (d = 0; d < int_t_get(data_size); d++) {
-        if ((ins_size = detect_callback(&(data[d]), int_t_get(data_size) - d, mode)) > 0) {
+    for (d = 0; d < data_size; d++) {
+        if ((ins_size = detect_callback(&(data[d]), data_size - d, mode)) > 0) {
             // we don't count the d byte in our rop chain depth
             backtrack = d - 1;
             while (d - backtrack <= MAX_BACKTRACK_LEN) {
@@ -153,28 +153,28 @@ struct _rop_list * rop_find_rops (unsigned char * data,
 }
 
 
-struct _rop_list * rop_ret_rops (unsigned char * data, int_t * data_size,
+struct _rop_list * rop_ret_rops (unsigned char * data, int data_size,
                                  int depth, int mode)
 {
     return rop_find_rops(data, data_size, depth, rop_detect_ret, mode);
 }
 
 
-struct _rop_list * rop_jmp_reg_rops (unsigned char * data, int_t * data_size,
+struct _rop_list * rop_jmp_reg_rops (unsigned char * data, int data_size,
                                      int depth, int mode)
 {
     return rop_find_rops(data, data_size, depth, rop_detect_jmp_reg, mode);
 }
 
 
-struct _rop_list * rop_cond_jmp_reg_rops (unsigned char * data, int_t * data_size,
+struct _rop_list * rop_cond_jmp_reg_rops (unsigned char * data, int data_size,
                                           int depth, int mode)
 {
     return rop_find_rops(data, data_size, depth, rop_detect_cond_jmp_reg, mode);
 }
 
 
-struct _rop_list * rop_call_reg_rops (unsigned char * data, int_t * data_size,
+struct _rop_list * rop_call_reg_rops (unsigned char * data, int data_size,
                                      int depth, int mode)
 {
     return rop_find_rops(data, data_size, depth, rop_detect_call_reg, mode);

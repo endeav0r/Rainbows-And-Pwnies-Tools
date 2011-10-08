@@ -102,6 +102,20 @@ int exec_num_symbols (struct _exec * exec)
     return -1;
 }
 
+int exec_mode (struct _exec * exec)
+{
+    switch (exec_type(exec)) {
+    case EXEC_TYPE_ELF :
+        return ELF_CLASS(exec->e.elf);
+    case EXEC_TYPE_PE :
+        if (uint_t_get(pe_Machine(exec->e.pe)) == IMAGE_FILE_MACHINE_AMD64)
+            return 64;
+        else if (uint_t_get(pe_Machine(exec->e.pe)) == IMAGE_FILE_MACHINE_I386)
+            return 32;
+    }
+    return -1;
+}
+
 int exec_section (struct _exec * exec, struct _exec_section * section,
                    int index)
 {
@@ -218,6 +232,16 @@ unsigned char * exec_section_data (struct _exec_section * section)
     return NULL;
 }
 
+uint_t * exec_section_address (struct _exec_section * section)
+{
+    switch (exec_type(section->exec)) {
+    case EXEC_TYPE_ELF :
+        return elf_section_addr(&(section->s.elf_section));
+    case EXEC_TYPE_PE :
+        return pe_section_VirtualAddress(&(section->s.pe_section));
+    }
+    return NULL;
+}
 
 
 uint_t * exec_symbol_value (struct _exec_symbol * symbol)
