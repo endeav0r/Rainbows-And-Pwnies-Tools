@@ -252,7 +252,7 @@ struct _rop_ins * rop_ins_create (unsigned char * data, int data_size,
         next->description = (char *) malloc(strlen(ud_insn_asm(&ud_obj)) + 1);
         strcpy(next->description, ud_insn_asm(&ud_obj));
         next->next = NULL;
-        bytes_offset += (int) ud_insn_off(&ud_obj);
+        bytes_offset += (int) ud_insn_len(&ud_obj);
     }
     return rop_ins;    
 }

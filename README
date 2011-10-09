@@ -58,28 +58,28 @@ $ ls -lh /lib/x86_64-linux-gnu/libc-2.13.so
 $ time ./rop_tools -e /lib/x86_64-linux-gnu/libc-2.13.so -r | tail -n 20
 
   0x13d3fc:  08 5b 5d -- -- -- -- --   or [rbx+0x5d], bl
-  0x13d3ff:  08 -- -- -- -- -- -- --   ret 
+  0x13d3ff:  c3 -- -- -- -- -- -- --   ret 
 
   0x13d506:  5d -- -- -- -- -- -- --   pop rbp
-  0x13d507:  5d -- -- -- -- -- -- --   ret 
+  0x13d507:  c3 -- -- -- -- -- -- --   ret 
 
   0x13d504:  08 5b 5d -- -- -- -- --   or [rbx+0x5d], bl
-  0x13d507:  08 -- -- -- -- -- -- --   ret 
+  0x13d507:  c3 -- -- -- -- -- -- --   ret 
 
   0x13d594:  00 48 39 -- -- -- -- --   add [rax+0x39], cl
-  0x13d597:  00 -- -- -- -- -- -- --   ret 
+  0x13d597:  c3 -- -- -- -- -- -- --   ret 
 
   0x13d5b0:  5d -- -- -- -- -- -- --   pop rbp
-  0x13d5b1:  5d -- -- -- -- -- -- --   ret 
+  0x13d5b1:  c3 -- -- -- -- -- -- --   ret 
 
   0x13d5ae:  08 5b 5d -- -- -- -- --   or [rbx+0x5d], bl
-  0x13d5b1:  08 -- -- -- -- -- -- --   ret 
+  0x13d5b1:  c3 -- -- -- -- -- -- --   ret 
 
 10610 gadgets
 
-real	0m1.646s
-user	0m1.610s
-sys	0m0.000s
+real	0m1.607s
+user	0m1.590s
+sys	0m0.010s
 
 /*******************************************************************************
 *******************************************************************************/
@@ -89,27 +89,27 @@ $ ls -lh test_programs/bin/ls.exe
 $ time ./rop_tools -e test_programs/bin/ls.exe -r | tail -n 20 
 
   0x42984d:  94 -- -- -- -- -- -- --   xchg esp, eax
-  0x42984e:  94 -- -- -- -- -- -- --   ret 
+  0x42984e:  c3 -- -- -- -- -- -- --   ret 
 
   0x4298ce:  ff 89 44 24 20 89 -- --   dec dword [ecx+0x89202444]
-  0x4298d4:  ff 89 44 -- -- -- -- --   ret 0xfac1
+  0x4298d4:  c2 c1 fa -- -- -- -- --   ret 0xfac1
 
   0x429a58:  c0 74 0d 0f be -- -- --   shl byte [ebp+ecx+0xf], 0xbe
-  0x429a5d:  c0 74 0d -- -- -- -- --   ret 0xe883
+  0x429a5d:  c2 83 e8 -- -- -- -- --   ret 0xe883
 
   0x429b02:  c0 74 0b 0f be -- -- --   shl byte [ebx+ecx+0xf], 0xbe
-  0x429b07:  c0 74 0b -- -- -- -- --   ret 0xe883
+  0x429b07:  c2 83 e8 -- -- -- -- --   ret 0xe883
 
   0x42a5ec:  c0 5b ae 0b -- -- -- --   rcr byte [ebx-0x52], 0xb
-  0x42a5f0:  c0 5b ae -- -- -- -- --   ret 0xb22a
+  0x42a5f0:  c2 2a b2 -- -- -- -- --   ret 0xb22a
 
   0x42a5fc:  c0 5b ae 0b -- -- -- --   rcr byte [ebx-0x52], 0xb
-  0x42a600:  c0 -- -- -- -- -- -- --   ret 
+  0x42a600:  c3 -- -- -- -- -- -- --   ret 
 
 793 gadgets
 
-real	0m0.201s
-user	0m0.190s
+real	0m0.216s
+user	0m0.210s
 sys	0m0.000s
 
 /*******************************************************************************

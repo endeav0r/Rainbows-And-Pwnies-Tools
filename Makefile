@@ -3,7 +3,7 @@ CFLAGS= -Wall -O2 -g
 LIBS = -ludis86 -llua5.1
 
 _OBJS = elf.o rop.o lua.o strings.o types.o aux.o lua_types.o lua_elf.o \
-        lua_dis.o pe.o exec.o
+        lua_dis.o pe.o exec.o lua_exec.o
 
 SRCDIR = src
 OBJS = $(patsubst %,$(SRCDIR)/%,$(_OBJS))
@@ -31,3 +31,4 @@ clean :
 	rm -f src/*.o
 	rm -f rop_tools
 	rm -f pe_test
+	rm -f exec_test
