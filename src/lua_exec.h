@@ -37,6 +37,7 @@ int lua_exec_num_sections (lua_State * L);
 int lua_exec_size         (lua_State * L);
 int lua_exec_type         (lua_State * L);
 int lua_exec_section      (lua_State * L);
+int lua_exec_sections     (lua_State * L);
 
 struct lua_exec_section_t * lua_check_exec_section_t (lua_State * L, int position);
 struct _exec_section *      lua_check_exec_section (lua_State * L, int position);

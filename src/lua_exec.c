@@ -11,6 +11,7 @@ static const struct luaL_Reg exec_lib_m [] = {
     {"size",         lua_exec_size},
     {"type",         lua_exec_type},
     {"section",      lua_exec_section},
+    {"sections",     lua_exec_sections},
     {NULL, NULL}
 };
 
@@ -168,14 +169,30 @@ int lua_exec_section (lua_State * L)
 {
     struct lua_exec_t * exec_t;
     struct lua_exec_section_t * section_t;
-    int section_i;
+    struct _exec_section section;
+    int section_i = -1;
     
-    exec_t = lua_check_exec_t(L, 1);
-    section_i = luaL_checkinteger(L, 2);
+    exec_t = lua_check_exec_t(L, -2);
+    if (lua_isnumber(L, -1)) {
+        section_i = luaL_checkinteger(L, -1);
+    }
+    else if (lua_isstring(L, -1)) {
+        for (section_i = 0;
+             section_i < exec_num_sections(exec_t->exec);
+             section_i++) {
+            exec_section(exec_t->exec, &section, section_i);
+            if (strcmp(exec_section_name(&section),
+                       luaL_checkstring(L, -1)) == 0)
+                break;
+        }
+    }
+    else
+        luaL_error(L, "method expected a string or integer");
+        
     lua_pop(L, 2);
     
-    if (section_i > exec_num_sections(exec_t->exec))
-        luaL_error(L, "requested a section beyond those contained in exec_t");
+    if (section_i >= exec_num_sections(exec_t->exec))
+        luaL_error(L, "requested a section not found in exec_t");
     
     lua_push_exec_section_t(L);
     section_t = lua_check_exec_section_t(L, -1);
@@ -183,6 +200,34 @@ int lua_exec_section (lua_State * L)
     exec_section(exec_t->exec, &(section_t->section), section_i);
     section_t->exec_t = exec_t;
     exec_t->ref_count++;
+    
+    return 1;
+}
+
+
+int lua_exec_sections (lua_State * L)
+{
+    struct lua_exec_t * exec_t;
+    int section_i;
+    
+    exec_t = lua_check_exec_t(L, 1);
+    // don't take exec_t off the stack yet. we're going to use it to do
+    // terrible, terrible things
+    
+    lua_newtable(L);
+    for (section_i = 0; 
+         section_i < exec_num_sections(exec_t->exec);
+         section_i++) {
+        lua_pushvalue(L, 1);
+        lua_pushinteger(L, section_i);
+        lua_exec_section(L);
+        lua_pushinteger(L, section_i + 1);
+        lua_insert(L, -2);
+        lua_settable(L, -3);
+    }
+    
+    lua_insert(L, -2);
+    lua_pop(L, 1);
     
     return 1;
 }
