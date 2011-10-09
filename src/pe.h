@@ -108,6 +108,7 @@ struct _pe_relocation {
 
 struct _pe * pe_open    (char * filename);
 void         pe_destroy (struct _pe * pe);
+int          pe_copy    (struct _pe * dst, struct _pe * src);
 
 uint_t * pe_Machine              (struct _pe * pe);
 uint_t * pe_NumberOfSections     (struct _pe * pe);

@@ -1,9 +1,5 @@
 #include "lua_elf.h"
 
-/********************************
-*              ELF              *
-********************************/
-
 #define LUA_ELF_SECTION_T_ACCESSOR(push_function, value_get) \
     struct _elf_section * section; \
     section = lua_check_elf_section(L, 1); \
@@ -136,6 +132,10 @@ int lua_open_elf_t (lua_State * L)
     return 1;
 }
 
+
+/********************************
+*              ELF              *
+********************************/
 
 struct _elf * lua_check_elf (lua_State * L, int position)
 {

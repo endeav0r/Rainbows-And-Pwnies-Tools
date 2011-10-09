@@ -53,8 +53,9 @@ struct lua_elf_relocation_t {
 };
 
 
-void               lua_elf_t_collect (struct lua_elf_t * elf_t);
 int                lua_open_elf_t    (lua_State * L);
+
+void               lua_elf_t_collect (struct lua_elf_t * elf_t);
 struct _elf *      lua_check_elf     (lua_State * L, int position);
 struct lua_elf_t * lua_check_elf_t   (lua_State * L, int position);
 void               lua_push_elf      (lua_State * L, struct _elf * elf);

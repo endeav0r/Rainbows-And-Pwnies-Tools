@@ -38,6 +38,8 @@ struct _elf * elf_open (char * filename)
     strcpy(elf->filename, filename);
     
     // set up elf based 32 or 64 bit
+    // yes, this modifies the same memory, but i mean think about it
+    // set elf64 to avoid use-before-assignment warnings
     elf->e.elf32 = (Elf32_Ehdr *) elf->bytes;
     elf->e.elf64 = (Elf64_Ehdr *) elf->bytes;
     
@@ -77,10 +79,16 @@ int elf_copy (struct _elf * dst, struct _elf * src)
 {
     if (dst == NULL) dst = (struct _elf *) malloc(sizeof(struct _elf));
     memcpy(dst, src, sizeof(struct _elf));
+    
     dst->filename = (char *) malloc(strlen(src->filename) + 1);
     strcpy(dst->filename, src->filename);
     dst->bytes = (unsigned char *) malloc(src->bytes_size);
     memcpy(dst->bytes, src->bytes, src->bytes_size);
+    
+    switch (ELF_CLASS(src)) {
+    case 32 : dst->e.elf32 = (Elf32_Ehdr *) dst->bytes; break;
+    case 64 : dst->e.elf64 = (Elf64_Ehdr *) dst->bytes; break;
+    }
     return 0;
 }
 

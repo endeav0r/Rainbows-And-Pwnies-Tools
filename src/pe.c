@@ -208,7 +208,6 @@ struct _pe * pe_open (char * filename)
     return pe;
 }
 
-
 void pe_destroy (struct _pe * pe)
 {
     if (pe->filename != NULL)
@@ -218,6 +217,41 @@ void pe_destroy (struct _pe * pe)
     if (pe->symbol_types != NULL)
         free(pe->symbol_types);
     free(pe);
+}
+
+int pe_copy (struct _pe * dst, struct _pe * src)
+{
+    int file_offset;
+    if (dst == NULL) dst = malloc(sizeof(struct _pe));
+    
+    memcpy(dst, src, sizeof(struct _pe));
+    dst->filename = (char *) malloc(strlen(src->filename) + 1);
+    strcpy(dst->filename, src->filename);
+    dst->bytes = (unsigned char *) malloc(src->bytes_size);
+    memcpy(dst->bytes, src->bytes, src->bytes_size);
+    dst->symbol_types = (unsigned char *)
+                        malloc(uint_t_get(pe_NumberOfSymbols(src)));
+    memcpy(dst->symbol_types, src->symbol_types,
+           uint_t_get(pe_NumberOfSymbols(src)));
+    
+    file_offset = *((int *) &(dst->bytes[src->FileHeader_offset]));
+    dst->FileHeader = (Pe_FileHeader *) &(dst->bytes[src->FileHeader_offset]);
+    file_offset += sizeof(Pe_FileHeader);
+    if (*((int16_t *) &(dst->bytes[file_offset])) == IMAGE_FILE_TYPE_PE32) {
+        dst->ohs.OptionalHeaderStandard = (Pe_OptionalHeaderStandard *)
+                                          &(dst->bytes[file_offset]);
+        file_offset += sizeof(Pe_OptionalHeaderStandard);
+        dst->ohw.OptionalHeaderWindows = (Pe_OptionalHeaderWindows *)
+                                         &(dst->bytes[file_offset]);
+    }
+    else {
+        dst->ohs.OptionalHeaderStandardPlus = (Pe_OptionalHeaderStandardPlus *)
+                                          &(dst->bytes[file_offset]);
+        file_offset += sizeof(Pe_OptionalHeaderStandardPlus);
+        dst->ohw.OptionalHeaderWindowsPlus = (Pe_OptionalHeaderWindowsPlus *)
+                                         &(dst->bytes[file_offset]);
+    }
+    return 0;
 }
 
 PE_ACCESSOR(Machine)

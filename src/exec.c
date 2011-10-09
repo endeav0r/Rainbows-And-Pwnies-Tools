@@ -58,7 +58,6 @@ struct _exec * exec_open (char * filename)
     return exec;
 }
 
-
 void exec_destroy (struct _exec * exec)
 {
     switch (exec->type) {
@@ -67,6 +66,23 @@ void exec_destroy (struct _exec * exec)
     }
     
     free(exec);
+}
+
+int exec_copy (struct _exec * dst, struct _exec * src)
+{
+    if (dst == NULL) dst = malloc(sizeof(struct _exec));
+    memcpy(dst, src, sizeof(struct _exec));
+    switch (exec_type(src)) {
+    case EXEC_TYPE_ELF :
+        dst->e.elf = (struct _elf *) malloc(sizeof(struct _elf));
+        elf_copy(dst->e.elf, src->e.elf);
+        break;
+    case EXEC_TYPE_PE :
+        dst->e.pe = (struct _pe *) malloc(sizeof(struct _pe));
+        pe_copy(dst->e.pe, src->e.pe);
+        break;
+    }
+    return 0;
 }
 
 int exec_type (struct _exec * exec) { return exec->type; }
@@ -112,6 +128,17 @@ int exec_mode (struct _exec * exec)
             return 64;
         else if (uint_t_get(pe_Machine(exec->e.pe)) == IMAGE_FILE_MACHINE_I386)
             return 32;
+    }
+    return -1;
+}
+
+int exec_size (struct _exec * exec)
+{
+    switch (exec_type(exec)) {
+    case EXEC_TYPE_ELF :
+        return exec->e.elf->bytes_size;
+    case EXEC_TYPE_PE :
+        return exec->e.pe->bytes_size;
     }
     return -1;
 }

@@ -834,3 +834,9 @@ char * pe_symbol_class_strings_helper (int class)
     else
         return pe_symbol_class_strings[class - (100 + 21)];
 }
+
+char exec_type_strings[3][8] = {
+    "unknown",
+    "elf",
+    "pe"
+};

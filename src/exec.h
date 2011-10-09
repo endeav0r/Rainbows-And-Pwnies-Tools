@@ -9,8 +9,9 @@
 #include "strings.h"
 #include "types.h"
 
-#define EXEC_TYPE_ELF 1
-#define EXEC_TYPE_PE  2
+#define EXEC_TYPE_UNKNOWN 0
+#define EXEC_TYPE_ELF     1
+#define EXEC_TYPE_PE      2
 
 #define EXEC_SECTION_TYPE_SYMBOL     0x1
 #define EXEC_SECTION_TYPE_RELOCATION 0x2
@@ -45,11 +46,13 @@ struct _exec_symbol {
 
 struct _exec * exec_open    (char * filename);
 void           exec_destroy (struct _exec * exec);
+int            exec_copy    (struct _exec * dst, struct _exec * src);
 
 int exec_type         (struct _exec * exec);
 int exec_num_sections (struct _exec * exec);
 int exec_num_symbols  (struct _exec * exec);
 int exec_mode         (struct _exec * exec);
+int exec_size         (struct _exec * exec);
 
 int exec_section (struct _exec * exec, struct _exec_section * section, int index);
 int exec_symbol  (struct _exec * exec, struct _exec_symbol * symbol,   int index);
