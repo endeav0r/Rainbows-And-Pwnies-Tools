@@ -270,6 +270,7 @@ PE_ACCESSOR(SizeOfUninitializedData)
 PE_ACCESSOR(AddressOfEntryPoint)
 PE_ACCESSOR(BaseOfCode)
 PE_ACCESSOR(BaseOfData)
+PE_ACCESSOR(ImageBase)
 
 char * pe_string (struct _pe * pe, int offset)
 {
@@ -386,6 +387,29 @@ int pe_symbol (struct _pe * pe, struct _pe_symbol * symbol, int index)
         symbol->Name[8] = '\0';
     }
     
+    if (    (symbol->Symbol.StorageClass == IMAGE_SYM_CLASS_EXTERNAL)
+         && (PE_SYM_TYPE_COMPLEX(symbol->Symbol.Type) == IMAGE_SYM_MSFT_FUNCTION)
+         && (symbol->Symbol.SectionNumber > 0)) {
+        printf("ASDF %d\n", symbol->Symbol.NumberOfAuxSymbols);
+        offset += PE_SYMBOL_SIZE;
+        memcpy(&(symbol->SymbolFunctionDefinition), &(pe->bytes[offset]),
+               sizeof(Pe_Symbol));
+        uint_t_32_set(&(symbol->TagIndex),
+                      symbol->SymbolFunctionDefinition.TagIndex);
+        uint_t_32_set(&(symbol->TotalSize),
+                      symbol->SymbolFunctionDefinition.TotalSize);
+        uint_t_32_set(&(symbol->PointerToLinenumber),
+                      symbol->SymbolFunctionDefinition.PointerToLinenumber);
+        uint_t_32_set(&(symbol->PointerToNextFunction),
+                      symbol->SymbolFunctionDefinition.PointerToNextFunction);
+    }
+    else {
+        uint_t_8_set(&(symbol->TagIndex),              0);
+        uint_t_8_set(&(symbol->TotalSize),             0);
+        uint_t_8_set(&(symbol->PointerToLinenumber),   0);
+        uint_t_8_set(&(symbol->PointerToNextFunction), 0);
+    }
+    
     return 1;
 }
 
@@ -394,6 +418,7 @@ PE_SYMBOL_ACCESSOR(SectionNumber)
 PE_SYMBOL_ACCESSOR(Type)
 PE_SYMBOL_ACCESSOR(StorageClass)
 PE_SYMBOL_ACCESSOR(NumberOfAuxSymbols)
+PE_SYMBOL_ACCESSOR(TotalSize)
 char * pe_symbol_Name (struct _pe_symbol * symbol) { return symbol->Name; }
 
 

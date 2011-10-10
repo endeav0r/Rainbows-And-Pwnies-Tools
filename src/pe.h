@@ -87,12 +87,18 @@ struct _pe_symbol {
     int index;
     struct _pe * pe;
     Pe_Symbol Symbol;
+    Pe_SymbolFunctionDefinition SymbolFunctionDefinition;
     char Name[PE_NAME_SIZE];
     uint_t Value;
     uint_t SectionNumber;
     uint_t Type;
     uint_t StorageClass;
     uint_t NumberOfAuxSymbols;
+    // from Pe_SymbolFunctionDefinition;
+    uint_t TagIndex;
+    uint_t TotalSize;
+    uint_t PointerToLinenumber;
+    uint_t PointerToNextFunction;
 };
 
 struct _pe_relocation {
@@ -126,6 +132,7 @@ uint_t * pe_SizeOfUninitializedData (struct _pe * pe);
 uint_t * pe_AddressOfEntryPoint     (struct _pe * pe);
 uint_t * pe_BaseOfCode              (struct _pe * pe);
 uint_t * pe_BaseOfData              (struct _pe * pe);
+uint_t * pe_ImageBase               (struct _pe * pe);
 
 char *        pe_string          (struct _pe * pe, int offset);
 unsigned char pe_symbol_type     (struct _pe * pe, int index);
@@ -153,6 +160,7 @@ uint_t * pe_symbol_SectionNumber      (struct _pe_symbol * symbol);
 uint_t * pe_symbol_Type               (struct _pe_symbol * symbol);
 uint_t * pe_symbol_StorageClass       (struct _pe_symbol * symbol);
 uint_t * pe_symbol_NumberOfAuxSymbols (struct _pe_symbol * symbol);
+uint_t * pe_symbol_TotalSize          (struct _pe_symbol * symbol);
 char *   pe_symbol_Name               (struct _pe_symbol * symbol);
 
 #endif
