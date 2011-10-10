@@ -1,6 +1,7 @@
 #include <stdio.h>
 
 #include "../src/pe.h"
+#include "../src/strings.h"
 
 int main (int argc, char * argv[])
 {
@@ -28,8 +29,11 @@ int main (int argc, char * argv[])
                    PE_SYM_TYPE_COMPLEX(uint_t_get(pe_symbol_Type(&symbol))));
             break;
         }
-        printf("%d %s\n", uint_t_get(pe_symbol_NumberOfAuxSymbols(&symbol)),
-               pe_symbol_Name(&symbol));
+        printf("%d %s [%s]\n",
+               uint_t_get(pe_symbol_NumberOfAuxSymbols(&symbol)),
+               pe_symbol_Name(&symbol),
+               pe_symbol_class_strings_helper(
+                                  uint_t_get(pe_symbol_StorageClass(&symbol))));
     }
     
     for (section_i = 0;
