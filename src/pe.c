@@ -300,8 +300,13 @@ int pe_section (struct _pe * pe, struct _pe_section * section, int index)
 
     uint_t_32_set(&(section->VirtualSize),
                   section->SectionHeader.VirtualSize);
-    uint_t_32_set(&(section->VirtualAddress),
-                  section->SectionHeader.VirtualAddress);
+    if (uint_t_get(pe_Magic(pe)) == IMAGE_FILE_TYPE_PE32PLUS) {
+        uint_t_64_set(&(section->VirtualAddress),
+                      (uint64_t) section->SectionHeader.VirtualAddress);
+    }
+    else
+        uint_t_32_set(&(section->VirtualAddress),
+                      section->SectionHeader.VirtualAddress);
     uint_t_32_set(&(section->SizeOfRawData),
                   section->SectionHeader.SizeOfRawData);
     uint_t_32_set(&(section->PointerToRawData),

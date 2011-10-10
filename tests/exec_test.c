@@ -22,6 +22,7 @@ int main (int argc, char * argv[])
     case EXEC_TYPE_PE  : printf("type: PE\n"); break;
     }
     
+    printf("mode: %d\n",         exec_mode(exec));
     printf("num_sections: %d\n", exec_num_sections(exec));
     printf("num_symbols: %d\n",  exec_num_symbols(exec));
 

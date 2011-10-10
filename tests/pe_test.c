@@ -48,7 +48,7 @@ int main (int argc, char * argv[])
                uint_t_get(pe_section_Characteristics(&section))
                & IMAGE_SCN_MEM_EXECUTE);
     }
-    printf("ImageBase: %s\n", uint_t_strx(&(pe->ImageBase)));
+    printf("ImageBase: %s\n", uint_t_str0x(&(pe->ImageBase)));
     printf("%s\n", uint_t_strx(&(pe->BaseOfCode)));
     printf("%s\n", uint_t_strx(&(pe->AddressOfEntryPoint)));
     

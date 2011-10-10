@@ -39,6 +39,6 @@ for i, address in pairs(executable:find_functions()) do
         end
     end
     if symbol_found == false then
-        print(address:strx())
+        print(address:str0x())
     end
 end

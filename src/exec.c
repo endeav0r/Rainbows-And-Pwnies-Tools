@@ -85,7 +85,9 @@ int exec_copy (struct _exec * dst, struct _exec * src)
     return 0;
 }
 
-int exec_type (struct _exec * exec) { return exec->type; }
+int exec_type (struct _exec * exec) {
+    return exec->type;
+}
 
 int exec_num_sections (struct _exec * exec)
 {
