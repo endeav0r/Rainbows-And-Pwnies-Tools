@@ -7,7 +7,7 @@
 #define PE_SIGNATURE_SIZE    4
 #define PE_FILE_OFFSET       0x3c
 // gcc sizeof(Pe_SymbolHeader) is returning values with alignment
-#define PE_SYMBOL_SIZE 18
+#define PE_SYMBOL_SIZE       18
 #define PE_RELOCATION_SIZE   10
 
 #define PE_SYM_TYPE_BASE(TYPE)    (TYPE & 0x0000000F)
@@ -64,6 +64,14 @@ typedef struct _Pe_OptionalHeaderWindows {
     uint32_t SizeOfImage;                 // 60
     uint32_t SizeOfHeaders;               // 64
     uint32_t CheckSum;                    // 68
+    uint16_t Subsystem;                   // 70
+    uint16_t DllCharacteristics;          // 72
+    uint32_t SizeOfStackReserve;          // 76
+    uint32_t SizeOfStackCommit;           // 80
+    uint32_t SizeOfHeapReserve;           // 84
+    uint32_t SizeOfHeapCommit;            // 88
+    uint32_t LoaderFlags;                 // 92
+    uint32_t NumberOfRvaAndSizes;         // 96
 } Pe_OptionalHeaderWindows;
 
 
@@ -81,7 +89,40 @@ typedef struct _Pe_OptionalHeaderWindowsPlus {
     uint32_t SizeOfImage;                 // 60
     uint32_t SizeOfHeaders;               // 64
     uint32_t CheckSum;                    // 68
+    uint16_t Subsystem;                   // 70
+    uint16_t DllCharacteristics;          // 72
+    uint64_t SizeOfStackReserve;          // 80
+    uint64_t SizeOfStackCommit;           // 88
+    uint64_t SizeOfHeapReserve;           // 96
+    uint64_t SizeOfHeapCommit;            // 104
+    uint32_t LoaderFlags;                 // 108
+    uint32_t NumberOfRvaAndSizes;         // 112
 } Pe_OptionalHeaderWindowsPlus;
+
+
+typedef struct _IMAGE_DATA_DIRECTORY {
+    uint32_t VirtualAddress;
+    uint32_t Size;
+} IMAGE_DATA_DIRECTORY, *PIMAGE_DATA_DIRECTORY;
+
+typedef struct _Pe_DataDirectory {
+    IMAGE_DATA_DIRECTORY ExportTable;           // 104/120
+    IMAGE_DATA_DIRECTORY ImportTable;           // 112/128
+    IMAGE_DATA_DIRECTORY ResourceTable;         // 120/136
+    IMAGE_DATA_DIRECTORY ExceptionTable;        // 128/144
+    IMAGE_DATA_DIRECTORY CertificateTable;      // 136/152
+    IMAGE_DATA_DIRECTORY BaseRelocationTable;   // 144/160
+    IMAGE_DATA_DIRECTORY Debug;                 // 152/168
+    IMAGE_DATA_DIRECTORY Architecture;          // 160/176
+    IMAGE_DATA_DIRECTORY GlobalPtr;             // 168/184
+    IMAGE_DATA_DIRECTORY TLSTable;              // 176/192
+    IMAGE_DATA_DIRECTORY LoadConfigTable;       // 184/200
+    IMAGE_DATA_DIRECTORY BoundImport;           // 192/208
+    IMAGE_DATA_DIRECTORY IAT;                   // 200/216
+    IMAGE_DATA_DIRECTORY DelayImportDescriptor; // 208/224
+    IMAGE_DATA_DIRECTORY CLRRuntimeHeader;      // 216/232
+    IMAGE_DATA_DIRECTORY Reserved;              // 224/240
+} PE_Data_Directory;
 
 
 typedef struct _Pe_SectionHeader {
@@ -165,6 +206,27 @@ typedef struct _Pe_Relocation {
 #define IMAGE_FILE_DLL                     0x2000
 #define IMAGE_FILE_UP_SYSTEM_ONLY          0x4000
 #define IMAGE_FILE_BYTES_REVERSE_HI        0x8000
+
+#define IMAGE_SUBSYSTEM_UNKNOWN                 0
+#define IMAGE_SUBSYSTEM_NATIVE                  1
+#define IMAGE_SUBSYSTEM_WINDOWS_GUI             2
+#define IMAGE_SUBSYSTEM_WINDOWS_CUI             3
+#define IMAGE_SUBSYSTEM_POSIX_CUI               7
+#define IMAGE_SUBSYSTEM_WINDOWS_CE_GUI          9
+#define IMAGE_SUBSYSTEM_EFI_APPLICATION         10
+#define IMAGE_SUBSYSTEM_EFI_BOOT_SERVICE_DRIVER 11
+#define IMAGE_SUBSYSTEM_EFI_RUNTIME_DRIVER      12
+#define IMAGE_SUBSYSTEM_EFI_ROM                 13
+#define IMAGE_SUBSYSTEM_XBOX                    14
+
+#define IMAGE_DLL_CHARACTERISTICS_DYNAMIC_BASE          0x0040
+#define IMAGE_DLL_CHARACTERISTICS_FORCE_INTEGRITY       0x0080
+#define IMAGE_DLL_CHARACTERISTICS_NX_COMPAT             0x0100
+#define IMAGE_DLL_CHARACTERISTICS_NO_ISOLATION          0x0200
+#define IMAGE_DLL_CHARACTERISTICS_NO_SEH                0x0400
+#define IMAGE_DLL_CHARACTERISTICS_NO_BIND               0x0800
+#define IMAGE_DLL_CHARACTERISTICS_WDM_DRIVER            0x2000
+#define IMAGE_DLL_CHARACTERISTICS_TERMINAL_SERVER_AWARE 0x8000
 
 #define IMAGE_SCN_TYPE_REG               0x00000000
 #define IMAGE_SCN_TYPE_DSECT             0x00000001
