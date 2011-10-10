@@ -840,3 +840,8 @@ char exec_type_strings[3][8] = {
     "elf",
     "pe"
 };
+
+char exec_symbol_type_strings[2][16] = {
+    "unknown",
+    "function"
+};

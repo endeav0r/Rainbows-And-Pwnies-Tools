@@ -6,12 +6,13 @@ static const struct luaL_Reg exec_lib_f [] = {
 };
 
 static const struct luaL_Reg exec_lib_m [] = {
-    {"__gc",         lua_exec_t_gc},
-    {"num_sections", lua_exec_num_sections},
-    {"size",         lua_exec_size},
-    {"type",         lua_exec_type},
-    {"section",      lua_exec_section},
-    {"sections",     lua_exec_sections},
+    {"__gc",           lua_exec_t_gc},
+    {"num_sections",   lua_exec_num_sections},
+    {"size",           lua_exec_size},
+    {"type",           lua_exec_type},
+    {"section",        lua_exec_section},
+    {"sections",       lua_exec_sections},
+    {"find_functions", lua_exec_find_functions},
     {NULL, NULL}
 };
 
@@ -20,8 +21,24 @@ static const struct luaL_Reg exec_section_lib_f [] = {
 };
 
 static const struct luaL_Reg exec_section_lib_m [] = {
-    {"__gc", lua_exec_section_t_gc},
-    {"name", lua_exec_section_name},  
+    {"__gc",        lua_exec_section_t_gc},
+    {"name",        lua_exec_section_name},
+    {"address",     lua_exec_section_address},
+    {"types",       lua_exec_section_types},
+    {"size",        lua_exec_section_size},
+    {"disassemble", lua_exec_section_disassemble},
+    {NULL, NULL}
+};
+
+static const struct luaL_Reg exec_symbol_lib_f [] = {
+    {NULL, NULL}
+};
+
+static const struct luaL_Reg exec_symbol_lib_m [] = {
+    {"__gc",        lua_exec_symbol_t_gc},
+    {"name",        lua_exec_symbol_name},
+    {"address",     lua_exec_symbol_address},
+    {"type",     lua_exec_symbol_type},
     {NULL, NULL}
 };
 
@@ -41,6 +58,13 @@ int lua_open_exec_t (lua_State * L)
     lua_settable(L, -3);
     luaL_register(L, NULL, exec_section_lib_m);
     luaL_register(L, "exec_section_t", exec_section_lib_f);
+    
+    luaL_newmetatable(L, "rop_tools.exec_symbol_t");
+    lua_pushstring(L, "__index");
+    lua_pushvalue(L, -2);
+    lua_settable(L, -3);
+    luaL_register(L, NULL, exec_symbol_lib_m);
+    luaL_register(L, "exec_symbol_t", exec_symbol_lib_f);
     
     return 1;
 }
@@ -165,6 +189,69 @@ int lua_exec_type (lua_State * L)
 }
 
 
+int lua_exec_find_functions (lua_State * L)
+{
+    struct _exec * exec;
+    struct _exec_section section;
+    struct _analyze_function * functions = NULL;
+    struct _analyze_function * functions_first;
+    uint_t start_function;
+    int section_i;
+    int function_i;
+    
+    exec = lua_check_exec(L, -1);
+    lua_pop(L, 1);
+    
+    // the first function typically isn't called from the loader and not from
+    // within the binary. we're going to find the start functions here and make
+    // sure they're added.
+    uint_t_8_set(&start_function, 0);
+    switch (exec_type(exec)) {
+    case EXEC_TYPE_ELF :
+        // for ELFs, the first function is at the start of .text
+        for (section_i = 0; section_i < exec_num_sections(exec); section_i++) {
+            exec_section(exec, &section, section_i);
+            if (strcmp(exec_section_name(&section), ".text") == 0) {
+                uint_t_set(&start_function, exec_section_address(&section));
+                break;
+            }
+        }
+        break;
+    case EXEC_TYPE_PE :
+        // for PEs, the first function can be found at AddressOfEntryPoint in
+        // the optional header, or for us pe_AddressOfEntryPoint
+        uint_t_set(&start_function, pe_AddressOfEntryPoint(exec->e.pe));
+        break;
+    }
+    analyze_function_insert(functions, &start_function);
+    
+    for (section_i = 0; section_i < exec_num_sections(exec); section_i++) {
+        exec_section(exec, &section, section_i);
+        if (exec_section_types(&section) & EXEC_SECTION_TYPE_EXECUTABLE)
+            functions = analyze_find_functions(exec_section_data(&section),
+                                               exec_section_size(&section),
+                                               exec_mode(exec),
+                                               exec_section_address(&section),
+                                               functions);
+    }
+    
+    functions = analyze_function_listify(functions);
+    functions_first = functions;
+    function_i = 1;
+    lua_newtable(L);
+    while (functions != NULL) {
+        lua_pushinteger(L, function_i++);
+        lua_push_uint_t(L, &(functions->address));
+        lua_settable(L, -3);
+        functions = functions->next;
+    }
+    
+    analyze_function_destroy(functions_first);
+    
+    return 1;
+}
+
+
 int lua_exec_section (lua_State * L)
 {
     struct lua_exec_t * exec_t;
@@ -231,7 +318,7 @@ int lua_exec_sections (lua_State * L)
     
     return 1;
 }
-    
+
 
 
 /********************************
@@ -299,9 +386,198 @@ int lua_exec_section_name (lua_State * L)
 {
     struct _exec_section * section;
     
-    section = lua_check_exec_section(L, 1);
+    section = lua_check_exec_section(L, -1);
     lua_pop(L, 1);
     lua_pushstring(L, exec_section_name(section));
     
     return 1;
 }
+
+int lua_exec_section_address (lua_State * L)
+{
+    struct _exec_section * section;
+    
+    section = lua_check_exec_section(L, -1);
+    lua_pop(L, 1);
+    lua_push_uint_t(L, exec_section_address(section));
+    
+    return 1;
+}
+
+int lua_exec_section_types (lua_State * L)
+{
+    struct _exec_section * section;
+    int types;
+    int index = 1;
+    
+    section = lua_check_exec_section(L, -1);
+    lua_pop(L, 1);
+    types = exec_section_types(section);
+    
+    lua_newtable(L);
+    if (types & EXEC_SECTION_TYPE_SYMBOL) {
+        lua_pushinteger(L, index++);
+        lua_pushstring(L, "symbol");
+        lua_settable(L, -3);
+    }
+    if (types & EXEC_SECTION_TYPE_RELOCATION) {
+        lua_pushinteger(L, index++);
+        lua_pushstring(L, "relocation");
+        lua_settable(L, -3);
+    }
+    if (types & EXEC_SECTION_TYPE_TEXT) {
+        lua_pushinteger(L, index++);
+        lua_pushstring(L, "text");
+        lua_settable(L, -3);
+    }
+    if (types & EXEC_SECTION_TYPE_EXECUTABLE) {
+        lua_pushinteger(L, index++);
+        lua_pushstring(L, "executable");
+        lua_settable(L, -3);
+    }
+    
+    return 1;
+}
+
+int lua_exec_section_size (lua_State * L)
+{
+    struct _exec_section * section;
+    
+    section = lua_check_exec_section(L, -1);
+    lua_pop(L, 1);
+    lua_pushinteger(L, exec_section_size(section));
+    
+    return 1;
+}
+
+int lua_exec_section_disassemble (lua_State * L)
+{
+    struct _exec_section * section;
+    uint_t * address = NULL;
+    uint_t address_tmp;
+    unsigned char * data;
+    
+    section = lua_check_exec_section(L, -1);
+    if (lua_isuserdata(L, -2)) {
+        address = lua_check_uint_t(L, 2);
+        lua_pop(L, 2);
+    }
+    else
+        lua_pop(L, 1);
+
+    if (address != NULL) {
+        uint_t_set(&address_tmp, address);
+        uint_t_sub(&address_tmp, exec_section_address(section));
+        data = exec_section_data(section);
+        lua_dis_instruction(L, &(data[uint_t_get(&address_tmp)]),
+                            exec_mode(section->exec));
+    }
+    else
+        lua_dis_table(L,
+                      exec_section_address(section),
+                      exec_section_data(section),
+                      exec_section_size(section),
+                      exec_mode(section->exec));
+
+    return 1;
+}
+
+
+
+/********************************
+*         EXEC_SYMBOL           *
+********************************/
+
+void lua_exec_symbol_t_collect (struct lua_exec_symbol_t * symbol_t)
+{
+    symbol_t->ref_count--;
+    
+    lua_exec_t_collect(symbol_t->exec_t);
+    
+    if (symbol_t->ref_count <= 0) {
+        free(symbol_t);
+    }
+}
+
+
+struct lua_exec_symbol_t * lua_check_exec_symbol_t (lua_State * L, int position)
+{
+    struct lua_exec_symbol_t ** symbol_t;
+    void * userdata = luaL_checkudata(L, position, "rop_tools.exec_symbol_t");
+    luaL_argcheck(L, userdata != NULL, position, "exec_symbol_t expected");
+    symbol_t = (struct lua_exec_symbol_t **) userdata;
+    return *symbol_t;
+}
+
+
+struct _exec_symbol * lua_check_exec_symbol (lua_State * L, int position)
+{
+    struct lua_exec_symbol_t * symbol_t;
+    symbol_t = lua_check_exec_symbol_t(L, position);
+    return &(symbol_t->symbol);
+}
+
+
+void lua_push_exec_symbol_t (lua_State * L)
+{
+    struct lua_exec_symbol_t ** new_symbol;
+    
+    new_symbol = lua_newuserdata(L, sizeof(struct lua_exec_symbol_t *));
+    luaL_getmetatable(L, "rop_tools.exec_symbol_t");
+    lua_setmetatable(L, -2);
+    
+    *new_symbol = (struct lua_exec_symbol_t *)
+                   malloc(sizeof(struct lua_exec_symbol_t));
+    (*new_symbol)->ref_count = 1;
+}
+
+
+int lua_exec_symbol_t_gc (lua_State * L) 
+{
+    struct lua_exec_symbol_t ** symbol_t;
+    
+    void * userdata = luaL_checkudata(L, 1, "rop_tools.exec_symbol_t");
+    luaL_argcheck(L, userdata != NULL, 1, "exec_symbol_t expected");
+    symbol_t = (struct lua_exec_symbol_t **) userdata;
+    
+    lua_exec_symbol_t_collect(*symbol_t);
+    
+    return 0;
+}
+
+
+int lua_exec_symbol_name (lua_State * L)
+{
+    struct _exec_symbol * symbol;
+    
+    symbol = lua_check_exec_symbol(L, -1);
+    lua_pop(L, 1);
+    lua_pushstring(L, exec_symbol_name(symbol));
+    
+    return 1;
+}
+
+
+int lua_exec_symbol_address (lua_State * L)
+{
+    struct _exec_symbol * symbol;
+    
+    symbol = lua_check_exec_symbol(L, -1);
+    lua_pop(L, 1);
+    lua_push_uint_t(L, exec_symbol_address(symbol));
+    
+    return 1;
+}
+
+
+int lua_exec_symbol_type (lua_State * L)
+{
+    struct _exec_symbol * symbol;
+    
+    symbol = lua_check_exec_symbol(L, -1);
+    lua_pop(L, 1);
+    lua_pushstring(L, exec_symbol_type_strings[exec_symbol_type(symbol)]);
+    
+    return 1;
+}
+

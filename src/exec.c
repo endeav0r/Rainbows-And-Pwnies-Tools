@@ -217,11 +217,14 @@ int exec_section_types (struct _exec_section * section)
             case SHT_SYMTAB :
             case SHT_DYNSYM :
                 types |= EXEC_SECTION_TYPE_SYMBOL;
+                break;
             case SHT_REL  :
             case SHT_RELA :
                 types |= EXEC_SECTION_TYPE_RELOCATION;
+                break;
             case SHT_PROGBITS :
                 types |= EXEC_SECTION_TYPE_TEXT;
+                break;
         }
         if (int_t_get(elf_section_flags(&(section->s.elf_section))) 
             & SHF_EXECINSTR)
@@ -321,6 +324,7 @@ char * exec_symbol_name (struct _exec_symbol * symbol)
 }
 
 
+// I must have been drunk when i thought this function was a good idea
 char * exec_symbol_description (struct _exec_symbol * symbol)
 {
     switch (exec_type(symbol->exec)) {
@@ -331,4 +335,24 @@ char * exec_symbol_description (struct _exec_symbol * symbol)
                     uint_t_get(pe_symbol_StorageClass(&(symbol->s.pe_symbol))));
     }
     return NULL;
+}
+
+
+int exec_symbol_type (struct _exec_symbol * symbol)
+{
+    int symbol_type;
+    switch (exec_type(symbol->exec)) {
+    case EXEC_TYPE_ELF :
+        if (elf_symbol_type(&(symbol->s.elf_symbol)) == STT_FUNC)
+            return EXEC_SYMBOL_TYPE_FUNCTION;
+        break;
+    case EXEC_TYPE_PE :
+        symbol_type = PE_SYM_TYPE_COMPLEX(uint_t_get(pe_symbol_Type(
+                                                      &(symbol->s.pe_symbol))));
+        if (    (symbol_type == IMAGE_SYM_DTYPE_FUNCTION)
+             || (symbol_type == IMAGE_SYM_MSFT_FUNCTION))
+            return EXEC_SYMBOL_TYPE_FUNCTION;
+        break;
+    }
+    return EXEC_SYMBOL_TYPE_UNKNOWN;
 }

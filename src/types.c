@@ -365,6 +365,17 @@ int int_t_mod (int_t * dst, int_t * b)
 }
 
 
+void int_t_add_int (int_t * dst, int i)
+{
+    switch (dst->type) {
+    case INT_T_8  : dst->ints.int8  += (int8_t)  i; break;
+    case INT_T_16 : dst->ints.int16 += (int16_t) i; break;
+    case INT_T_32 : dst->ints.int32 += (int32_t) i; break;
+    case INT_T_64 : dst->ints.int64 += (int64_t) i; break;
+    }
+}
+
+
 void int_t_uint_t (int_t * dst, uint_t * src)
 {
     switch (src->type) {

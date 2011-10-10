@@ -19,6 +19,9 @@
 #define EXEC_SECTION_TYPE_UNKNOWN    0x8
 #define EXEC_SECTION_TYPE_EXECUTABLE 0x10
 
+#define EXEC_SYMBOL_TYPE_UNKNOWN  0
+#define EXEC_SYMBOL_TYPE_FUNCTION 1
+
 struct _exec {
     int type;
     union {
@@ -48,11 +51,13 @@ struct _exec * exec_open    (char * filename);
 void           exec_destroy (struct _exec * exec);
 int            exec_copy    (struct _exec * dst, struct _exec * src);
 
-int exec_type         (struct _exec * exec);
-int exec_num_sections (struct _exec * exec);
-int exec_num_symbols  (struct _exec * exec);
-int exec_mode         (struct _exec * exec);
-int exec_size         (struct _exec * exec);
+int exec_type           (struct _exec * exec);
+int exec_num_sections   (struct _exec * exec);
+int exec_num_symbols    (struct _exec * exec);
+int exec_mode           (struct _exec * exec);
+int exec_size           (struct _exec * exec);
+
+int exec_find_functions (struct _exec * exec);
 
 int exec_section (struct _exec * exec, struct _exec_section * section, int index);
 int exec_symbol  (struct _exec * exec, struct _exec_symbol * symbol,   int index);
@@ -67,5 +72,6 @@ char *   exec_symbol_name        (struct _exec_symbol * symbol);
 uint_t * exec_symbol_value       (struct _exec_symbol * symbol);
 uint_t * exec_symbol_address     (struct _exec_symbol * symbol);
 char *   exec_symbol_description (struct _exec_symbol * symbol);
+int      exec_symbol_type        (struct _exec_symbol * symbol);
 
 #endif

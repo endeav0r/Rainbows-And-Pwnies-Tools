@@ -24,7 +24,7 @@ void lua_operands_table (lua_State * L, ud_t * ud_obj)
         lua_pushstring(L, types_strings[ud_obj->operand[op_i].offset]);
         lua_settable(L, -3);
         lua_pushstring(L, "scale");
-        lua_pushstring(L, types_strings[ud_obj->operand[op_i].scale]);
+        lua_pushinteger(L, ud_obj->operand[op_i].scale);
         lua_settable(L, -3);
         lua_pushstring(L, "size");
         lua_pushinteger(L, (lua_Integer) ud_obj->operand[op_i].size);
@@ -38,15 +38,15 @@ void lua_operands_table (lua_State * L, ud_t * ud_obj)
             lua_push_int_t(L, &intt);
             break;
         case 8 :
-            int_t_8_set(&intt, ud_obj->operand[op_i].lval.udword);
+            int_t_8_set(&intt, ud_obj->operand[op_i].lval.ubyte);
             lua_push_int_t(L, &intt);
             break;
         case 16 :
-            int_t_16_set(&intt, ud_obj->operand[op_i].lval.udword);
+            int_t_16_set(&intt, ud_obj->operand[op_i].lval.uword);
             lua_push_int_t(L, &intt);
             break;
         case 64 :
-            int_t_64_set(&intt, ud_obj->operand[op_i].lval.udword);
+            int_t_64_set(&intt, ud_obj->operand[op_i].lval.uqword);
             lua_push_int_t(L, &intt);
             break;
         default :
