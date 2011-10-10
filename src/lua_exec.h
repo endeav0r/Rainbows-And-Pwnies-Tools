@@ -45,6 +45,7 @@ int lua_exec_size           (lua_State * L);
 int lua_exec_type           (lua_State * L);
 int lua_exec_section        (lua_State * L);
 int lua_exec_sections       (lua_State * L);
+int lua_exec_section_exists (lua_State * L);
 int lua_exec_find_functions (lua_State * L);
 int lua_exec_symbol         (lua_State * L);
 int lua_exec_symbols        (lua_State * L);
@@ -74,5 +75,6 @@ int lua_exec_symbol_t_gc    (lua_State * L);
 int lua_exec_symbol_name    (lua_State * L);
 int lua_exec_symbol_address (lua_State * L);
 int lua_exec_symbol_type    (lua_State * L);
+int lua_exec_symbol_size    (lua_State * L);
 
 #endif

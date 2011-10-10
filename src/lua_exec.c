@@ -12,6 +12,7 @@ static const struct luaL_Reg exec_lib_m [] = {
     {"type",           lua_exec_type},
     {"section",        lua_exec_section},
     {"sections",       lua_exec_sections},
+    {"section_exists", lua_exec_section_exists},
     {"find_functions", lua_exec_find_functions},
     {"symbol",         lua_exec_symbol},
     {"symbols",        lua_exec_symbols},
@@ -40,7 +41,8 @@ static const struct luaL_Reg exec_symbol_lib_m [] = {
     {"__gc",        lua_exec_symbol_t_gc},
     {"name",        lua_exec_symbol_name},
     {"address",     lua_exec_symbol_address},
-    {"type",     lua_exec_symbol_type},
+    {"type",        lua_exec_symbol_type},
+    {"size",        lua_exec_symbol_size},
     {NULL, NULL}
 };
 
@@ -252,6 +254,30 @@ int lua_exec_find_functions (lua_State * L)
     
     return 1;
 }
+
+
+int lua_exec_section_exists (lua_State * L)
+{
+    struct _exec * exec;
+    struct _exec_section section;
+    int section_i;
+    
+    exec = lua_check_exec(L, -2);
+    for (section_i = 0; section_i < exec_num_sections(exec); section_i++) {
+        exec_section(exec, &section, section_i);
+        if (strcmp(exec_section_name(&section), luaL_checkstring(L, -1))) {
+            lua_pop(L, 2);
+            lua_pushboolean(L, 1);
+            return 1;
+        }
+    }
+    
+    lua_pop(L, 2);
+    lua_pushboolean(L, 0);
+    
+    return 1;
+}
+    
 
 
 int lua_exec_section (lua_State * L)
@@ -624,6 +650,18 @@ int lua_exec_symbol_type (lua_State * L)
     symbol = lua_check_exec_symbol(L, -1);
     lua_pop(L, 1);
     lua_pushstring(L, exec_symbol_type_strings[exec_symbol_type(symbol)]);
+    
+    return 1;
+}
+
+
+int lua_exec_symbol_size (lua_State * L)
+{
+    struct _exec_symbol * symbol;
+    
+    symbol = lua_check_exec_symbol(L, -1);
+    lua_pop(L, 1);
+    lua_pushinteger(L, exec_symbol_size(symbol));
     
     return 1;
 }
