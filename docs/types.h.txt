@@ -1,0 +1,157 @@
+/*******************************************************************************
+* types.h - a simple interface for (un|)signed (8|16|32|64)-bit integers       *
+*******************************************************************************/
+
+/***************
+*  BACKGROUND  *
+***************/
+
+When I originally created src/elf.h, I was working with only 32-bit ELFs. When
+64-bit ELF support was implemented, a decision had to be made. Either I could
+create two interfaces, one for 32-bit ELFs and one for 64-bit ELFs, or I could
+create a way to deal with different sized integers easily.
+
+I created two types, uint_t and int_t. These types are designed to do two
+things:
+    1) Allow you to write one program that automagically works with 32 and 64
+       bit executables.
+    2) Ensure that we're doing *correct* things with signed/unsigned integers.
+       Pay attention to your compiler warnings. They will ensure you aren't
+       mixing signed and unsigned types inappropriately.
+
+
+/***************
+*  CONVENTION  *
+***************/
+
+(u|)int_t is always declared on the stack, or allocated in the struct of an
+object which returns it as a type. There is not a single malloc of a single
+uint_t in rop_tools. Let's keep it that way.
+
+We always mirror the type found in the spec. For example, the size of an ELF
+section is signed, so it's an int_t. However, the size of a PE section is
+unsigned, so uint_t. This makes the ELF code a bit screwy with signed and
+unsigned types haphardly tossed everywhere, but if someone wants to really screw
+with ELFs, they're going to want that screwiness.
+
+
+/*********************************
+*  THINGS THAT WILL MESS YOU UP  *
+*********************************/
+
+If you are adding several (u|)int_t together, you should use a temporary
+(u|)int_t to hold the result. Your first (u|)int_t_set() should have what you
+expect to be the LARGEST (u|)int_t as the src.
+
+
+/****************
+*  THE LIBRARY  *
+****************/
+
+// MACROS AND DEFINES
+
+INT_T_BITS(int_t *)
+    Returns the bits stored in this int_t, either 8, 16, 32 or 64
+UINT_T_BITS(uint_t *)
+    Returns the bits stored in this uint_t, either 8, 16, 32 or 64
+
+INT_T_TYPE_ERROR
+    Returned from the library when you do dumb things, like try to add a 64-bit
+    int_t to a 32-bit int_t. Adding a 32-bit int_t to a 64-bit int_t would be ok
+
+INT_T_ERROR
+    These errors are usually worse, like you didn't pass a valid int_t to a
+    function
+
+UINT_T_TYPE_ERROR
+UINT_T_ERROR
+    These have the same meanings as their INT_T.*ERROR counterparts
+
+// FUNCTIONS
+
+void    int_t_8_set   (int_t * intt, int8_t i);
+void    int_t_16_set  (int_t * intt, int16_t i);
+void    int_t_32_set  (int_t * intt, int32_t i);
+void    int_t_64_set  (int_t * intt, int64_t i);
+    These functions set the value of intt to the passed i, and set the size of
+    the int_t to 8/16/32/64, depending on which function you call
+
+void    int_t_set     (int_t * dst, int_t * src);
+    This function causes dst to hold the value of src, or copies src to dst
+
+int8_t  int_t_8_get   (int_t * intt);
+int16_t int_t_16_get  (int_t * intt);
+int32_t int_t_32_get  (int_t * intt);
+int64_t int_t_64_get  (int_t * intt);
+    This function returns an integer of the corresponding size. NOTE: If you
+    call int_t_64_get on a 8-bit int_t, you're not going to get the 8-bit int_t
+    value casted to a int64_t. You should call int_t_8_get and cast it yourself.
+
+int     int_t_get     (int_t * intt);
+    Returns the value casted to an int. This is useful for something like
+    grabbing the number of sections in an ELF to loop through them. If, however,
+    there's a chance the value might be bigger than an int (oh, I don't know,
+    say an ADDRESS), you really shouldn't be using this.
+
+char *  int_t_str     (int_t * i);
+    Returns "%d" of the int_t
+    
+char *  int_t_strx    (int_t * i);
+    Returns "%x" of the int_t
+    
+char *  int_t_str0x   (int_t * i);
+    Returns "%0_SIZE_x" of the int_t, where _SIZE_ is 8/16/32/64 depending on
+    the size of the value stored in the int_t.
+    
+int     int_t_cmp     (int_t * a, int_t * b);
+    a and b must be the same size
+    Returns -1 if a is less than b,
+             0 if a is equal to b
+             1 if a is greater than b
+             any other value is an error
+
+int     int_t_add     (int_t * dst, int_t * b);
+int     int_t_sub     (int_t * dst, int_t * b);
+int     int_t_mul     (int_t * dst, int_t * b);
+int     int_t_div     (int_t * dst, int_t * b);
+int     int_t_mod     (int_t * dst, int_t * b);
+    Performs the arithmetic operation in this format:
+    dst = dst OP b
+    returns 0 on success
+            INT_T_TYPE_ERROR if the bit-size of b is greater than the bit-size
+                             of a (IE don't add a 64-bit to a 32-bit, but feel
+                             free to add a 32-bit to a 64-bit. This is for your
+                             protection!)
+            INT_T_ERROR if other terrible things happen, like a or b wasn't a
+                        int_t
+    
+void    int_t_uint_t  (int_t * dst, uint_t * src);
+    Casts src to dst. The same as int_t_set, but takes a uint_t as src.
+
+void    int_t_add_int (int_t * dst, int i);
+    Adds an integer to dst. This will cast i to the appropriate type before
+    adding it.
+    
+void         uint_t_8_set   (uint_t * uintt, uint8_t  i);
+void         uint_t_16_set  (uint_t * uintt, uint16_t i);
+void         uint_t_32_set  (uint_t * uintt, uint32_t i);
+void         uint_t_64_set  (uint_t * uintt, uint64_t i);
+void         uint_t_set     (uint_t * dst, uint_t * src);
+uint8_t      uint_t_8_get   (uint_t * uintt);
+uint16_t     uint_t_16_get  (uint_t * uintt);
+uint32_t     uint_t_32_get  (uint_t * uintt);
+uint64_t     uint_t_64_get  (uint_t * uintt);
+unsigned int uint_t_get     (uint_t * uintt);
+char *       uint_t_str     (uint_t * i);
+char *       uint_t_strx    (uint_t * i);
+char *       uint_t_str0x   (uint_t * i);
+int          uint_t_cmp     (uint_t * a, uint_t * b);
+void         uint_t_add_int (uint_t * dst, int i);
+int          uint_t_sub     (uint_t * dst, uint_t * b);
+int          uint_t_add     (uint_t * dst, uint_t * b);
+int          uint_t_sub     (uint_t * dst, uint_t * b);
+int          uint_t_mul     (uint_t * dst, uint_t * b);
+int          uint_t_div     (uint_t * dst, uint_t * b);
+int          uint_t_mod     (uint_t * dst, uint_t * b);
+void         uint_t_int_t   (uint_t * dst, int_t * src);
+    These functions behave identically to their int_t counterparts
