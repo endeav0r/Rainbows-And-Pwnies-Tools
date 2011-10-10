@@ -36,8 +36,8 @@ int main (int argc, char * argv[])
                                   uint_t_get(pe_symbol_StorageClass(&symbol))));
     }
     
-    for (section_i = 0;
-         section_i < uint_t_get(pe_NumberOfSections(pe));
+    for (section_i = 1;
+         section_i <= uint_t_get(pe_NumberOfSections(pe));
          section_i++) {
         pe_section(pe, &section, section_i);
         printf("%d %s %s %s %s %d %d\n", section_i, pe_section_Name(&section),

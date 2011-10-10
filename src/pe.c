@@ -295,7 +295,7 @@ int pe_section (struct _pe * pe, struct _pe_section * section, int index)
     memcpy(&(section->SectionHeader),
            &(pe->bytes[pe->FileHeader_offset + sizeof(Pe_FileHeader) +
                        uint_t_get(pe_SizeOfOptionalHeader(pe)) +
-                       (sizeof(Pe_SectionHeader) * index)]),
+                       (sizeof(Pe_SectionHeader) * (index - 1))]),
            sizeof(Pe_SectionHeader));
 
     uint_t_32_set(&(section->VirtualSize),
@@ -390,7 +390,6 @@ int pe_symbol (struct _pe * pe, struct _pe_symbol * symbol, int index)
     if (    (symbol->Symbol.StorageClass == IMAGE_SYM_CLASS_EXTERNAL)
          && (PE_SYM_TYPE_COMPLEX(symbol->Symbol.Type) == IMAGE_SYM_MSFT_FUNCTION)
          && (symbol->Symbol.SectionNumber > 0)) {
-        printf("ASDF %d\n", symbol->Symbol.NumberOfAuxSymbols);
         offset += PE_SYMBOL_SIZE;
         memcpy(&(symbol->SymbolFunctionDefinition), &(pe->bytes[offset]),
                sizeof(Pe_Symbol));

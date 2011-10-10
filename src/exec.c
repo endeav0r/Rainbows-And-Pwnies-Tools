@@ -214,7 +214,7 @@ int exec_symbol (struct _exec * exec, struct _exec_symbol * symbol, int index)
                  )
              || (class == IMAGE_SYM_CLASS_LABEL)) {
             pe_section(exec->e.pe, &section_pe,
-               uint_t_get(pe_symbol_SectionNumber(&(symbol->s.pe_symbol))) - 1);
+               uint_t_get(pe_symbol_SectionNumber(&(symbol->s.pe_symbol))));
             uint_t_set(&(symbol->address), pe_section_VirtualAddress(&section_pe));
             uint_t_add(&(symbol->address), pe_symbol_Value(&(symbol->s.pe_symbol)));
             uint_t_add(&(symbol->address), pe_ImageBase(exec->e.pe));
