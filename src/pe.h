@@ -17,14 +17,14 @@ struct _pe {
     size_t bytes_size;
     unsigned char * bytes;
     
-    Pe_FileHeader *             FileHeader;
+    Pe_FileHeader * FileHeader;
     union {
         Pe_OptionalHeaderStandard * OptionalHeaderStandard;
         Pe_OptionalHeaderStandardPlus * OptionalHeaderStandardPlus;
     } ohs;
     union {
-        Pe_OptionalHeaderWindows *  OptionalHeaderWindows;
-        Pe_OptionalHeaderWindowsPlus *  OptionalHeaderWindowsPlus;
+        Pe_OptionalHeaderWindows * OptionalHeaderWindows;
+        Pe_OptionalHeaderWindowsPlus * OptionalHeaderWindowsPlus;
     } ohw;
     
     int FileHeader_offset;
@@ -64,6 +64,14 @@ struct _pe {
     uint_t SizeOfImage;
     uint_t SizeOfHeaders;
     uint_t CheckSum;
+    uint_t Subsystem;
+    uint_t DllCharacteristics;
+    uint_t SizeOfStackReserve;
+    uint_t SizeOfStackCommit;
+    uint_t SizeOfHeapReserve;
+    uint_t SizeOfHeapCommit;
+    uint_t LoaderFlags;
+    uint_t NumberOfRvaAndSizes;
 };
 
 struct _pe_section {
@@ -138,7 +146,7 @@ char *        pe_string          (struct _pe * pe, int offset);
 unsigned char pe_symbol_type     (struct _pe * pe, int index);
 int           pe_total_symbols   (struct _pe * pe);
 
-int pe_section (struct _pe * pe, struct _pe_section * section, int index);
+int pe_section    (struct _pe * pe, struct _pe_section * section, int index);
 
 uint_t *        pe_section_VirtualSize          (struct _pe_section * section);
 uint_t *        pe_section_VirtualAddress       (struct _pe_section * section);
@@ -162,5 +170,13 @@ uint_t * pe_symbol_StorageClass       (struct _pe_symbol * symbol);
 uint_t * pe_symbol_NumberOfAuxSymbols (struct _pe_symbol * symbol);
 uint_t * pe_symbol_TotalSize          (struct _pe_symbol * symbol);
 char *   pe_symbol_Name               (struct _pe_symbol * symbol);
+
+int pe_section_relocation (struct _pe_section * section,
+                           struct _pe_relocation * relocation,
+                           int index);
+
+uint_t * pe_relocation_VirtualAddress   (struct _pe_relocation * relocation);
+uint_t * pe_relocation_SymbolTableIndex (struct _pe_relocation * relocation);
+uint_t * pe_relocation_Type             (struct _pe_relocation * relocation);
 
 #endif

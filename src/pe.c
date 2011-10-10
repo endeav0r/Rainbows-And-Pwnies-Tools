@@ -126,7 +126,24 @@ struct _pe * pe_open (char * filename)
                       pe->ohw.OptionalHeaderWindows->SizeOfImage);
         uint_t_32_set(&(pe->SizeOfHeaders),
                       pe->ohw.OptionalHeaderWindows->SizeOfHeaders);
-        uint_t_32_set(&(pe->CheckSum), pe->ohw.OptionalHeaderWindows->CheckSum);
+        uint_t_32_set(&(pe->CheckSum),
+                      pe->ohw.OptionalHeaderWindows->CheckSum);
+        uint_t_16_set(&(pe->Subsystem),
+                      pe->ohw.OptionalHeaderWindows->Subsystem);
+        uint_t_16_set(&(pe->DllCharacteristics),
+                      pe->ohw.OptionalHeaderWindows->DllCharacteristics);
+        uint_t_32_set(&(pe->SizeOfStackReserve),
+                      pe->ohw.OptionalHeaderWindows->SizeOfStackReserve);
+        uint_t_32_set(&(pe->SizeOfStackCommit),
+                      pe->ohw.OptionalHeaderWindows->SizeOfStackCommit);
+        uint_t_32_set(&(pe->SizeOfHeapReserve),
+                      pe->ohw.OptionalHeaderWindows->SizeOfHeapReserve);
+        uint_t_32_set(&(pe->SizeOfHeapCommit),
+                      pe->ohw.OptionalHeaderWindows->SizeOfHeapCommit);
+        uint_t_32_set(&(pe->LoaderFlags),
+                      pe->ohw.OptionalHeaderWindows->LoaderFlags);
+        uint_t_32_set(&(pe->NumberOfRvaAndSizes),
+                      pe->ohw.OptionalHeaderWindows->NumberOfRvaAndSizes);
     }
     else {
         pe->ohs.OptionalHeaderStandardPlus = (Pe_OptionalHeaderStandardPlus *) 
@@ -178,7 +195,24 @@ struct _pe * pe_open (char * filename)
                       pe->ohw.OptionalHeaderWindowsPlus->SizeOfHeaders);
         uint_t_32_set(&(pe->CheckSum),
                       pe->ohw.OptionalHeaderWindowsPlus->CheckSum);
+        uint_t_16_set(&(pe->Subsystem),
+                      pe->ohw.OptionalHeaderWindows->Subsystem);
+        uint_t_16_set(&(pe->DllCharacteristics),
+                      pe->ohw.OptionalHeaderWindows->DllCharacteristics);
+        uint_t_64_set(&(pe->SizeOfStackReserve),
+                      pe->ohw.OptionalHeaderWindows->SizeOfStackReserve);
+        uint_t_64_set(&(pe->SizeOfStackCommit),
+                      pe->ohw.OptionalHeaderWindows->SizeOfStackCommit);
+        uint_t_64_set(&(pe->SizeOfHeapReserve),
+                      pe->ohw.OptionalHeaderWindows->SizeOfHeapReserve);
+        uint_t_64_set(&(pe->SizeOfHeapCommit),
+                      pe->ohw.OptionalHeaderWindows->SizeOfHeapCommit);
+        uint_t_32_set(&(pe->LoaderFlags),
+                      pe->ohw.OptionalHeaderWindows->LoaderFlags);
+        uint_t_32_set(&(pe->NumberOfRvaAndSizes),
+                      pe->ohw.OptionalHeaderWindows->NumberOfRvaAndSizes);
     }
+
     
     // we're going to go through and mark symbols as regular or auxiliary now,
     // so that when we call them up by index later we can query this information
