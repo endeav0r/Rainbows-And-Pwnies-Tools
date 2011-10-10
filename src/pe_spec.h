@@ -111,6 +111,15 @@ typedef struct _Pe_Symbol {
 } Pe_Symbol;
 
 
+typedef struct _Pe_SymbolFunctionDefiniton {
+    uint32_t TagIndex;              // 4
+    uint32_t TotalSize;             // 8
+    uint32_t PointerToLinenumber;   // 12
+    uint32_t PointerToNextFunction; // 16
+    uint16_t Unused;                // 18
+} Pe_SymbolFunctionDefinition;
+
+
 typedef struct _Pe_Relocation {
     uint32_t VirtualAddress;   // 4
     uint32_t SymbolTableIndex; // 8
