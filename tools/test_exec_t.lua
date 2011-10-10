@@ -29,5 +29,15 @@ for i,section in pairs(executable:sections()) do
 end
 
 for i, address in pairs(executable:find_functions()) do
-    print(address:str0x())
+    -- this is called inefficient
+    local symbol_found = false
+    for i, symbol in pairs(executable:symbols()) do
+        if symbol:address() == address then
+            print(address:strx() .. " " .. symbol:name())
+            symbol_found = true
+        end
+    end
+    if symbol_found == false then
+        print(address:strx())
+    end
 end

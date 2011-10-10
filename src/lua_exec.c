@@ -13,6 +13,8 @@ static const struct luaL_Reg exec_lib_m [] = {
     {"section",        lua_exec_section},
     {"sections",       lua_exec_sections},
     {"find_functions", lua_exec_find_functions},
+    {"symbol",         lua_exec_symbol},
+    {"symbols",        lua_exec_symbols},
     {NULL, NULL}
 };
 
@@ -309,6 +311,51 @@ int lua_exec_sections (lua_State * L)
         lua_pushinteger(L, section_i);
         lua_exec_section(L);
         lua_pushinteger(L, section_i + 1);
+        lua_insert(L, -2);
+        lua_settable(L, -3);
+    }
+    
+    lua_insert(L, -2);
+    lua_pop(L, 1);
+    
+    return 1;
+}
+
+
+int lua_exec_symbol (lua_State * L)
+{
+    struct lua_exec_t * exec_t;
+    struct lua_exec_symbol_t * symbol_t;
+    int symbol_i;
+    
+    exec_t = lua_check_exec_t(L, -2);
+    symbol_i = luaL_checkinteger(L, -1);
+    lua_pop(L, 2);
+    
+    lua_push_exec_symbol_t(L);
+    symbol_t = lua_check_exec_symbol_t(L, -1);
+    
+    exec_symbol(exec_t->exec, &(symbol_t->symbol), symbol_i);
+    symbol_t->exec_t = exec_t;
+    exec_t->ref_count++;
+    
+    return 1;
+}
+
+
+int lua_exec_symbols (lua_State * L)
+{
+    struct lua_exec_t * exec_t;
+    int symbol_i;
+    
+    exec_t = lua_check_exec_t(L, 1);
+    
+    lua_newtable(L);
+    for (symbol_i = 0; symbol_i < exec_num_symbols(exec_t->exec); symbol_i++) {
+        lua_pushvalue(L, 1);
+        lua_pushinteger(L, symbol_i);
+        lua_exec_symbol(L);
+        lua_pushinteger(L, symbol_i + 1);
         lua_insert(L, -2);
         lua_settable(L, -3);
     }
