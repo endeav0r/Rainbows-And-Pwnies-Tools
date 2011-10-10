@@ -130,19 +130,13 @@ function relative_offset_description (elf, instruction)
 end
 
 
-function print_instructions (exec, instructions)
-    
+function print_instructions (elf, instructions)
     
     -- first pass, find addresses we jump to in this function
     local jump_destinations = {}
     local jump_origins = {}
     for index, instruction in pairs(instructions) do
         if is_jump(instruction["mnemonic"]) and 
-           operand_abs(instruction["operands"][1],
-                       instruction["address"],
-                       instruction["size"]) and -- if this is false, then this
-                                                -- jmp doesn't evaluate to an
-                                                -- address
            operand_abs(instruction["operands"][1],
                        instruction["address"],
                        instruction["size"]) >= instructions[1]["address"] and
@@ -156,7 +150,7 @@ function print_instructions (exec, instructions)
                                              int_t.new(8, instruction["size"])):uint_t())
         end
     end
-    --[[
+
     -- second pass, plan the routes
     local jump_routes = {}
     for index, instruction in pairs(instructions) do
@@ -171,7 +165,7 @@ function print_instructions (exec, instructions)
             end
         end
     end
-    ]]
+        
     -- last pass, print it all out
     for index,instruction in pairs(instructions) do
         -- is this address one of our jump locations
@@ -187,7 +181,6 @@ function print_instructions (exec, instructions)
         end
         
         -- trace the jump paths
-        --[[
         local jump_path = ''
         local jump_origin = false
         local jump_destination = false
@@ -230,19 +223,32 @@ function print_instructions (exec, instructions)
         
         jump_path = TERM_COLOR_CYAN .. TERM_BOLD .. jump_path .. TERM_NORMAL ..
                     TERM_COLOR_DEFAULT
-        ]]
+                    
+        -- oh hell, let's get the bytes for this instruction and print that out
+        local mem = elf:section(".text"):mem_at_address(instruction["address"],
+                                                        instruction["size"],
+                                                        8);
+        local bytes = ""
+        local bytes_written = 0
+        for address, byte in pairs(mem) do
+            bytes = bytes .. byte:str0x()
+            bytes_written = bytes_written + 1
+            if bytes_written >= 8 then break end
+        end
+        for i=1,8-bytes_written do
+            bytes = bytes .. ".."
+        end
+        bytes = TERM_COLOR_WHITE .. bytes .. TERM_COLOR_DEFAULT
         
-        jump_path = ""
         -- pretty instruction description
         local description
-        --[[
         if instruction["mnemonic"] == "call" then
             description = TERM_COLOR_RED .. TERM_BOLD .. instruction["mnemonic"] ..
-                          " " .. relative_offset_description(exec, instruction) .. 
+                          " " .. relative_offset_description(elf, instruction) .. 
                           TERM_NORMAL .. TERM_COLOR_DEFAULT
         elseif is_jump(instruction["mnemonic"]) then
             description = TERM_COLOR_CYAN .. TERM_BOLD .. instruction["mnemonic"] ..
-                          " " .. relative_offset_description(exec, instruction) ..
+                          " " .. relative_offset_description(elf, instruction) ..
                           TERM_NORMAL .. TERM_COLOR_DEFAULT
         elseif instruction["mnemonic"] == "ret" then
             description = TERM_COLOR_YELLOW .. TERM_BOLD .. 
@@ -250,21 +256,32 @@ function print_instructions (exec, instructions)
                           TERM_NORMAL .. TERM_COLOR_DEFAULT
         else
             description = instruction["description"]
-        end]]
-        description = instruction["description"]
-        --print(address .. " " .. bytes .. " " .. jump_path .. " " .. description)
-        print(address .. " " .. jump_path .. " " .. description)
+        end
+        print(address .. " " .. bytes .. " " .. jump_path .. " " .. description)
     end
 end
 
 
 print(argv[1])
-exec = exec_t.new(argv[1])
-for section_i, section in pairs(exec:sections()) do
-    if table.contains(section:types(), "executable") then
-        print(TERM_COLOR_MAGENTA .. TERM_BOLD .. section:name() ..
-              TERM_NORMAL .. TERM_COLOR_DEFAULT)
-        print_instructions(exec, section:disassemble())
+elf = elf_t.new(argv[1])
+text = elf:section(".text")
+if argv[2] ~= nil then
+    symbol = elf:section(".symtab"):symbol(argv[2])
+    print(TERM_COLOR_MAGENTA .. TERM_BOLD .. symbol:value():str0x() ..
+          " " .. symbol:name() .. ':' .. TERM_NORMAL .. TERM_COLOR_DEFAULT)
+    print_instructions(elf, symbol:disassemble())
+else
+    symbols = elf:symbols()
+    table.sort(symbols, function(a,b) return a:value() < b:value() end)
+    for i, symbol in pairs(symbols) do
+        if symbol:type() == "func" and
+            symbol:value():int() > 0 then
+            print(TERM_COLOR_MAGENTA .. TERM_BOLD .. symbol:value():str0x() ..
+                  " " .. symbol:name() .. ':' .. TERM_NORMAL .. TERM_COLOR_DEFAULT)
+            print_instructions(elf, symbol:disassemble())
+            print()
+            --symbol:disassemble()
+        end
     end
 end
 
