@@ -115,8 +115,4 @@ int elf_section_symbol     (struct _elf_section * section,
 int elf_section_relocation (struct _elf_section * section,
                             struct _elf_relocation * relocation, int index);
 
-int elf_symbol_func_addr (struct _elf * elf,
-                          struct _elf_symbol * symbol,
-                          uint_t * addr);
-
 #endif
