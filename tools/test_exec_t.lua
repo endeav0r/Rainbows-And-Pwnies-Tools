@@ -33,7 +33,8 @@ for i, address in pairs(executable:find_functions()) do
     local symbol_found = false
     for i, symbol in pairs(executable:symbols()) do
         if symbol:address() == address then
-            print(address:strx() .. " " .. symbol:name())
+            print(address:strx() .. " " .. symbol:name() .. " " ..
+                  symbol:size())
             symbol_found = true
         end
     end
