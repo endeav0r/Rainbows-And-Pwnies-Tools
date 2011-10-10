@@ -73,5 +73,6 @@ uint_t * exec_symbol_value       (struct _exec_symbol * symbol);
 uint_t * exec_symbol_address     (struct _exec_symbol * symbol);
 char *   exec_symbol_description (struct _exec_symbol * symbol);
 int      exec_symbol_type        (struct _exec_symbol * symbol);
+int      exec_symbol_size        (struct _exec_symbol * symbol);
 
 #endif
