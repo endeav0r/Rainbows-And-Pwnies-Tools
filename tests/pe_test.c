@@ -47,7 +47,6 @@ int main (int argc, char * argv[])
     printf("ImageBase: %s\n", uint_t_strx(&(pe->ImageBase)));
     printf("%s\n", uint_t_strx(&(pe->BaseOfCode)));
     printf("%s\n", uint_t_strx(&(pe->AddressOfEntryPoint)));
-    printf("%d\n", sizeof(Pe_FileHeader));
     
     pe_destroy(pe);
     

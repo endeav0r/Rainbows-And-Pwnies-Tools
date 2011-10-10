@@ -3,14 +3,14 @@ CFLAGS= -Wall -O2 -g
 LIBS = -ludis86 -llua5.1
 
 _OBJS = elf.o rop.o lua.o strings.o types.o aux.o lua_types.o lua_elf.o \
-        lua_dis.o pe.o exec.o lua_exec.o
+        lua_dis.o pe.o exec.o lua_exec.o analyze.o
 
 SRCDIR = src
 OBJS = $(patsubst %,$(SRCDIR)/%,$(_OBJS))
 
 all : rop_find
 
-tests: pe_test exec_test
+tests: pe_test exec_test analyze_test
 
 %.o : %.c %.h
 	$(CC) $(CFLAGS) -c -o $@ $<
@@ -26,6 +26,9 @@ pe_test : tests/pe_test.c $(OBJS)
 
 exec_test : tests/exec_test.c $(OBJS)
 	$(CC) $(CFLAGS) -o exec_test tests/exec_test.c $(OBJS) $(LIBS)
+
+analyze_test : tests/analyze_test.c $(OBJS)
+	$(CC) $(CFLAGS) -o analyze_test tests/analyze_test.c $(OBJS) $(LIBS)
 
 clean :
 	rm -f src/*.o
