@@ -218,8 +218,8 @@ int exec_symbol (struct _exec * exec, struct _exec_symbol * symbol, int index)
             pe_section(exec->e.pe, &section_pe,
                uint_t_get(pe_symbol_SectionNumber(&(symbol->s.pe_symbol))));
             uint_t_set(&(symbol->address), pe_section_VirtualAddress(&section_pe));
-            uint_t_add(&(symbol->address), pe_symbol_Value(&(symbol->s.pe_symbol)));
             uint_t_add(&(symbol->address), pe_ImageBase(exec->e.pe));
+            uint_t_add(&(symbol->address), pe_symbol_Value(&(symbol->s.pe_symbol)));
             break;
         }
         else
@@ -229,6 +229,67 @@ int exec_symbol (struct _exec * exec, struct _exec_symbol * symbol, int index)
     }
     return symbol_found - 1;
 }
+
+
+int exec_relocation (struct _exec * exec,
+                     struct _exec_relocation * relocation,
+                     int index)
+{
+    struct _elf_section section_elf;
+    struct _pe_section  section_pe;
+    int section_i;
+    int relocation_found = 0;
+    
+    switch (exec_type(exec)) {
+    case EXEC_TYPE_ELF :
+        for (section_i = 0;
+             section_i < int_t_get(elf_shnum(exec->e.elf));
+             section_i++) {
+            elf_section(exec->e.elf, &(section_elf), section_i);
+            if (    (int_t_get(elf_section_type(&section_elf)) == SHT_REL)
+                 || (int_t_get(elf_section_type(&section_elf)) == SHT_RELA)) {
+                if (elf_section_num(&section_elf) < index)
+                    index -= elf_section_num(&section_elf);
+                else {
+                    relocation_found = 1;
+                    break;
+                }
+            }
+        }
+        
+        if (relocation_found == 0)
+            break;
+        elf_section_relocation(&section_elf, &(relocation->r.elf_relocation),
+                               index);
+        uint_t_set(&(relocation->address),
+                   elf_relocation_offset(&(relocation->r.elf_relocation)));
+        break;
+    case EXEC_TYPE_PE :
+        for (section_i = 1;
+             section_i <= uint_t_get(pe_NumberOfSections(exec->e.pe));
+             section_i++) {
+            pe_section(exec->e.pe, &section_pe, section_i);
+            if (uint_t_get(pe_section_NumberOfRelocations(&section_pe)) < index)
+                index -= uint_t_get(pe_section_NumberOfRelocations(&section_pe));
+            else {
+                relocation_found = 1;
+                break;
+            }
+        }
+        
+        if (relocation_found == 0)
+            break;
+        pe_section_relocation(&section_pe, &(relocation->r.pe_relocation),
+                              index);
+        uint_t_set(&(relocation->address), pe_section_VirtualAddress(&section_pe));
+        uint_t_add(&(relocation->address), pe_ImageBase(exec->e.pe));
+        // NEED TO FINISH OUT ADDRESS WITH RVA
+        break;
+    }
+    
+    return relocation_found - 1;
+}
+                
 
 
 char * exec_section_name (struct _exec_section * section)

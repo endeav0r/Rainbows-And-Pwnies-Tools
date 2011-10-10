@@ -47,6 +47,15 @@ struct _exec_symbol {
     uint_t address;
 };
 
+struct _exec_relocation {
+    struct _exec * exec;
+    union {
+        struct _elf_relocation elf_relocation;
+        struct _pe_relocation  pe_relocation;
+    } r;
+    uint_t address;
+};
+
 struct _exec * exec_open    (char * filename);
 void           exec_destroy (struct _exec * exec);
 int            exec_copy    (struct _exec * dst, struct _exec * src);
@@ -61,6 +70,9 @@ int exec_find_functions (struct _exec * exec);
 
 int exec_section (struct _exec * exec, struct _exec_section * section, int index);
 int exec_symbol  (struct _exec * exec, struct _exec_symbol * symbol,   int index);
+int exec_relocation (struct _exec * exec,
+                     struct _exec_relocation * relocation,
+                     int index);
 
 char *          exec_section_name    (struct _exec_section * section);
 int             exec_section_types   (struct _exec_section * section);
@@ -74,5 +86,8 @@ uint_t * exec_symbol_address     (struct _exec_symbol * symbol);
 char *   exec_symbol_description (struct _exec_symbol * symbol);
 int      exec_symbol_type        (struct _exec_symbol * symbol);
 int      exec_symbol_size        (struct _exec_symbol * symbol);
+
+int    exec_relocation_address (struct _exec_relocation * relocation);
+char * exec_relocation_name    (struct _exec_relocation * name);
 
 #endif
