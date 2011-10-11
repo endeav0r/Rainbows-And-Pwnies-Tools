@@ -7,7 +7,7 @@ int lua_run_file (char * filename, char * argv[], int argc)
     int error;
     int args_i;
     
-    lua_State * L = lua_open();
+    lua_State * L = luaL_newstate();
     luaL_openlibs(L);
     lua_open_int_t(L);
     lua_open_uint_t(L);
