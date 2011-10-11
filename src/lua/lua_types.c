@@ -199,6 +199,7 @@ int lua_int_t_add (lua_State * L)
     lua_pop(L, 2);
     
     lua_pushinteger(L, 32);
+    lua_pushinteger(L, 0);
     lua_int_t_new(L);
     result = lua_check_int_t(L, 1);
     if (a->type >= b->type) {
@@ -232,6 +233,7 @@ int lua_int_t_sub (lua_State * L)
     lua_pop(L, 2);
     
     lua_pushinteger(L, 32);
+    lua_pushinteger(L, 0);
     lua_int_t_new(L);
     result = lua_check_int_t(L, 1);
     int_t_set(result, a);
@@ -259,6 +261,7 @@ int lua_int_t_mul (lua_State * L)
     lua_pop(L, 2);
     
     lua_pushinteger(L, 32);
+    lua_pushinteger(L, 0);
     lua_int_t_new(L);
     result = lua_check_int_t(L, 1);
     if (a->type > b->type) {
@@ -292,6 +295,7 @@ int lua_int_t_div (lua_State * L)
     lua_pop(L, 2);
     
     lua_pushinteger(L, 32);
+    lua_pushinteger(L, 0);
     lua_int_t_new(L);
     result = lua_check_int_t(L, 1);
     int_t_set(result, a);
@@ -319,6 +323,7 @@ int lua_int_t_mod (lua_State * L)
     lua_pop(L, 2);
     
     lua_pushinteger(L, 32);
+    lua_pushinteger(L, 0);
     lua_int_t_new(L);
     result = lua_check_int_t(L, 1);
     int_t_set(result, a);
@@ -482,8 +487,7 @@ int lua_uint_t_new (lua_State * L)
          && (bits != 16)
          && (bits != 32)
          && (bits != 64))
-        luaL_error(L, "uint_t accepts bit sizes of 16, 32 or 64");
-
+        luaL_error(L, "uint_t accepts bit sizes of 8, 16, 32 or 64");
     
     new_uintt = lua_newuserdata(L, sizeof(uint_t));
     luaL_getmetatable(L, "rop_tools.uint_t");
@@ -579,6 +583,7 @@ int lua_uint_t_add (lua_State * L)
     lua_pop(L, 2);
     
     lua_pushinteger(L, 32);
+    lua_pushinteger(L, 0);
     lua_uint_t_new(L);
     result = lua_check_uint_t(L, 1);
     if (a->type >= b->type) {
@@ -612,6 +617,7 @@ int lua_uint_t_sub (lua_State * L)
     lua_pop(L, 2);
     
     lua_pushinteger(L, 32);
+    lua_pushinteger(L, 0);
     lua_uint_t_new(L);
     result = lua_check_uint_t(L, 1);
     uint_t_set(result, a);
@@ -639,6 +645,7 @@ int lua_uint_t_mul (lua_State * L)
     lua_pop(L, 2);
     
     lua_pushinteger(L, 32);
+    lua_pushinteger(L, 0);
     lua_uint_t_new(L);
     result = lua_check_uint_t(L, 1);
     if (a->type > b->type) {
@@ -672,6 +679,7 @@ int lua_uint_t_div (lua_State * L)
     lua_pop(L, 2);
     
     lua_pushinteger(L, 32);
+    lua_pushinteger(L, 0);
     lua_uint_t_new(L);
     result = lua_check_uint_t(L, 1);
     uint_t_set(result, a);
@@ -699,6 +707,7 @@ int lua_uint_t_mod (lua_State * L)
     lua_pop(L, 2);
     
     lua_pushinteger(L, 32);
+    lua_pushinteger(L, 0);
     lua_uint_t_new(L);
     result = lua_check_uint_t(L, 1);
     uint_t_set(result, a);

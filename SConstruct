@@ -12,5 +12,5 @@ sources_c += map(lambda x: 'src/bin/' + x + '.c', src_bin_c)
 
 env.Program(target="rop_tools",
             source=sources_c,
-            LIBS=['udis86', 'lua5.1'])
+            LIBS=['udis86', 'luajit-5.1'])
         
