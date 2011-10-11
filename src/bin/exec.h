@@ -6,8 +6,8 @@
 
 #include "elf.h"
 #include "pe.h"
-#include "strings.h"
-#include "types.h"
+#include "../strings.h"
+#include "../types.h"
 
 #define EXEC_TYPE_UNKNOWN 0
 #define EXEC_TYPE_ELF     1

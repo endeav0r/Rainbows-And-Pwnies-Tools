@@ -6,7 +6,7 @@
 #include <lua5.1/lualib.h>
 #include <string.h>
 
-#include "types.h"
+#include "../types.h"
 
 int     lua_open_int_t  (lua_State * L);
 int_t * lua_check_int_t (lua_State * L, int position);

@@ -7,8 +7,8 @@
 #include <udis86.h>
 
 #include "lua_types.h"
-#include "strings.h"
-#include "types.h"
+#include "../strings.h"
+#include "../types.h"
 
 void lua_dis_table      (lua_State * L, uint_t * address,
                          unsigned char * data, int size, int mode);

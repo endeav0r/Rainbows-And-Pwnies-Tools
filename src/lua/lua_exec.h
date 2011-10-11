@@ -5,12 +5,12 @@
 #include <lua5.1/lauxlib.h>
 #include <lua5.1/lualib.h>
 
-#include "analyze.h"
-#include "exec.h"
+#include "../analyze.h"
+#include "../bin/exec.h"
 #include "lua_dis.h"
 #include "lua_types.h"
-#include "rop.h"
-#include "strings.h"
+#include "../rop.h"
+#include "../strings.h"
 
 // see the giant comment in lua_elf.h for why we garbage collect these on our
 // own

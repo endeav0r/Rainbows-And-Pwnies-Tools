@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "types.h"
+#include "../types.h"
 
 #define ELF_CLASS(e) (elf_class(e) == ELFCLASS32 ? 32 : 64)
 

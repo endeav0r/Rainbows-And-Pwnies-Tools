@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <unistd.h>
 
-#include "exec.h"
-#include "lua.h"
+#include "bin/exec.h"
+#include "lua/lua.h"
 #include "rop.h"
 #include "types.h"
 

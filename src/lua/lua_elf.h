@@ -5,11 +5,11 @@
 #include <lua5.1/lauxlib.h>
 #include <lua5.1/lualib.h>
 
-#include "elf.h"
+#include "../bin/elf.h"
 #include "lua_dis.h"
 #include "lua_types.h"
-#include "rop.h"
-#include "strings.h"
+#include "../rop.h"
+#include "../strings.h"
 
 /*
     Because lua does automatic garbage collection and our elf library has

@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "types.h"
+#include "../types.h"
 #include "pe_spec.h"
 
 #define PE_NAME_SIZE 64

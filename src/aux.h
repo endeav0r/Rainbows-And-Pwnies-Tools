@@ -3,7 +3,7 @@
 
 #include <stdlib.h>
 
-#include "elf.h"
+#include "bin/elf.h"
 #include "types.h"
 
 struct _sym_list {
