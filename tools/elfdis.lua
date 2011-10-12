@@ -65,7 +65,6 @@ function operand_abs (operand, address, size)
     elseif operand["type"] == "mem" then
         absolute = operand["lval"]:uint_t()
     else
-        print(operand["type"])
         return false
     end
     return absolute
