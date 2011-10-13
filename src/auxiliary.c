@@ -1,4 +1,4 @@
-#include "aux.h"
+#include "auxiliary.h"
 
 
 struct _sym_list * sym_list_insert (struct _sym_list * sym_list,
