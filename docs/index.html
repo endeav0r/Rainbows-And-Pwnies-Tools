@@ -1,0 +1,93 @@
+<html>
+    <head>
+        <style>
+            body, div, td {
+                font-family: Verdana;
+                font-size: 10pt;
+            }
+            a, a:visited, a:active {
+                color: #0000CC;
+                text-decoration: none;
+            }
+            a:hover {
+                color: #0000FF;
+                text-decoration: underline;
+            }
+            h2, h3, h4 {
+                margin: 0px;
+            }
+            .content {
+                width: 720px;
+                background: #DFDFDF;
+                margin: 0px auto;
+                padding: 4px;
+                border: 1px solid black;
+            }
+        </style>
+    </head>
+    <body>
+        <h2 align="center">rop_tools documentation</h2>
+        <br />
+        <div align="center">
+            API ( <a href="exec_t.html">exec_t</a> |
+                  <a href="lua_types.html">int_t uint_t</a> )
+        </div>
+        <br />
+        <div class="content">
+            <h3 align="center">Finding ROP Gadgets</h3>
+            <p>The original goal of rop_tools was to find ROP gadgets, and it has
+            remained true to this functionality. It still has a powerful and
+            fast ROP gadget finding implementation which works on both 32 and
+            64 bit x86 ELF and PE binaries.</p>
+            
+            <p>rop_tools find three types of rop gadgets, but only two are
+            really going to be of use to you. They are ret and jmp [reg]
+            gadgets. These are outputed as text for you to grep at will.</p>
+            
+            <p>rop_tools also finds gadgets of varying "depth". Depth is the
+            number of instructions backwards from the ret/jmp that you wish to
+            search, and is useful for finding functionality when only a small
+            number of gadgets are available. A depth of 1 would include one
+            instruction plus the ret/jmp. A depth of 2 would include two
+            instructions, and so on.</p>
+            
+            <p>An example of finding all ret and jmp [ret] gadgets of depth 2 in
+            rop_tools would be:</p>
+            
+            <pre>rop_tools -e rop_tools -rjd 2</pre>
+        </div>
+        
+        <br />
+        
+        <div class="content">
+            <h3 align="center">Lua scripting</h3>
+            <p>The real power of rop_tools comes from its library of binary 
+            analysis tools. They have been broken out into a lua API for you to
+            interact with.</p>
+            
+            <p><strong>A key component of this API centers around the types
+            int_t and uint_t.</strong> These are custom types provided by 
+            rop_tools, used in both lua and the underlying C library. They allow
+            you to interact with 32 and 64 bit binaries through one interface.
+            You write the code once, and it just works. These types support all
+            the basic artihmetic operations, + - / * %, and comparison, < <= ==.
+            You cannot mix int_t and uint_t types in these operations, but you 
+            can cast an int_t to a uint_t and a uint_t to a int_t. The inability
+            to operate seemlessly between int_t and uint_t is a feature, and
+            designed to make sure your code is correct.</p>
+            
+            <p>Two of the rop_tools lua libraries are currently documented. They
+            are the types library encompassing int_t and uint_t, as well as the
+            exec_t library, which provides one inteface for working with ELF and
+            PE binaries.</p>
+            
+            <p>lua scripts are launched with the -l flag to the binary, followed
+            by the name of the script. Any further arguments on the command line
+            will be passed to the binary in a table named argv. Note that lua
+            tables begin at index 1 by convention, so the first argument passed
+            will be at argv[1].</p>
+            
+            <pre>rop_tools -l tools/dis.lua rop_tools</pre>
+        </div>
+    </body>
+</html>
