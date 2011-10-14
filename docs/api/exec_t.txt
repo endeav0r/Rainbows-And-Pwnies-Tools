@@ -1,0 +1,61 @@
+exec_t.new
+@param string takes the filename of an executable file, currently a 32/64-bit ELF or PE
+@return exec_t returns a new executable of type
+
+exec_t:num_sections
+@return lua_Integer returns the number of sections in the executable
+
+exec_t:size
+@return lua_Integer returns the size of the executable in bytes
+
+exec_t:type
+@return string returns "elf" or "pe" depending on file type
+
+exec_t:section
+@param lua_Integer,string the index or name of a section in the executable
+@return exec_section_t a new section
+
+exec_t:section
+@return table returns a table of all the sections in the executable
+
+exec_t:section_exists
+@param string the name of a section
+@return boolean returns true if the section exists, false otherwise
+
+exec_t:symbol
+@param lua_Integer,string the index or name of a symbol in the executable
+@return exec_symbol_t a new symbol
+
+exec_t:symbols
+@return table returns a table of all symbols in the executable
+
+exec_t:find_functions
+@return table returns a list of uint_t addresses. These addresses are the result of some analysis to attempt to find the beginning of functional blocks in the executable.
+
+exec_section_t:name
+@return string returns the name of the section
+
+exec_section_t:address
+@return uint_t returns the virtual address where the section's contents will be loaded in memory
+
+exec_section_t:types
+@return table returns a table of strings describing the section, "symbol" "relocation" "text" "executable"
+
+exec_section_t:size
+@return lua_Integer returns the size of the executable's data in bytes
+
+exec_section_t:disassemble
+@param uint_t if present, will disassemble instruction at this virtual address
+@return table returns a table of the section's data disassembled
+
+exec_symbol_t:name
+@return string returns the name of the symbol
+
+exec_symbol_t:address
+@return uint_t returns the (virtual) address of the symbol. This will adjust a symbol to the address where it will point once the executable is loaded in memory
+
+exec_symbol_t:type
+@return string returns the type of the symbol as a string, "unknown" "function"
+
+exec_symbol_t:size
+@return lua_Integer returns the size of the symbol, if set, in bytes.

@@ -1,0 +1,39 @@
+int_t.new
+@param lua_Integer this is the size, in bits, of the int_t to create: 8, 16, 32, 64
+@param lua_Integer this is an optional argument, and is an initial value for the int_t
+@return int_t returns a new int_t
+
+int_t:str
+@return string returns a decimal string representation of the int_t
+
+int_t:strx
+@return string returns a hexadecimal string representation of the int_t
+
+int_t:str0x
+@return string returns a hexadecimal string representation of the int_t with leading zeroes
+
+int_t:int
+@return lua_Integer casts the int_t to a lua_Integer
+
+int_t:uint_t
+@return uint_t casts the int_t to a uint_t
+
+uint_t.new
+@param lua_Integer this is the size, in bits, of the uint_t to create: 8, 16, 32, 64
+@param lua_Integer this is an optional argument, and is an initial value for the uint_t
+@return uint_t returns a new uint_t
+
+uint_t:str
+@return string returns a decimal string representation of the uint_t
+
+uint_t:strx
+@return string returns a hexadecimal string representation of the uint_t
+
+uint_t:str0x
+@return string returns a hexadecimal string representation of the uint_t with leading zeroes
+
+uint_t:int
+@return lua_Integer casts the uint_t to a lua_Integer
+
+uint_t:int_t
+@return uint_t casts the uint_t to an int_t
