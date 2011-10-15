@@ -352,11 +352,28 @@ int lua_exec_symbol (lua_State * L)
 {
     struct lua_exec_t * exec_t;
     struct lua_exec_symbol_t * symbol_t;
-    int symbol_i;
+    struct _exec_symbol symbol;
+    int symbol_i = -1;
     
     exec_t = lua_check_exec_t(L, -2);
-    symbol_i = luaL_checkinteger(L, -1);
+    if (lua_isnumber(L, -1)) {
+        symbol_i = luaL_checkinteger(L, -1);
+    }
+    else if (lua_isstring(L, -1)) {
+        for (symbol_i = 0;
+             symbol_i < exec_num_symbols(exec_t->exec);
+             symbol_i++) {
+            exec_symbol(exec_t->exec, &symbol, symbol_i);
+            if (strcmp(exec_symbol_name(&symbol),
+                       luaL_checkstring(L, -1)) == 0)
+                break;
+        }
+    }
+    else
+        luaL_error(L, "method expected a string or integer");
+        
     lua_pop(L, 2);
+    
     
     lua_push_exec_symbol_t(L);
     symbol_t = lua_check_exec_symbol_t(L, -1);
