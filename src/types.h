@@ -99,6 +99,11 @@ int          uint_t_sub     (uint_t * dst, uint_t * b);
 int          uint_t_mul     (uint_t * dst, uint_t * b);
 int          uint_t_div     (uint_t * dst, uint_t * b);
 int          uint_t_mod     (uint_t * dst, uint_t * b);
+int          uint_t_and     (uint_t * dst, uint_t * b);
+int          uint_t_or      (uint_t * dst, uint_t * b);
+int          uint_t_xor     (uint_t * dst, uint_t * b);
+int          uint_t_rotr    (uint_t * dst, int bits);
+int          uint_t_rotl    (uint_t * dst, int bits);
 void         uint_t_int_t   (uint_t * dst, int_t * src);
 
 #endif

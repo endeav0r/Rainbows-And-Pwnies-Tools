@@ -757,6 +757,150 @@ int uint_t_mod (uint_t * dst, uint_t * b)
 }
 
 
+int uint_t_and (uint_t * dst, uint_t * b)
+{
+    switch (dst->type) {
+    case UINT_T_8 :
+        switch (b->type) {
+            case UINT_T_8  : dst->uints.uint8 &= b->uints.uint8; break;
+            default        : return UINT_T_TYPE_ERROR;
+        }
+    case UINT_T_16 :
+        switch (b->type) {
+            case UINT_T_8  : dst->uints.uint16 &= (uint16_t) b->uints.uint8; break;
+            case UINT_T_16 : dst->uints.uint16 &= b->uints.uint16; break;
+            default        : return UINT_T_TYPE_ERROR;
+        }
+        break;
+    case UINT_T_32 :
+        switch (b->type) {
+            case UINT_T_8  : dst->uints.uint32 &= (uint32_t) b->uints.uint8; break;
+            case UINT_T_16 : dst->uints.uint32 &= (uint32_t) b->uints.uint16; break;
+            case UINT_T_32 : dst->uints.uint32 &= b->uints.uint32; break;
+            default        : return INT_T_TYPE_ERROR;
+        }
+        break;
+    case UINT_T_64 :
+        switch (b->type) {
+            case UINT_T_8  : dst->uints.uint64 &= (uint64_t) b->uints.uint8; break;
+            case UINT_T_16 : dst->uints.uint64 &= (uint64_t) b->uints.uint16; break;
+            case UINT_T_32 : dst->uints.uint64 &= (uint64_t) b->uints.uint32; break;
+            case UINT_T_64 : dst->uints.uint64 &= b->uints.uint64; break;
+            default        : return UINT_T_TYPE_ERROR;
+        }
+        break;
+    default :
+        return UINT_T_ERROR;
+    }
+    return 0;
+}
+
+
+int uint_t_or (uint_t * dst, uint_t * b)
+{
+    switch (dst->type) {
+    case UINT_T_8 :
+        switch (b->type) {
+            case UINT_T_8  : dst->uints.uint8 |= b->uints.uint8; break;
+            default        : return UINT_T_TYPE_ERROR;
+        }
+    case UINT_T_16 :
+        switch (b->type) {
+            case UINT_T_8  : dst->uints.uint16 |= (uint16_t) b->uints.uint8; break;
+            case UINT_T_16 : dst->uints.uint16 |= b->uints.uint16; break;
+            default        : return UINT_T_TYPE_ERROR;
+        }
+        break;
+    case UINT_T_32 :
+        switch (b->type) {
+            case UINT_T_8  : dst->uints.uint32 |= (uint32_t) b->uints.uint8; break;
+            case UINT_T_16 : dst->uints.uint32 |= (uint32_t) b->uints.uint16; break;
+            case UINT_T_32 : dst->uints.uint32 |= b->uints.uint32; break;
+            default        : return INT_T_TYPE_ERROR;
+        }
+        break;
+    case UINT_T_64 :
+        switch (b->type) {
+            case UINT_T_8  : dst->uints.uint64 |= (uint64_t) b->uints.uint8; break;
+            case UINT_T_16 : dst->uints.uint64 |= (uint64_t) b->uints.uint16; break;
+            case UINT_T_32 : dst->uints.uint64 |= (uint64_t) b->uints.uint32; break;
+            case UINT_T_64 : dst->uints.uint64 |= b->uints.uint64; break;
+            default        : return UINT_T_TYPE_ERROR;
+        }
+        break;
+    default :
+        return UINT_T_ERROR;
+    }
+    return 0;
+}
+
+
+int uint_t_xor (uint_t * dst, uint_t * b)
+{
+    switch (dst->type) {
+    case UINT_T_8 :
+        switch (b->type) {
+            case UINT_T_8  : dst->uints.uint8 ^= b->uints.uint8; break;
+            default        : return UINT_T_TYPE_ERROR;
+        }
+    case UINT_T_16 :
+        switch (b->type) {
+            case UINT_T_8  : dst->uints.uint16 ^= (uint16_t) b->uints.uint8; break;
+            case UINT_T_16 : dst->uints.uint16 ^= b->uints.uint16; break;
+            default        : return UINT_T_TYPE_ERROR;
+        }
+        break;
+    case UINT_T_32 :
+        switch (b->type) {
+            case UINT_T_8  : dst->uints.uint32 ^= (uint32_t) b->uints.uint8; break;
+            case UINT_T_16 : dst->uints.uint32 ^= (uint32_t) b->uints.uint16; break;
+            case UINT_T_32 : dst->uints.uint32 ^= b->uints.uint32; break;
+            default        : return INT_T_TYPE_ERROR;
+        }
+        break;
+    case UINT_T_64 :
+        switch (b->type) {
+            case UINT_T_8  : dst->uints.uint64 ^= (uint64_t) b->uints.uint8; break;
+            case UINT_T_16 : dst->uints.uint64 ^= (uint64_t) b->uints.uint16; break;
+            case UINT_T_32 : dst->uints.uint64 ^= (uint64_t) b->uints.uint32; break;
+            case UINT_T_64 : dst->uints.uint64 ^= b->uints.uint64; break;
+            default        : return UINT_T_TYPE_ERROR;
+        }
+        break;
+    default :
+        return UINT_T_ERROR;
+    }
+    return 0;
+}
+
+
+int uint_t_rotl (uint_t * dst, int bits)
+{
+    switch (dst->type) {
+    case UINT_T_8  : dst->uints.uint8  <<= bits;
+    case UINT_T_16 : dst->uints.uint16 <<= bits;
+    case UINT_T_32 : dst->uints.uint32 <<= bits;
+    case UINT_T_64 : dst->uints.uint64 <<= bits;
+    default : return UINT_T_ERROR;
+    }
+    return 0;
+}
+
+
+int uint_t_rotr (uint_t * dst, int bits)
+{
+    switch (dst->type) {
+    case UINT_T_8  : dst->uints.uint8  >>= bits;
+    case UINT_T_16 : dst->uints.uint16 >>= bits;
+    case UINT_T_32 : dst->uints.uint32 >>= bits;
+    case UINT_T_64 : dst->uints.uint64 >>= bits;
+    default : return UINT_T_ERROR;
+    }
+    return 0;
+}
+    
+
+
 void uint_t_int_t (uint_t * dst, int_t * src)
 {
     switch (src->type) {
