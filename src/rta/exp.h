@@ -1,7 +1,8 @@
 #ifndef rta_exp_HEADER
 #define rta_exp_HEADER
 
-#include "../types.h"
+#include <stdint.h>
+#include <stdlib.h>
 
 enum {
     RTA_EXP_VAR,
@@ -31,7 +32,10 @@ struct _rta_exp {
     struct _rta_exp * right;
 };
 
-struct _rta_exp * rta_exp_create (int type, int bits, uint64_t value);
+struct _rta_exp * rta_exp_create_arith (int type, int bits,
+                                        struct _rta_exp * left,
+                                        struct _rta_exp * right);
+struct _rta_exp * rta_exp_create (int type, uint64_t value, int bits);
 
 uint64_t rta_exp_eval (struct _rta_exp * exp);
 

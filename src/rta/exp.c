@@ -1,5 +1,37 @@
 #include "exp.h"
 
+struct _rta_exp * rta_exp_create_arith (int type, int bits,
+                                        struct _rta_exp * left,
+                                        struct _rta_exp * right)
+{
+    struct _rta_exp * exp;
+
+    exp = (struct _rta_exp *) malloc(sizeof(struct _rta_exp));
+    exp->type = type;
+    exp->bits = bits;
+    exp->value = 0;
+    exp->left = left;
+    exp->right = right;
+
+    return exp;
+}
+
+
+
+struct _rta_exp * rta_exp_create (int type, uint64_t value, int bits) {
+    struct _rta_exp * exp;
+
+    exp = (struct _rta_exp *) malloc(sizeof(struct _rta_exp));
+    exp->type = type;
+    exp->value = value;
+    exp->bits = bits;
+    exp->left = NULL;
+    exp->right = NULL;
+
+    return exp;
+}
+
+
 uint64_t rta_exp_eval (struct _rta_exp * exp)
 {
     uint64_t result = 0;
