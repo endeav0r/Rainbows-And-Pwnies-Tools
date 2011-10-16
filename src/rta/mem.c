@@ -37,7 +37,11 @@ uint64_t rta_mem_malloc (struct _rta_mem * mem, uint64_t size)
 	new_malloc = (struct _rta_mem_malloc *) malloc(sizeof(new_malloc));
 	new_malloc->level = 0;
 	new_malloc->data = (unsigned char *) malloc(size);
-	new_malloc->address = (uint64_t) new_malloc->data;
+#if __SIZEOF_PTRDIFF_T__ == 4
+	new_malloc->address = (uint64_t) (uint32_t) new_malloc->data;
+#else
+    new_malloc->address = (uint64_t) new_malloc->data;
+#endif
 	new_malloc->size = size;
 	new_malloc->left  = NULL;
 	new_malloc->right = NULL;
