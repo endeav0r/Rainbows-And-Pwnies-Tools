@@ -21,7 +21,7 @@ void lua_operands_table (lua_State * L, ud_t * ud_obj)
         lua_pushstring(L, types_strings[ud_obj->operand[op_i].index]);
         lua_settable(L, -3);
         lua_pushstring(L, "offset");
-        lua_pushstring(L, types_strings[ud_obj->operand[op_i].offset]);
+        lua_pushinteger(L, ud_obj->operand[op_i].offset);
         lua_settable(L, -3);
         lua_pushstring(L, "scale");
         lua_pushinteger(L, ud_obj->operand[op_i].scale);
