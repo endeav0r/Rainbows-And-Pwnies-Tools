@@ -1,9 +1,9 @@
 #ifndef lua_types_HEADER
 #define lua_types_HEADER
 
-#include <lua5.1/lua.h>
-#include <lua5.1/lauxlib.h>
-#include <lua5.1/lualib.h>
+#include <lua.h>
+#include <lauxlib.h>
+#include <lualib.h>
 #include <string.h>
 
 #include "../types.h"

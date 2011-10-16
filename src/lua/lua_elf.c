@@ -675,7 +675,6 @@ int lua_elf_section_t_rop_table (lua_State * L)
     struct _elf_section * section;
     struct _rop_list * rop_list;
     struct _rop_list * rop_list_first;
-    struct _rop_ins  * rop_ins;
     int                rop_depth;
     int                rop_i;
     uint_t             address;
@@ -693,7 +692,7 @@ int lua_elf_section_t_rop_table (lua_State * L)
     rop_i = 1;
     lua_newtable(L);
     while (rop_list != NULL) {
-        rop_ins = rop_list_ins(rop_list);
+        rop_list_ins(rop_list);
         uint_t_set(&address, elf_section_addr(section));
         uint_t_add_int(&address, rop_list->offset);
         lua_dis_table(L, &address, rop_list->bytes,

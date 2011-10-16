@@ -10,7 +10,7 @@
 int print_rop_list (struct _exec_section * section, struct _rop_list * rops)
 {
     struct _rop_ins  * rop_ins;
-    int rop_offset, total_gadgets = 0;
+    int total_gadgets = 0;
     char bytes_string[8 * 3 + 1];
     int byte_i;
     uint_t tmp_addr;
@@ -19,7 +19,6 @@ int print_rop_list (struct _exec_section * section, struct _rop_list * rops)
         total_gadgets++;
         
         rop_ins = rop_list_ins(rops);
-        rop_offset = 0;
         
         uint_t_set(&tmp_addr, exec_section_address(section));
         uint_t_add_int(&tmp_addr, rops->offset);

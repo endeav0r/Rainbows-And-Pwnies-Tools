@@ -6,7 +6,6 @@ struct _exec * exec_open (char * filename)
 
     FILE * fh;
     size_t filesize;
-    size_t bytes_read;
     unsigned char buf[256];
     int offset;
     struct _exec * exec;
@@ -24,7 +23,7 @@ struct _exec * exec_open (char * filename)
     filesize = ftell(fh);
     fseek(fh, 0, SEEK_SET);
     
-    bytes_read = fread(buf, 1, filesize < 256 ? filesize : 256, fh);
+    fread(buf, 1, filesize < 256 ? filesize : 256, fh);
     
     fclose(fh);
     

@@ -1,9 +1,9 @@
 #ifndef lua_elf_HEADER
 #define lua_elf_HEADER
 
-#include <lua5.1/lua.h>
-#include <lua5.1/lauxlib.h>
-#include <lua5.1/lualib.h>
+#include <lua.h>
+#include <lauxlib.h>
+#include <lualib.h>
 
 #include "../bin/elf.h"
 #include "lua_dis.h"
