@@ -6,7 +6,7 @@ instructions = section:disassemble()
 for i, instruction in pairs(instructions) do
     print(instruction["description"])
     for o, operand in pairs(instruction["operands"]) do
-        if operand["type"] == "mem" then
+        if operand["type"] == "reg" then
             print("  operand " .. o)
             for k, v in pairs(operand) do
                 print("    " .. k .. " " .. tostring(v))

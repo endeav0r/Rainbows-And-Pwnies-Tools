@@ -32,6 +32,16 @@ struct _rta_exp * rta_exp_create (int type, uint64_t value, int bits) {
 }
 
 
+void rta_exp_destroy (struct _rta_exp * exp)
+{
+    if (exp->left != NULL)
+        rta_exp_destroy(exp->left);
+    if (exp->right != NULL)
+        rta_exp_destroy(exp->right);
+    free(exp);
+}
+
+
 uint64_t rta_exp_eval (struct _rta_exp * exp)
 {
     uint64_t result = 0;

@@ -1,53 +1,11 @@
 #include "rta_x86.h"
 
-struct _rta_exp * rta_x86_operand_exp (ud_t * ud_obj, int operand)
-{
-    struct _rta_exp * index = NULL;
-    struct _rta_exp * base = NULL;
-
-    switch (ud_obj->operand[operand].type) {
-
-    case UD_NONE :
-        return NULL;
-
-    case UD_OP_MEM :
-        if (ud_obj->operand[operand].index != UD_NONE)
-            index = rta_exp_create(RTA_EXP_VAR,
-                                   rta_x86_udis_reg_var(ud_obj->operand[operand].index),
-                                   rta_x86_udis_reg_size(ud_obj->operand[operand].index));
-        if (ud_obj->operand[operand].scale > 0)
-            index  = rta_exp_create_arith(RTA_EXP_MUL, ud_obj->operand[operand].size,
-                                          index,
-                                          rta_exp_create(RTA_EXP_SCONST,
-                                                         ud_obj->operand[operand].scale,
-                                                         ud_obj->operand[operand].size));
-        if (ud_obj->operand[operand].base != UD_NONE)
-            base = rta_exp_create(RTA_EXP_VAR,
-                                  rta_x86_udis_reg_var(ud_obj->operand[operand].base),
-                                  rta_x86_udis_reg_size(ud_obj->operand[operand].base));
-        if (ud_obj->operand[operand].offset > 0)
-            base = rta_exp_create_arith(RTA_EXP_ADD, ud_obj->operand[operand].offset,
-                                        base,
-                                        rta_exp_create(RTA_EXP_SCONST,
-                                                       ud_obj->operand[operand].lval.uqword,
-                                                       ud_obj->operand[operand].offset));
-        if (index == NULL)
-            return base;
-        else if (base == NULL) // just so we're clear, this should NEVER happen
-            return index;
-        else
-            return rta_exp_create_arith(RTA_EXP_ADD, ud_obj->operand[operand].size, base, index);
-
-    default :
-        return NULL;
-    }
-}
-
 
 struct _rta_ops * rta_x86_ops (unsigned char * data, int data_size, int mode,
                                uint64_t address)
 {
     struct _rta_ops * ops;
+    struct _rta_exp * exp;
     ud_t ud_obj;
 
     ud_init(&ud_obj);
@@ -56,15 +14,107 @@ struct _rta_ops * rta_x86_ops (unsigned char * data, int data_size, int mode,
     ud_set_input_buffer(&ud_obj, data, data_size);
     ud_set_syntax(&ud_obj, NULL);
 
+    ops = rta_ops_create();
+
     while (ud_disassemble(&ud_obj)) {
         switch (ud_obj.mnemonic) {
         case UD_Ipush :
+            // ASSIGN(RSP, RSP - SIZEOF_PTRDIFF_T)
+            exp = rta_exp_create_arith(RTA_EXP_SUB, mode,
+                                       rta_exp_create(RTA_EXP_VAR,
+                                                      RTA_X86_VAR_RSP,
+                                                      mode),
+                                       rta_exp_create(RTA_EXP_SCONST,
+                                                      mode / 8,
+                                                      mode)
+                                      );
+            rta_ops_append(ops,
+                           rta_op_create(address + ud_insn_off(&ud_obj),
+                                         RTA_OP_ASSIGN,
+                                         rta_exp_create(RTA_EXP_VAR,
+                                                        RTA_X86_VAR_RSP,
+                                                        mode),
+                                         exp)
+                          );
+            // STORE(RSP, EXPR)
+            rta_ops_append(ops,
+                           rta_op_create(address + ud_insn_off(&ud_obj),
+                                         RTA_OP_STORE,
+                                         rta_exp_create(RTA_EXP_VAR,
+                                                        RTA_X86_VAR_RSP,
+                                                        mode),
+                                         rta_x86_operand_exp(&(ud_obj.operand[0]))
+                                        )
+                          );
             break;
         default :
             break;
         }
     }
     return NULL;
+}
+
+
+struct _rta_exp * rta_x86_operand_exp (ud_operand_t * operand)
+{
+    struct _rta_exp * index = NULL;
+    struct _rta_exp * base = NULL;
+
+    switch (operand->type) {
+
+    case UD_NONE :
+        return NULL;
+
+    case UD_OP_MEM :
+        if (operand->index != UD_NONE)
+            index = rta_exp_create(RTA_EXP_VAR,
+                                   rta_x86_udis_reg_var(operand->index),
+                                   rta_x86_udis_reg_size(operand->index));
+        if (operand->scale > 0)
+            index  = rta_exp_create_arith(RTA_EXP_MUL, operand->size,
+                                          index,
+                                          rta_exp_create(RTA_EXP_SCONST,
+                                                         operand->scale,
+                                                         operand->size));
+        if (operand->base != UD_NONE)
+            base = rta_exp_create(RTA_EXP_VAR,
+                                  rta_x86_udis_reg_var(operand->base),
+                                  rta_x86_udis_reg_size(operand->base));
+        if (operand->offset > 0)
+            base = rta_exp_create_arith(RTA_EXP_ADD, operand->offset,
+                                        base,
+                                        rta_exp_create(RTA_EXP_SCONST,
+                                                       rta_x86_get_lval(operand),
+                                                       operand->offset));
+        if (index == NULL)
+            return base;
+        else if (base == NULL) // just so we're clear, this should NEVER happen
+            return index;
+        else
+            return rta_exp_create_arith(RTA_EXP_ADD, operand->size, base, index);
+
+    case UD_OP_IMM :
+        return rta_exp_create(RTA_EXP_SCONST,
+                              rta_x86_get_lval(operand),
+                              operand->size);
+
+    case UD_OP_JIMM :
+        return rta_exp_create_arith(RTA_EXP_ADD, operand->size, // not sure if problems
+                                    rta_exp_create(RTA_EXP_VAR, RTA_X86_VAR_RIP,
+                                                   operand->size), // not sure if problems
+                                    rta_exp_create(RTA_EXP_SCONST,
+                                                   operand->base,
+                                                   operand->size));
+    case UD_OP_CONST :
+        return rta_exp_create(RTA_EXP_UCONST, rta_x86_get_lval(operand), operand->size);
+
+    case UD_OP_REG :
+        return rta_exp_create(RTA_EXP_VAR, rta_x86_udis_reg_var(operand->base),
+                              rta_x86_udis_reg_size(operand->base));
+
+    default :
+        return NULL;
+    }
 }
 
 
@@ -146,3 +196,21 @@ int rta_x86_udis_reg_var (int udis_reg)
     return -1;
 }
 
+
+// we would just get qword but can't trust how compiler will align struct
+uint64_t rta_x86_get_lval (ud_operand_t * operand)
+{
+    switch (operand->size) {
+    case 0 :
+        return 0;
+    case 8 :
+        return operand->lval.ubyte;
+    case 16 :
+        return operand->lval.uword;
+    case 32 :
+        return operand->lval.udword;
+    case 64 :
+        return operand->lval.uqword;
+    }
+    return 1;
+}
