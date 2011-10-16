@@ -36,7 +36,7 @@ struct _rta_ops * rta_x86_ops (unsigned char * data, int data_size, int mode,
                                                         mode),
                                          exp)
                           );
-            // STORE(RSP, EXPR)
+            // STORE(RSP, operand[0])
             rta_ops_append(ops,
                            rta_op_create(address + ud_insn_off(&ud_obj),
                                          RTA_OP_STORE,
@@ -45,6 +45,39 @@ struct _rta_ops * rta_x86_ops (unsigned char * data, int data_size, int mode,
                                                         mode),
                                          rta_x86_operand_exp(&(ud_obj.operand[0]))
                                         )
+                          );
+            break;
+        // technically we can pop to memory locations
+        case UD_Ipop :
+            // LOAD(operand[0], RSP)
+            exp = rta_exp_create(RTA_EXP_VAR, 
+                                 rta_x86_udis_reg_var(ud_obj.operand[0].base),
+                                 rta_x86_udis_reg_size(ud_obj.operand[0].size));
+            rta_ops_append(ops,
+                           rta_op_create(address + ud_insn_off(&ud_obj),
+                                         RTA_OP_LOAD,
+                                         exp,
+                                         rta_exp_create(RTA_EXP_VAR,
+                                                        RTA_X86_VAR_RSP,
+                                                        mode)
+                                        )
+                          );
+            // ASSIGN(RSP, RSP + SIZEOF_PTRDIFF_T)
+            exp = rta_exp_create_arith(RTA_EXP_ADD, mode,
+                                       rta_exp_create(RTA_EXP_VAR,
+                                                      RTA_X86_VAR_RSP,
+                                                      mode),
+                                       rta_exp_create(RTA_EXP_SCONST,
+                                                      mode / 8,
+                                                      mode)
+                                      );
+            rta_ops_append(ops,
+                           rta_op_create(address + ud_insn_off(&ud_obj),
+                                         RTA_OP_ASSIGN,
+                                         rta_exp_create(RTA_EXP_VAR,
+                                                        RTA_X86_VAR_RSP,
+                                                        mode),
+                                         exp)
                           );
             break;
         default :

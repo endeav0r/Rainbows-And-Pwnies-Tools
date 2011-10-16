@@ -11,7 +11,7 @@ enum {
     RTA_OP_ASSIGN,
     RTA_OP_JMP,
     RTA_OP_STORE,
-    RTA_OP_FETCH
+    RTA_OP_LOAD
 };
 
 struct _rta_op {
