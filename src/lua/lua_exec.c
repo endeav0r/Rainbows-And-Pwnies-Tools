@@ -197,26 +197,46 @@ int lua_exec_find_functions (lua_State * L)
 {
     struct _exec * exec;
     struct _exec_section section;
-    struct _analyze_function * functions = NULL;
-    struct _analyze_function * functions_first;
-    uint_t start_function;
     int section_i;
     int function_i;
+    struct _analyze_function analyze_function;
+    struct _analyze_function * analyze_function_p;
+
+    _aatree * tree = NULL;
+    _aatree * tree_tmp = NULL;
+    _list   * list;
+    _list_iterator it;
     
     exec = lua_check_exec(L, -1);
     lua_pop(L, 1);
     
+    // grab the functions in each executable section
+    for (section_i = 0; section_i < exec_num_sections(exec); section_i++) {
+        exec_section(exec, &section, section_i);
+        if (exec_section_types(&section) & EXEC_SECTION_TYPE_EXECUTABLE)
+            tree_tmp = analyze_find_functions(exec_section_data(&section),
+                                              exec_section_size(&section),
+                                              exec_mode(exec),
+                                              exec_section_address(&section));
+            if (tree == NULL)
+                tree = tree_tmp;
+            else {
+                aatree_merge(tree, tree_tmp);
+                aatree_destroy(tree_tmp);
+            }
+    }
+
     // the first function typically isn't called from the loader and not from
     // within the binary. we're going to find the start functions here and make
     // sure they're added.
-    uint_t_8_set(&start_function, 0);
+    uint_t_8_set(&(analyze_function.address), 0);
     switch (exec_type(exec)) {
     case EXEC_TYPE_ELF :
         // for ELFs, the first function is at the start of .text
         for (section_i = 0; section_i < exec_num_sections(exec); section_i++) {
             exec_section(exec, &section, section_i);
             if (strcmp(exec_section_name(&section), ".text") == 0) {
-                uint_t_set(&start_function, exec_section_address(&section));
+                uint_t_set(&(analyze_function.address), exec_section_address(&section));
                 break;
             }
         }
@@ -224,33 +244,24 @@ int lua_exec_find_functions (lua_State * L)
     case EXEC_TYPE_PE :
         // for PEs, the first function can be found at AddressOfEntryPoint in
         // the optional header, or for us pe_AddressOfEntryPoint
-        uint_t_set(&start_function, pe_AddressOfEntryPoint(exec->e.pe));
+        uint_t_set(&(analyze_function.address), pe_AddressOfEntryPoint(exec->e.pe));
         break;
     }
-    analyze_function_insert(functions, &start_function);
+    aatree_insert(tree, &analyze_function);
     
-    for (section_i = 0; section_i < exec_num_sections(exec); section_i++) {
-        exec_section(exec, &section, section_i);
-        if (exec_section_types(&section) & EXEC_SECTION_TYPE_EXECUTABLE)
-            functions = analyze_find_functions(exec_section_data(&section),
-                                               exec_section_size(&section),
-                                               exec_mode(exec),
-                                               exec_section_address(&section),
-                                               functions);
-    }
-    
-    functions = analyze_function_listify(functions);
-    functions_first = functions;
+    // make tree list, and add to lua table
+    list = list_copy_aatree(tree);
+    aatree_destroy(tree);
+    list_iterator(list, &it);
     function_i = 1;
     lua_newtable(L);
-    while (functions != NULL) {
+    while ((analyze_function_p = (struct _analyze_function *) list_next(&it)) != NULL) {
         lua_pushinteger(L, function_i++);
-        lua_push_uint_t(L, &(functions->address));
+        lua_push_uint_t(L, &(analyze_function_p->address));
         lua_settable(L, -3);
-        functions = functions->next;
     }
     
-    analyze_function_destroy(functions_first);
+    list_destroy(list);
     
     return 1;
 }
