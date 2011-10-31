@@ -106,9 +106,19 @@ uint64_t rta_exp_eval (struct _rta_exp * exp)
     	break;
     case RTA_EXP_LTE :
     	result = 0;
-    	if (rta_exp_eval(exp->left) < rta_exp_eval(exp->right))
+    	if (rta_exp_eval(exp->left) <= rta_exp_eval(exp->right))
     		result = 1;
-    	break;							
+    	break;
+    case RTA_EXP_GT :
+        result = 0;
+        if (rta_exp_eval(exp->left) > rta_exp_eval(exp->right))
+            result = 1;
+        break;
+    case RTA_EXP_GTE :
+        result = 0;
+        if (rta_exp_eval(exp->left) >= rta_exp_eval(exp->right))
+            result = 1;
+        break;
     }
     
     switch (exp->bits) {

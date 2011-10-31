@@ -7,6 +7,8 @@
 
 #include "../analyze.h"
 #include "../bin/exec.h"
+#include "../lib/aatree.h"
+#include "../lib/list.h"
 #include "lua_dis.h"
 #include "lua_types.h"
 #include "../rop.h"

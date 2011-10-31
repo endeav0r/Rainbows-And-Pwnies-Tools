@@ -22,6 +22,8 @@ enum {
     RTA_EXP_NE,
     RTA_EXP_LT,
     RTA_EXP_LTE,
+    RTA_EXP_GT,
+    RTA_EXP_GTE
 };
 
 struct _rta_exp {
