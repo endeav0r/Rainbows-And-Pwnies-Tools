@@ -14,7 +14,6 @@ sources_c += map(lambda x: 'src/bin/' + x + '.c', src_bin_c)
 sources_c += map(lambda x: 'src/rta/' + x + '.c', src_rta_c) 
 sources_c += map(lambda x: 'src/lib/' + x + '.c', src_lib_c) 
 
-env.Program(target="rop_tools",
+env.Program(target="rt",
             source=sources_c,
-            LIBS=['udis86', 'lua'])
-        
+            LIBS=['udis86', 'lua', 'readline'])

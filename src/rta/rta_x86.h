@@ -24,7 +24,13 @@ enum {
     RTA_X86_VAR_R14,
     RTA_X86_VAR_R15,
     RTA_X86_VAR_RIP,
-    RTA_X86_VAR_LAST
+    RTA_X86_VAR_OF,
+    RTA_X86_VAR_SF,
+    RTA_X86_VAR_ZF,
+    RTA_X86_VAR_AF,
+    RTA_X86_VAR_PF,
+    RTA_X86_VAR_CF,
+    RTA_X86_VAR_ARITH // used for things in arithmetic, IE flags
 };
 
 struct _rta_ops * rta_x86_ops (unsigned char * data, int data_size, int mode,

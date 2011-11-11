@@ -1,19 +1,15 @@
 #include "lua.h"
 
-
-
-int lua_run_file (char * filename, char * argv[], int argc)
+int lua_rt_init (lua_State * L, int argc, char * argv[])
 {
-    int error;
     int args_i;
-    
-    lua_State * L = luaL_newstate();
+
     luaL_openlibs(L);
     lua_open_int_t(L);
     lua_open_uint_t(L);
     lua_open_elf_t(L);
     lua_open_exec_t(L);
-        
+
     lua_newtable(L);
     for (args_i = 0; args_i < argc; args_i++) {
         lua_pushinteger(L, (lua_Integer) args_i + 1);
@@ -21,7 +17,41 @@ int lua_run_file (char * filename, char * argv[], int argc)
         lua_settable(L, -3);
     }
     lua_setglobal(L, "argv");
+
+    return 0;
+}
+
+
+int lua_interactive (int argc, char * argv[])
+{
+    int error = 0;
+    char * line;
+    lua_State * L;
+
+    L = luaL_newstate();
+    lua_rt_init(L, argc, argv);
+
+    while (1) {
+        line = readline("X) ");
+        add_history(line);
+        error = luaL_dostring(L, line);
+        if (error) {
+            line = luaL_checkstring(L, -1);
+            printf("%s\n", line);
+        }
+    }
+
+    return 0;
+}
+
+
+int lua_run_file (char * filename, int argc, char * argv[])
+{
+    int error;
+    lua_State * L;
     
+    L = luaL_newstate();
+    lua_rt_init(L, argc, argv);
     
     error = luaL_loadfile(L, filename);
     switch (error) {

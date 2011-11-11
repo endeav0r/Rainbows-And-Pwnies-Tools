@@ -110,6 +110,7 @@ int main (int argc, char * argv[])
     struct _exec * exec;
     char * filename = NULL;
     int lua_run = 0;
+    int lua_go_interactive = 0;
     int ret_rop = 0;
     int jmp_rop = 0;
     int cond_jmp_rop = 0;
@@ -118,7 +119,7 @@ int main (int argc, char * argv[])
     int c;
     int total_gadgets = 0;
     
-    while ((c = getopt(argc, argv, "cd:e:jkl:r")) != -1) {
+    while ((c = getopt(argc, argv, "cd:e:ijkl:r")) != -1) {
         switch (c) {
         case 'c' :
             call_rop = 1;
@@ -128,6 +129,9 @@ int main (int argc, char * argv[])
             break;
         case 'e' :
             filename = optarg;
+            break;
+        case 'i' :
+            lua_go_interactive = 1;
             break;
         case 'j' :
             jmp_rop = 1;
@@ -151,14 +155,15 @@ int main (int argc, char * argv[])
         }
     }
     
-    if (filename == NULL) {
+    if ((filename == NULL) && (lua_go_interactive == 0)) {
         printf("rop_tools\n");
         printf("brought to you by rainbowsandpwnies\n");
         printf("\n");
-        printf("%s [-cjr] [-d depth] (-e <executable> | -l <lua_file> [args])\n", argv[0]);
+        printf("%s [-cijr] [-d depth] [(-e <executable> | -l <lua_file> [args])]\n", argv[0]);
         printf("  -c              search for call reg gadgets\n");
         printf("  -d <depth>      depth, in instructions, to search backwards\n");
         printf("  -e <executable> filename of executable to analyze\n");
+        printf("  -i              interactive lua\n");
         printf("  -j              search for jmp reg gadgets\n");
         printf("  -k              search for conditional jmp reg gadgets (for when your day is \n");
         printf("                  really going that bad, and probably won't return anything)\n");
@@ -169,8 +174,9 @@ int main (int argc, char * argv[])
     
     
     if (lua_run)
-        lua_run_file(filename, &(argv[optind]), argc - optind);
-    
+        lua_run_file(filename, argc - optind, &(argv[optind]));
+    else if (lua_go_interactive)
+        lua_interactive(argc - optind, &(argv[optind]));
     else {
         exec = exec_open(filename);
         if (exec != NULL) {
