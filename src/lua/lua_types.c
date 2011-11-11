@@ -19,7 +19,7 @@ static const struct luaL_Reg int_t_lib_m [] = {
     {"__lt",       lua_int_t_lt},
     {"__le",       lua_int_t_le},
     {"strx",       lua_int_t_strx},
-    {"str0x",       lua_int_t_strx},
+    {"str0x",      lua_int_t_strx},
     {NULL, NULL}
 };
 
@@ -43,7 +43,8 @@ static const struct luaL_Reg uint_t_lib_m [] = {
     {"__lt",  lua_uint_t_lt},
     {"__le",  lua_uint_t_le},
     {"strx",  lua_uint_t_strx},
-    {"str0x",  lua_uint_t_str0x},
+    {"str0x", lua_uint_t_str0x},
+    {"size",  lua_uint_t_size},
     {NULL, NULL}
 };
 
@@ -815,3 +816,15 @@ int lua_uint_t_le (lua_State * L)
     return 1;
 }
 
+
+int lua_uint_t_size (lua_State * L)
+{
+    uint_t * uintt;
+
+    uintt = lua_check_uint_t(L, -1);
+    lua_pop(L, 1);
+
+    lua_pushinteger(L, UINT_T_BITS(uintt));
+
+    return 1;
+}

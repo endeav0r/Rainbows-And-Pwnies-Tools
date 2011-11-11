@@ -45,5 +45,6 @@ int lua_uint_t_lt    (lua_State * L);
 int lua_uint_t_le    (lua_State * L);
 int lua_uint_t_int   (lua_State * L);
 int lua_uint_t_int_t (lua_State * L);
+int lua_uint_t_size  (lua_State * L);
 
 #endif
