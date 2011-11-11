@@ -8,7 +8,7 @@ _list * list_create (int data_size)
 {
     _list * list;
 
-    list = (_list *) malloc(sizeof(list));
+    list = (_list *) malloc(sizeof(_list));
     list->data_size = data_size;
     list->size = 0;
     list->first = NULL;
@@ -32,7 +32,7 @@ void list_destroy (_list * list)
         list->first = next;
     }
 
-    free (list);
+    free(list);
 }
 
 
@@ -41,8 +41,8 @@ void list_copy_aatree_node (_list * list, _aatree_node * node)
     if (node == NULL)
         return;
     list_copy_aatree_node(list, node->left);
-    list_copy_aatree_node(list, node->right);
     list_insert(list, node->data);
+    list_copy_aatree_node(list, node->right);
 }
 
 
@@ -61,7 +61,7 @@ int list_insert (_list * list, void * data)
 {
     _list_node * list_node;
 
-    list_node = (_list_node *) malloc(sizeof(list_node));
+    list_node = (_list_node *) malloc(sizeof(_list_node));
     list_node->data = (void *) malloc(list->data_size);
     memcpy(list_node->data, data, list->data_size);
     list_node->next = NULL;

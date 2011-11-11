@@ -8,7 +8,7 @@ _aatree * aatree_create (AATREE_CMP_FUNC, int data_size)
 {
     _aatree * tree;
 
-    tree = (_aatree *) malloc(sizeof(tree));
+    tree = (_aatree *) malloc(sizeof(_aatree));
     tree->size = 0;
     tree->nodes = NULL;
     tree->cmp = cmp;
@@ -53,10 +53,10 @@ int aatree_merge (_aatree * tree_dst, _aatree * tree_src)
 
 int aatree_insert (_aatree * tree, void * data)
 {
-    int error;
+    int error = 0;
     _aatree_node * new_node;
 
-    new_node = (_aatree_node *) malloc(sizeof(new_node));
+    new_node = (_aatree_node *) malloc(sizeof(_aatree_node));
     new_node->data = (void *) malloc(tree->data_size);
     memcpy(new_node->data, data, tree->data_size);
     new_node->level = 0;
@@ -126,7 +126,8 @@ _aatree_node * aatree_node_insert (_aatree * tree, _aatree_node * node,
 
     if (tree->cmp(new_node->data, node->data) == 0) {
         *error = AATREE_ERROR_EXISTS;
-        node = aatree_node_delete(tree, node, new_node->data, &error_tmp);
+        if (aatree_node_delete(tree, node, new_node->data, &error_tmp) == NULL)
+            return new_node;
     }
 
     if (tree->cmp(new_node->data, node->data) < 0)
@@ -137,6 +138,7 @@ _aatree_node * aatree_node_insert (_aatree * tree, _aatree_node * node,
     node = aatree_node_skew(node);
     node = aatree_node_split(node);
 
+    error = 0;
     return node;
 }
 
@@ -149,8 +151,8 @@ _aatree_node * aatree_node_search (_aatree * tree, _aatree_node * node,
         return NULL;
     }
 
+    error = 0;
     if (tree->cmp(data, node->data) == 0) {
-        *error = 0;
         return node;
     }
     else if (tree->cmp(data, node->data) < 0)
