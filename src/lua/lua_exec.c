@@ -214,7 +214,7 @@ int lua_exec_find_functions (lua_State * L)
     // grab the functions in each executable section
     for (section_i = 0; section_i < exec_num_sections(exec); section_i++) {
         exec_section(exec, &section, section_i);
-        if (exec_section_types(&section) & EXEC_SECTION_TYPE_EXECUTABLE)
+        if (exec_section_types(&section) & EXEC_SECTION_TYPE_EXECUTABLE) {
             tree_tmp = analyze_find_functions(exec_section_data(&section),
                                               exec_section_size(&section),
                                               exec_mode(exec),
@@ -225,6 +225,7 @@ int lua_exec_find_functions (lua_State * L)
                 aatree_merge(tree, tree_tmp);
                 aatree_destroy(tree_tmp);
             }
+        }
     }
 
     // the first function typically isn't called from the loader and not from
@@ -249,7 +250,7 @@ int lua_exec_find_functions (lua_State * L)
         break;
     }
     aatree_insert(tree, &analyze_function);
-    
+   
     // make tree list, and add to lua table
     list = list_copy_aatree(tree);
     aatree_destroy(tree);
@@ -263,7 +264,7 @@ int lua_exec_find_functions (lua_State * L)
     }
     
     list_destroy(list);
-    
+
     return 1;
 }
 
