@@ -36,7 +36,7 @@ int lua_interactive (int argc, char * argv[])
         add_history(line);
         error = luaL_dostring(L, line);
         if (error) {
-            line = luaL_checkstring(L, -1);
+            line = (char *) luaL_checkstring(L, -1);
             printf("%s\n", line);
         }
     }

@@ -16,6 +16,7 @@ static const struct luaL_Reg exec_lib_m [] = {
     {"find_functions", lua_exec_find_functions},
     {"symbol",         lua_exec_symbol},
     {"symbols",        lua_exec_symbols},
+    {"mem_at_address", lua_exec_mem_at_address},
     {NULL, NULL}
 };
 
@@ -418,6 +419,90 @@ int lua_exec_symbols (lua_State * L)
     lua_pop(L, 1);
     
     return 1;
+}
+
+
+int lua_exec_mem_at_address (lua_State * L)
+{
+    struct _exec * exec;
+    struct _exec_section section;
+    uint_t address;
+    uint_t address_end;
+    uint_t section_end_addr;
+    uint_t mem;
+    uint_t mem_offset;
+    unsigned char * data;
+    int mem_size;
+    int mem_num;
+    int section_i;
+    int mem_i;
+    int mem_found = 0;
+
+    exec = lua_check_exec(L, 1);
+    uint_t_set(&address, lua_check_uint_t(L, 2));
+    mem_size = luaL_checkinteger(L, 3);
+    mem_num = luaL_checkinteger(L, 4);
+
+    if (    (mem_size != 8)
+         && (mem_size != 16)
+         && (mem_size != 32)
+         && (mem_size != 64))
+        luaL_error(L, "mem_size for lua_exec_mem_at_address must be one of 8,16,32,64");
+
+    lua_pop(L, 4);
+
+    // find the section which holds this memory
+    for (section_i = 0; section_i < exec_num_sections(exec); section_i++) {
+        exec_section(exec, &section, section_i);
+        uint_t_set(&section_end_addr, exec_section_address(&section));
+        uint_t_add_int(&section_end_addr, exec_section_size(&section));
+        if (    (uint_t_cmp(exec_section_address(&section), &address) <= 0)
+             && (uint_t_cmp(&section_end_addr, &address) > 0)) {
+            data = exec_section_data(&section);
+            uint_t_set(&mem_offset, &address);
+            uint_t_sub(&mem_offset, exec_section_address(&section));
+
+            mem_found = 1;
+            // create the table for the memory
+            lua_newtable(L);
+            for (mem_i = 0; mem_i < mem_num; mem_i++) {
+                // make sure this memory is held completely within the section
+                uint_t_set(&address_end, &address);
+                uint_t_add_int(&address_end, (mem_size / 8) * mem_i);
+                if (uint_t_cmp(&address_end, &section_end_addr) >= 0)
+                    break;
+                // add mem to table
+                lua_pushinteger(L, mem_i);
+                switch (mem_size) {
+                case 8 :
+                    uint_t_8_set(&mem,  *((uint8_t *)  &(data[uint_t_get(&mem_offset)])));
+                    uint_t_add_int(&mem_offset, 1);
+                    uint_t_add_int(&address, 1);
+                    break;
+                case 16 :
+                    uint_t_16_set(&mem, *((uint16_t *) &(data[uint_t_get(&mem_offset)])));
+                    uint_t_add_int(&mem_offset, 2);
+                    uint_t_add_int(&address, 2);
+                    break;
+                case 32 :
+                    uint_t_32_set(&mem, *((uint32_t *) &(data[uint_t_get(&mem_offset)])));
+                    uint_t_add_int(&mem_offset, 4);
+                    uint_t_add_int(&address, 4);
+                    break;
+                case 64 :
+                    uint_t_64_set(&mem, *((uint64_t *) &(data[uint_t_get(&mem_offset)])));
+                    uint_t_add_int(&mem_offset, 16);
+                    uint_t_add_int(&address, 8);
+                    break;
+                }
+                lua_push_uint_t(L, &mem);
+                lua_settable(L, -3);
+            }
+            break;
+        }
+    }
+
+    return mem_found;
 }
 
 
