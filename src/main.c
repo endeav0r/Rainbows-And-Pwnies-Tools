@@ -156,8 +156,12 @@ int main (int argc, char * argv[])
     }
     
     if ((filename == NULL) && (lua_go_interactive == 0)) {
-        printf("rop_tools\n");
-        printf("brought to you by rainbowsandpwnies\n");
+        printf("Rainbows-And-Pwnies-Tools\n");
+        printf("\n");
+        printf("Copyright (C) 2011 endeavor@rainbowsandpwnies.com\n");
+        printf("This program comes with ABSOLUTELY NO WARRANTY\n");
+        printf("This is free software, and you are welcome to redistribute it\n");
+        printf("under certain conditions. See the LICENSE file for details.\n");
         printf("\n");
         printf("%s [-cijr] [-d depth] [(-e <executable> | -l <lua_file> [args])]\n", argv[0]);
         printf("  -c              search for call reg gadgets\n");
