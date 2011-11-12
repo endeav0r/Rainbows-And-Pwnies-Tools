@@ -57,19 +57,37 @@ end
 -- dump_functions                              --
 -------------------------------------------------
 function dump_functions (exec)
-    functions = exec:find_functions()
-    
-    symbols = exec:symbols()
+    local functions = exec:find_functions()
+    local symbols = exec:symbols()
     
     for fi, f in pairs(functions) do
-        local function_name = "func_" .. f:strx()
-        for si, s in pairs(symbols) do
-            if s:address() == f then
-                function_name = s:name()
-                break
-            end
-        end
+        local function_name = describe_address(exec, f)
+        if function_name == nil then function_name = 'func@' .. f:strx() end
         print(TERM_COLOR_GREEN .. f:strx() .. TERM_COLOR_DEFAULT .. ' ' ..
               TERM_COLOR_CYAN .. function_name .. TERM_COLOR_DEFAULT)
     end
+end
+
+
+-------------------------------------------------
+-- dump_instructions                           --
+-------------------------------------------------
+
+
+function dump_instructions (exec, instructions)
+    table.sort(instructions, function (a, b) return a['address'] < b['address'] end)
+
+    for ii, ins in pairs(instructions) do
+        -- symbol description for this address
+        local description = describe_address_symbol(exec, ins['address'])
+        if description ~= nil then
+            print(TERM_BOLD .. TERM_COLOR_RED .. description .. TERM_COLOR_DEFAULT .. TERM_NORMAL)
+        end
+
+        -- print the instruction
+        print(TERM_COLOR_GREEN .. ins['address']:strx() .. TERM_COLOR_DEFAULT .. ' ' ..
+              TERM_COLOR_CYAN  .. ins['description']    .. TERM_COLOR_DEFAULT)
+
+    end
+
 end
