@@ -3,135 +3,63 @@ Brought to you by rainbowsandpwnies
 /**************
 * DESCRIPTION *
 **************/
-rop_tools is a tool to help with the identification of rop gadgets and the
-building of rop chains. Coded in C, it quickly identifies rop gadgets in large
-binaries. It makes this information available to lua scripts for rop chain
-scripting goodness.
 
-Currently supports x86(|-64) ELF and x86 PE executables (no PE+, or 64-bit)
-PE+ support _is_coming_
+Rainbows-And-Pwnies-Tools started as rop_tools, a tool to aid in quickly
+identifying rop gadgets. While this functionality remains intact, rop_tools
+evolved, and has become Rainbows-And-Pwnies-Tools, or rt for short.
 
+rt consists of a few pieces.
+
+First and foremost, rt is a C library for easily and generically working with
+32 and 64-bit binary formats. Currently is supports ELF and a subsect of the PE
+format.
+
+Second, rt breaks much of this functionality out into the lua scripting
+language. This allows you to write one lua script which work on 32 and 64-bit
+x86 in a variety of formats. For example, if you wanted to find all of the mov
+instructions, you could implement that in a lua script (as of this writing)
+as follows:
+
+    dofile('stdlib/stdlib.lua')
+
+    exec = exec_t.new(argv[1])
+    sections = exec:sections()
+    for ss, s in pairs(sections) do
+        if table.contains(s:types(), 'executable') then
+            print(TERM_COLOR_MAGENTA .. TERM_BOLD .. 
+                  s:name() .. 
+                  TERM_NORMAL .. TERM_COLOR_DEFAULT)
+            dump_instructions(exec, s:disassemble())
+        end
+    end
+
+You'll notice we make use of a few variables and functions created for our
+convenience. These can be found in the stdlib/ directory.
+
+Finally, rt now has a command line lua interpreter, allowing you to script
+your disassembly away to your heart's content.
 
 
 /*************** 
 * REQUIREMENTS *
 ***************/
+
+rt is built with scons
+http://www.scons.org/
+
 udis86 and lua5.1
 http://udis86.sourceforge.net/
 http://www.lua.org/
 
 
-
 /********
 * BUILD *
 ********/
+
 Make sure you have the necessary dependencies. There is no Ubuntu package for
 udis86. For lua, you will need the Ubuntu package liblua5.1-0-dev
 
-Then just run make
+Then just run scons
 
-
-
-/***********
-* EXAMPLES *
-***********/
-
-$ ./rop_tools 
-rop_tools
-brought to you by rainbowsandpwnies
-
-./rop_tools [-cjr] [-d depth] (-e <executable> | -l <lua_file> [args])
-  -c              search for call reg gadgets
-  -d <depth>      depth, in instructions, to search backwards
-  -e <executable> filename of executable to analyze
-  -j              search for jmp reg gadgets
-  -k              search for conditional jmp reg gadgets (for when your day is 
-                  really going that bad, and probably won't return anything)
-  -l <lua>        runs lua script
-  -r              search for ret gadgets
-
-/*******************************************************************************
-*******************************************************************************/
-
-$ ls -lh /lib/x86_64-linux-gnu/libc-2.13.so 
--rwxr-xr-x 1 root root 1.6M 2011-04-11 07:26 /lib/x86_64-linux-gnu/libc-2.13.so
-$ time ./rop_tools -e /lib/x86_64-linux-gnu/libc-2.13.so -r | tail -n 20
-
-  0x13d3fc:  08 5b 5d -- -- -- -- --   or [rbx+0x5d], bl
-  0x13d3ff:  c3 -- -- -- -- -- -- --   ret 
-
-  0x13d506:  5d -- -- -- -- -- -- --   pop rbp
-  0x13d507:  c3 -- -- -- -- -- -- --   ret 
-
-  0x13d504:  08 5b 5d -- -- -- -- --   or [rbx+0x5d], bl
-  0x13d507:  c3 -- -- -- -- -- -- --   ret 
-
-  0x13d594:  00 48 39 -- -- -- -- --   add [rax+0x39], cl
-  0x13d597:  c3 -- -- -- -- -- -- --   ret 
-
-  0x13d5b0:  5d -- -- -- -- -- -- --   pop rbp
-  0x13d5b1:  c3 -- -- -- -- -- -- --   ret 
-
-  0x13d5ae:  08 5b 5d -- -- -- -- --   or [rbx+0x5d], bl
-  0x13d5b1:  c3 -- -- -- -- -- -- --   ret 
-
-10610 gadgets
-
-real	0m1.607s
-user	0m1.590s
-sys	0m0.010s
-
-/*******************************************************************************
-*******************************************************************************/
-
-$ ls -lh test_programs/bin/ls.exe 
--rw-r--r-- 1 endeavor endeavor 177K 2005-04-20 14:41 test_programs/bin/ls.exe
-$ time ./rop_tools -e test_programs/bin/ls.exe -r | tail -n 20 
-
-  0x42984d:  94 -- -- -- -- -- -- --   xchg esp, eax
-  0x42984e:  c3 -- -- -- -- -- -- --   ret 
-
-  0x4298ce:  ff 89 44 24 20 89 -- --   dec dword [ecx+0x89202444]
-  0x4298d4:  c2 c1 fa -- -- -- -- --   ret 0xfac1
-
-  0x429a58:  c0 74 0d 0f be -- -- --   shl byte [ebp+ecx+0xf], 0xbe
-  0x429a5d:  c2 83 e8 -- -- -- -- --   ret 0xe883
-
-  0x429b02:  c0 74 0b 0f be -- -- --   shl byte [ebx+ecx+0xf], 0xbe
-  0x429b07:  c2 83 e8 -- -- -- -- --   ret 0xe883
-
-  0x42a5ec:  c0 5b ae 0b -- -- -- --   rcr byte [ebx-0x52], 0xb
-  0x42a5f0:  c2 2a b2 -- -- -- -- --   ret 0xb22a
-
-  0x42a5fc:  c0 5b ae 0b -- -- -- --   rcr byte [ebx-0x52], 0xb
-  0x42a600:  c3 -- -- -- -- -- -- --   ret 
-
-793 gadgets
-
-real	0m0.216s
-user	0m0.210s
-sys	0m0.000s
-
-/*******************************************************************************
-*******************************************************************************/
-
-// this is colored in your terminal
-$ ./rop_tools -l tools/dis.lua rop_tools exec_section_name
-rop_tools
-00000000004096b0 exec_section_name:
-4096b0 488b07..........     mov rax, [rdi]
-4096b3 8b00............     mov eax, [rax]
-4096b5 83f801..........     cmp eax, 0x1
-4096b8 740e............ /-< jz exec_section_name+24 (4096c8)
-4096ba 83f802.......... |   cmp eax, 0x2
-4096bd 7419............ |/< jz exec_section_name+40 (4096d8)
-4096bf 31c0............ ||  xor eax, eax
-4096c1 c3.............. ||  ret 
-4096c2 660f1f440000.... ||  o16 nop [rax+rax+0x0]
-4096c8 4883c708........ \+> add rdi, 0x8
-4096cc e90f93ffff......  |  jmp elf_section_name+0 (4029e0)
-4096d1 0f1f8000000000..  |  nop [rax+0x0]
-4096d8 4883c708........  \> add rdi, 0x8
-4096dc e9eff7ffff......     jmp pe_section_Name+0 (408ed0)
-4096e1 6666666666662e0f     o16 nop [cs:rax+rax+0x0]
+FYI: rt is developed in Arch Linux
 
