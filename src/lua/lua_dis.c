@@ -10,43 +10,50 @@ void lua_operands_table (lua_State * L, ud_t * ud_obj)
     
     for (op_i = 0; op_i < 3; op_i++) {
         // table for this operand
+        
         lua_newtable(L);
+        
         lua_pushstring(L, "type");
         lua_pushstring(L, types_strings[ud_obj->operand[op_i].type]);
         lua_settable(L, -3);
+        
         lua_pushstring(L, "base");
         lua_pushstring(L, types_strings[ud_obj->operand[op_i].base]);
         lua_settable(L, -3);
+        
         lua_pushstring(L, "index");
         lua_pushstring(L, types_strings[ud_obj->operand[op_i].index]);
         lua_settable(L, -3);
+        
         lua_pushstring(L, "offset");
         lua_pushinteger(L, ud_obj->operand[op_i].offset);
         lua_settable(L, -3);
+
         lua_pushstring(L, "scale");
         lua_pushinteger(L, ud_obj->operand[op_i].scale);
         lua_settable(L, -3);
+
         lua_pushstring(L, "size");
         lua_pushinteger(L, (lua_Integer) ud_obj->operand[op_i].size);
         lua_settable(L, -3);
-            
+         
         lua_pushstring(L, "lval");
-
+         
         switch (ud_obj->operand[op_i].size) {
         case 32 :
-            int_t_32_set(&intt, ud_obj->operand[op_i].lval.udword);
+            int_t_32_set(&intt, ud_obj->operand[op_i].lval.sdword);
             lua_push_int_t(L, &intt);
             break;
         case 8 :
-            int_t_8_set(&intt, ud_obj->operand[op_i].lval.ubyte);
+            int_t_8_set(&intt, ud_obj->operand[op_i].lval.sbyte);
             lua_push_int_t(L, &intt);
             break;
         case 16 :
-            int_t_16_set(&intt, ud_obj->operand[op_i].lval.uword);
+            int_t_16_set(&intt, ud_obj->operand[op_i].lval.sword);
             lua_push_int_t(L, &intt);
             break;
         case 64 :
-            int_t_64_set(&intt, ud_obj->operand[op_i].lval.uqword);
+            int_t_64_set(&intt, ud_obj->operand[op_i].lval.sqword);
             lua_push_int_t(L, &intt);
             break;
         default :
@@ -59,6 +66,7 @@ void lua_operands_table (lua_State * L, ud_t * ud_obj)
         lua_pushinteger(L, (lua_Integer) op_i + 1);
         lua_insert(L, -2);
         lua_settable(L, -3);
+        
     }
 }
 
@@ -76,15 +84,19 @@ int lua_dis_instruction (lua_State * L, unsigned char * data, int mode)
     ud_disassemble(&ud_obj);
     
     lua_newtable(L);
+    
     lua_pushstring(L, "mnemonic");
     lua_pushstring(L, mnemonic_strings[ud_obj.mnemonic]);
     lua_settable(L, -3);
+    
     lua_pushstring(L, "description");
     lua_pushstring(L, ud_insn_asm(&ud_obj));
     lua_settable(L, -3);
+    
     lua_pushstring(L, "size");
     lua_pushinteger(L, ud_insn_len(&ud_obj));
     lua_settable(L, -3);
+    
     lua_operands_table(L, &ud_obj);
     lua_pushstring(L, "operands");
     lua_insert(L, -2);
@@ -110,7 +122,7 @@ void lua_dis_table (lua_State * L, uint_t * address,
         
         ins_size = lua_dis_instruction(L, &(data[total_size]), mode);
         total_size += ins_size;
-        
+      
         lua_pushstring(L, "address");
         lua_push_uint_t(L, &address_tmp);
         lua_settable(L, -3);

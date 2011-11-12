@@ -104,7 +104,7 @@ int lua_int_t_new (lua_State * L)
          && (bits != 16)
          && (bits != 32)
          && (bits != 64))
-        luaL_error(L, "uint_t accepts bit sizes of 16, 32 or 64");
+        luaL_error(L, "uint_t accepts bit sizes of 8, 16, 32 or 64");
     
     new_intt = lua_newuserdata(L, sizeof(int_t));
     luaL_getmetatable(L, "rop_tools.int_t");

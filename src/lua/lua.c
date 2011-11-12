@@ -39,6 +39,7 @@ int lua_interactive (int argc, char * argv[])
             line = (char *) luaL_checkstring(L, -1);
             printf("%s\n", line);
         }
+        fflush(stdout);
     }
 
     return 0;

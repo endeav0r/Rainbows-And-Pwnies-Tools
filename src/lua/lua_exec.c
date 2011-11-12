@@ -405,7 +405,9 @@ int lua_exec_symbols (lua_State * L)
     int symbol_i;
     
     exec_t = lua_check_exec_t(L, 1);
-    
+    // don't take exec_t off the stack yet. we're going to use it to do
+    // terrible, terrible things
+
     lua_newtable(L);
     for (symbol_i = 0; symbol_i < exec_num_symbols(exec_t->exec); symbol_i++) {
         lua_pushvalue(L, 1);
@@ -470,8 +472,11 @@ int lua_exec_mem_at_address (lua_State * L)
                 // make sure this memory is held completely within the section
                 uint_t_set(&address_end, &address);
                 uint_t_add_int(&address_end, (mem_size / 8) * mem_i);
-                if (uint_t_cmp(&address_end, &section_end_addr) >= 0)
+                if (uint_t_cmp(&address_end, &section_end_addr) >= 0) {
+                    printf("requested %s but sections ends at %s\n",
+                           uint_t_strx(&address_end), uint_t_strx(&section_end_addr));
                     break;
+                }
                 // add mem to table
                 lua_pushinteger(L, mem_i);
                 switch (mem_size) {
@@ -652,6 +657,11 @@ int lua_exec_section_disassemble (lua_State * L)
     else
         lua_pop(L, 1);
 
+    // we do a lot of lua work in lua_dis_*, and lua has a tendency to
+    // garbage collect the section before it's done. we're turning off
+    // lua garbage collection temporarily.
+    lua_gc(L, LUA_GCSTOP, 0);
+
     if (address != NULL) {
         uint_t_set(&address_tmp, address);
         uint_t_sub(&address_tmp, exec_section_address(section));
@@ -665,6 +675,8 @@ int lua_exec_section_disassemble (lua_State * L)
                       exec_section_data(section),
                       exec_section_size(section),
                       exec_mode(section->exec));
+
+    lua_gc(L, LUA_GCRESTART, 0);
 
     return 1;
 }
