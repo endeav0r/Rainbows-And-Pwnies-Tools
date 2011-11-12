@@ -1,3 +1,15 @@
+TERM_COLOR_BLACK   = "\027[30m"
+TERM_COLOR_RED     = "\027[31m"
+TERM_COLOR_GREEN   = "\027[32m"
+TERM_COLOR_YELLOW  = "\027[33m"
+TERM_COLOR_BLUE    = "\027[34m"
+TERM_COLOR_MAGENTA = "\027[35m"
+TERM_COLOR_CYAN    = "\027[36m"
+TERM_COLOR_WHITE   = "\027[37m"
+TERM_COLOR_DEFAULT = "\027[39m"
+TERM_BOLD          = "\027[1m"
+TERM_NORMAL        = "\027[22m"
+
 function table.contains(t, v)
     for i, j in pairs(t) do
         if j == v then
