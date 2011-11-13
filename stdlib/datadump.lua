@@ -49,9 +49,10 @@ function dump_functions (exec)
     local symbols = exec:symbols()
     
     for fi, f in pairs(functions) do
-        local function_name = describe_address(exec, f)
+        local function_name = describe_address(exec, f['address'])
         if function_name == nil then function_name = 'func@' .. f:strx() end
-        print(TERM_COLOR_GREEN .. f:strx() .. TERM_COLOR_DEFAULT .. ' ' ..
+        print(TERM_COLOR_GREEN .. f['address']:strx() .. TERM_COLOR_DEFAULT .. ' ' ..
+              f['size'] .. ' ' ..
               TERM_COLOR_CYAN .. function_name .. TERM_COLOR_DEFAULT)
     end
 end

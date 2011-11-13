@@ -153,6 +153,7 @@ _list_node * list_node_sort (_list_node * list_node, LIST_CMP_FUNC)
     _list_node * a;
     _list_node * b;
     _list_node * result;
+    _list_node * result_next;
 
     if (list_node == NULL)
         return NULL;
@@ -176,51 +177,57 @@ _list_node * list_node_sort (_list_node * list_node, LIST_CMP_FUNC)
     b = list_node_sort(b, cmp);
 
     result = NULL;
+    result_next = NULL;
     while ((a != NULL) && (b != NULL)) {
         if (a == NULL) {
-            b->prev = result;
-            if (result == NULL)
+            b->prev = result_next;
+            if (result == NULL) {
                 result = b;
+                result_next = result;
+            }
             else {
-                result->next = b;
-                result = result->next;
+                result_next->next = b;
+                result_next = result_next->next;
             }
             b = b->next;
         }
         else if (b == NULL) {
-            a->prev = result;
-            if (result == NULL)
+            a->prev = result_next;
+            if (result == NULL) {
                 result = a;
+                result_next = result;
+            }
             else {
-                result->next = a;
-                result = result->next;
+                result_next->next = a;
+                result_next = result_next->next;
             }
             a = a->next;
         }
         else if (cmp(a, b) < 0) {
-            a->prev = result;
-            if (result == NULL)
+            a->prev = result_next;
+            if (result == NULL) {
                 result = a;
+                result_next = result;
+            }
             else {
-                result->next = a;
-                result = result->next;
+                result_next->next = a;
+                result_next = result_next->next;
             }
             a = a->next;
         }
         else {
-            b->prev = result;
-            if (result == NULL)
+            b->prev = result_next;
+            if (result == NULL) {
                 result = b;
+                result_next = result;
+            }
             else {
-                result->next = b;
-                result = result->next;
+                result_next->next = b;
+                result_next = result_next->next;
             }
             b = b->next;
         }
     }
-
-    // redundant, but safe
-    result->next = NULL;
 
     return result;
 }

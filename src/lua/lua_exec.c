@@ -204,27 +204,22 @@ int lua_exec_find_functions (lua_State * L)
     struct _analyze_function * analyze_function_p;
 
     _aatree * tree = NULL;
-    _aatree * tree_tmp = NULL;
     _list   * list;
     _list_iterator it;
     
     exec = lua_check_exec(L, -1);
     lua_pop(L, 1);
-    
+   
+    tree = NULL;
     // grab the functions in each executable section
     for (section_i = 0; section_i < exec_num_sections(exec); section_i++) {
         exec_section(exec, &section, section_i);
         if (exec_section_types(&section) & EXEC_SECTION_TYPE_EXECUTABLE) {
-            tree_tmp = analyze_find_functions(exec_section_data(&section),
-                                              exec_section_size(&section),
-                                              exec_mode(exec),
-                                              exec_section_address(&section));
-            if (tree == NULL)
-                tree = tree_tmp;
-            else {
-                aatree_merge(tree, tree_tmp);
-                aatree_destroy(tree_tmp);
-            }
+            tree = analyze_find_functions(exec_section_data(&section),
+                                          exec_section_size(&section),
+                                          exec_mode(exec),
+                                          exec_section_address(&section),
+                                          tree);
         }
     }
 
@@ -250,7 +245,10 @@ int lua_exec_find_functions (lua_State * L)
         break;
     }
     aatree_insert(tree, &analyze_function);
-   
+
+    // rerun analyze_find_functions_sizes to account for the function we just added
+    tree = analyze_find_functions_sizes(tree, NULL);
+
     // make tree list, and add to lua table
     list = list_copy_aatree(tree);
     aatree_destroy(tree);
@@ -258,8 +256,18 @@ int lua_exec_find_functions (lua_State * L)
     function_i = 1;
     lua_newtable(L);
     while ((analyze_function_p = (struct _analyze_function *) list_next(&it)) != NULL) {
-        lua_pushinteger(L, function_i++);
+        lua_newtable(L);
+
+        lua_pushstring(L, "address");
         lua_push_uint_t(L, &(analyze_function_p->address));
+        lua_settable(L, -3);
+
+        lua_pushstring(L, "size");
+        lua_pushinteger(L, analyze_function_p->size);
+        lua_settable(L, -3);
+
+        lua_pushinteger(L, function_i++);
+        lua_insert(L, -2);
         lua_settable(L, -3);
     }
     
