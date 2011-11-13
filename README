@@ -20,18 +20,22 @@ x86 in a variety of formats. For example, if you wanted to find all of the mov
 instructions, you could implement that in a lua script (as of this writing)
 as follows:
 
-    dofile('stdlib/stdlib.lua')
+dofile('stdlib/stdlib.lua')
 
-    exec = exec_t.new(argv[1])
-    sections = exec:sections()
-    for ss, s in pairs(sections) do
-        if table.contains(s:types(), 'executable') then
-            print(TERM_COLOR_MAGENTA .. TERM_BOLD .. 
-                  s:name() .. 
-                  TERM_NORMAL .. TERM_COLOR_DEFAULT)
-            dump_instructions(exec, s:disassemble())
+exec = exec_t.new(argv[1])
+sections = exec:sections()
+for ss, s in pairs(sections) do
+    if table.contains(s:types(), 'executable') then
+        print(TERM_COLOR_MAGENTA .. TERM_BOLD ..
+              s:name() ..
+              TERM_NORMAL .. TERM_COLOR_DEFAULT)
+        for ii, ins in pairs(s:disassemble()) do
+            if ins['mnemonic'] == 'mov' then
+                print(ins['address']:strx() .. ' ' .. ins['description'])
+            end
         end
     end
+end
 
 You'll notice we make use of a few variables and functions created for our
 convenience. These can be found in the stdlib/ directory.
