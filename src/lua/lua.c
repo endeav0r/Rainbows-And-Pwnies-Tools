@@ -27,13 +27,22 @@ int lua_interactive (int argc, char * argv[])
     int error = 0;
     char * line;
     lua_State * L;
+    char history_filename[256];
+
+    snprintf(history_filename, 256, "%s/%s", 
+             getenv("HOME"), LUA_HISTORY_FILENAME);
 
     L = luaL_newstate();
     lua_rt_init(L, argc, argv);
 
+    read_history(history_filename);
+
     while (1) {
         line = readline("X) ");
         add_history(line);
+        stifle_history(LUA_HISTORY_LINES);
+        write_history(history_filename);
+
         error = luaL_dostring(L, line);
         if (error) {
             line = (char *) luaL_checkstring(L, -1);

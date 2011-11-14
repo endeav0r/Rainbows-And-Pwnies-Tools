@@ -16,6 +16,9 @@
 #include "lua_exec.h"
 #include "lua_types.h"
 
+#define LUA_HISTORY_LINES 256
+#define LUA_HISTORY_FILENAME ".rt_history"
+
 int lua_rt_init     (lua_State * L, int argc, char * argv[]);
 int lua_interactive (int argc, char * argv[]);
 int lua_run_file    (char * filename, int argc, char * argv[]);
