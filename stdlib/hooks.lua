@@ -73,7 +73,7 @@ function hooks_test (exec)
     
     hook = hooks(exec)
 
-    for fi, f in pairs(functions) do
+    for fi, f in pairs(hook.functions) do
         print(hook.functions:g_address(f['address'])['name'])
     end
 end
