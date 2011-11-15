@@ -50,7 +50,7 @@ function dump_functions (exec)
     
     for fi, f in pairs(hook.functions) do
         print(TERM_COLOR_GREEN .. f['address']:strx() .. TERM_COLOR_DEFAULT .. ' ' ..
-              f['size'] .. ' ' ..
+              f['size'] .. '\t' ..
               TERM_COLOR_CYAN .. f['name'] .. TERM_COLOR_DEFAULT)
     end
 end

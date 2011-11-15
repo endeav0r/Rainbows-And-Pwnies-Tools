@@ -1,3 +1,9 @@
+function hooks_index (o, i)
+    local mt = getmetatable(o)
+    if mt.f[i] ~= nil then return mt.f[i] end
+    return o[i]
+end
+
 -- a global cache of all hooks
 -- hooks is a singleton for each exec
 global_hooks = {}
@@ -15,13 +21,6 @@ hooks.hook.functions = {}
 hooks.hook.functions.mt = {}
 hooks.hook.functions.mt.f = {}
 hooks.hook.functions.mt.__index = hooks_index
-
-
-function hooks_index (o, i)
-    local mt = getmetatable(o)
-    if mt.f[i] ~= nil then return mt.f[i] end
-    return o[i]
-end
 
 
 function hooks.mt.__call (hooks, exec)
