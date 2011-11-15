@@ -20,6 +20,7 @@ static const struct luaL_Reg int_t_lib_m [] = {
     {"__le",       lua_int_t_le},
     {"strx",       lua_int_t_strx},
     {"str0x",      lua_int_t_strx},
+    {"size",       lua_int_t_size},
     {NULL, NULL}
 };
 
@@ -433,6 +434,22 @@ int lua_int_t_le (lua_State * L)
 }
 
 
+int lua_int_t_size (lua_State * L)
+{
+    int_t * intt;
+
+    intt = lua_check_int_t(L, -1);
+    lua_pop(L, 1);
+
+    lua_pushinteger(L, INT_T_BITS(intt));
+
+    return 1;
+}
+
+
+/********************
+* BEGIN UINT_T      *
+********************/
 int lua_open_uint_t (lua_State * L)
 {
     luaL_newmetatable(L, "rop_tools.uint_t");
