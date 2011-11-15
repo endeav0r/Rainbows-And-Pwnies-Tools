@@ -1,7 +1,7 @@
 function describe_address_symbol (exec, address)
     for si, s in pairs(exec:symbols()) do
         if s:address() == address then
-            return 'sym: ' .. s:name()
+            return s:name()
         end
     end
     return nil
@@ -11,7 +11,7 @@ function describe_address_section (exec, address)
     for si, s in pairs(exec:sections()) do
         if s:address() <= address and
            s:address() + uint_t.new(s:address():size(), s:size()) > address then
-            return 'sec: ' .. s:name() .. '+' .. (address - s:address()):strx() .. ' (' .. address:strx() .. ')'
+            return  s:name() .. '+' .. (address - s:address()):strx() 
         end
     end
     return nil

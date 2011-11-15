@@ -52,8 +52,7 @@ function sub_table (super_table, func)
 end
 
 
-
 dofile("stdlib/disassembly.lua")
 dofile("stdlib/description.lua")
-
+dofile("stdlib/hooks.lua")
 dofile("stdlib/datadump.lua")

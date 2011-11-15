@@ -45,15 +45,13 @@ end
 -- dump_functions                              --
 -------------------------------------------------
 function dump_functions (exec)
-    local functions = exec:find_functions()
-    local symbols = exec:symbols()
+    local hook = hooks(exec)
+    hook:init()
     
-    for fi, f in pairs(functions) do
-        local function_name = describe_address(exec, f['address'])
-        if function_name == nil then function_name = 'func@' .. f:strx() end
+    for fi, f in pairs(hook.functions) do
         print(TERM_COLOR_GREEN .. f['address']:strx() .. TERM_COLOR_DEFAULT .. ' ' ..
               f['size'] .. ' ' ..
-              TERM_COLOR_CYAN .. function_name .. TERM_COLOR_DEFAULT)
+              TERM_COLOR_CYAN .. f['name'] .. TERM_COLOR_DEFAULT)
     end
 end
 
@@ -71,6 +69,11 @@ function dump_instructions (exec, instructions)
         local description = describe_address_symbol(exec, ins['address'])
         if description ~= nil then
             print(TERM_BOLD .. TERM_COLOR_RED .. description .. TERM_COLOR_DEFAULT .. TERM_NORMAL)
+        end
+
+        -- calls and jumps are special cases
+        if ins['mnemonic'] == 'call' or is_jump(ins['mnemonic']) then
+            print(ins['mnemonic'])
         end
 
         -- print the instruction
