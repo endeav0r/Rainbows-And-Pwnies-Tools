@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #define INT_T_8  1
 #define INT_T_16 2
@@ -105,5 +107,6 @@ int          uint_t_xor     (uint_t * dst, uint_t * b);
 int          uint_t_rotr    (uint_t * dst, int bits);
 int          uint_t_rotl    (uint_t * dst, int bits);
 void         uint_t_int_t   (uint_t * dst, int_t * src);
+int          uint_t_rstr0x  (uint_t * dst, const char * s);
 
 #endif

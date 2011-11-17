@@ -10,6 +10,7 @@ static const struct luaL_Reg exec_lib_m [] = {
     {"num_sections",   lua_exec_num_sections},
     {"size",           lua_exec_size},
     {"type",           lua_exec_type},
+    {"mode",           lua_exec_mode},
     {"section",        lua_exec_section},
     {"sections",       lua_exec_sections},
     {"section_exists", lua_exec_section_exists},
@@ -17,6 +18,7 @@ static const struct luaL_Reg exec_lib_m [] = {
     {"symbol",         lua_exec_symbol},
     {"symbols",        lua_exec_symbols},
     {"mem_at_address", lua_exec_mem_at_address},
+    {"disassemble",     lua_exec_disassemble},
     {NULL, NULL}
 };
 
@@ -190,6 +192,18 @@ int lua_exec_type (lua_State * L)
     lua_pop(L, 1);
     lua_pushstring(L, exec_type_strings[exec_type(exec)]);
     
+    return 1;
+}
+
+
+int lua_exec_mode (lua_State * L)
+{
+    struct _exec * exec;
+
+    exec = lua_check_exec(L, 1);
+    lua_pop(L, 1);
+    lua_pushinteger(L, exec_mode(exec));
+
     return 1;
 }
 
@@ -520,6 +534,56 @@ int lua_exec_mem_at_address (lua_State * L)
 }
 
 
+int lua_exec_disassemble (lua_State * L)
+{
+    struct _exec * exec;
+    struct _exec_section section;
+    int section_i;
+    int size = 0;
+    uint_t * address;
+    uint_t section_end_addr;
+    uint_t offset;
+    unsigned char * data;
+    int instruction_found = 0;
+
+    exec = lua_check_exec(L, 1);
+    address = lua_check_uint_t(L, 2);
+    if (lua_isnumber(L, 3)) {
+        size = luaL_checkinteger(L, 3);
+        lua_pop(L, 3);
+    }
+    else
+        lua_pop(L, 2);
+
+    for (section_i = 0; section_i < exec_num_sections(exec); section_i++) {
+        exec_section(exec, &section, section_i);
+        uint_t_set(&section_end_addr, exec_section_address(&section));
+        uint_t_add_int(&section_end_addr, exec_section_size(&section));
+        if (    (uint_t_cmp(exec_section_address(&section), address) <= 0)
+             && (uint_t_cmp(&section_end_addr, address) > 0)) {
+            data = exec_section_data(&section);
+            uint_t_set(&offset, address);
+            uint_t_sub(&offset, exec_section_address(&section));
+            if (size > 0)
+                lua_dis_table(L,
+                              address,
+                              &(data[uint_t_get(&offset)]),
+                              size,
+                              exec_mode(exec));
+            else
+                lua_dis_instruction(L,
+                                    &(data[uint_t_get(&offset)]),
+                                    exec_mode(exec));
+            instruction_found = 1;
+            break;
+        }
+    }
+
+    if (instruction_found == 0)
+        lua_pushnil(L);
+
+    return 1;
+}
 
 /********************************
 *         EXEC_SECTION          *

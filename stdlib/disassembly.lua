@@ -24,6 +24,11 @@ end
 function operand_abs (instruction, operand_i)
     local operand = instruction['operands'][operand_i]
     local absolute
+
+    -- if this operand has an index or scale, don't describe it
+    if operand['base'] ~= 'none' or operand['scale'] > 0 then
+        return nil
+    end
     
     absolute = operand['lval']
 

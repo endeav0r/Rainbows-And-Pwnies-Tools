@@ -900,7 +900,6 @@ int uint_t_rotr (uint_t * dst, int bits)
 }
     
 
-
 void uint_t_int_t (uint_t * dst, int_t * src)
 {
     switch (src->type) {
@@ -909,4 +908,26 @@ void uint_t_int_t (uint_t * dst, int_t * src)
         case INT_T_32 : uint_t_32_set(dst, (uint32_t) (src->ints.int32)); break;
         case INT_T_64 : uint_t_64_set(dst, (uint64_t) (src->ints.int64)); break;
     }
+}
+
+
+int uint_t_rstr0x (uint_t * uintt, const char * s)
+{
+    switch (strlen(s)) {
+    case 2  :
+        uint_t_8_set (uintt, (uint8_t)  strtoull(s, NULL, 16));
+        break;
+    case 4  :
+        uint_t_16_set(uintt, (uint16_t) strtoull(s, NULL, 16));
+        break;
+    case 8  :
+        uint_t_32_set(uintt, (uint32_t) strtoull(s, NULL, 16));
+        break;
+    case 16 :
+        uint_t_64_set(uintt, (uint64_t) strtoull(s, NULL, 16));
+        break;
+    default :
+        return -1;
+    }
+    return 0;
 }

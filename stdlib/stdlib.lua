@@ -1,3 +1,5 @@
+STDLIB_PATH = 'stdlib/'
+
 TERM_COLOR_BLACK   = "\027[30m"
 TERM_COLOR_RED     = "\027[31m"
 TERM_COLOR_GREEN   = "\027[32m"
@@ -52,7 +54,7 @@ function sub_table (super_table, func)
 end
 
 
-dofile("stdlib/disassembly.lua")
-dofile("stdlib/description.lua")
-dofile("stdlib/hooks.lua")
-dofile("stdlib/datadump.lua")
+dofile(STDLIB_PATH .. "disassembly.lua")
+dofile(STDLIB_PATH .. "description.lua")
+dofile(STDLIB_PATH .. "hooks.lua")
+dofile(STDLIB_PATH .. "datadump.lua")

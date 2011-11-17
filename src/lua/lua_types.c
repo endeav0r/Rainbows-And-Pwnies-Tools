@@ -33,19 +33,20 @@ static const struct luaL_Reg uint_t_lib_f [] = {
 
 static const struct luaL_Reg uint_t_lib_m [] = {
     {"__tostring", lua_uint_t_str},
-    {"int",   lua_uint_t_int},
-    {"int_t", lua_uint_t_int_t},
-    {"__add", lua_uint_t_add},
-    {"__sub", lua_uint_t_sub},
-    {"__mul", lua_uint_t_mul},
-    {"__div", lua_uint_t_div},
-    {"__mod", lua_uint_t_mod},
-    {"__eq",  lua_uint_t_eq},
-    {"__lt",  lua_uint_t_lt},
-    {"__le",  lua_uint_t_le},
-    {"strx",  lua_uint_t_strx},
-    {"str0x", lua_uint_t_str0x},
-    {"size",  lua_uint_t_size},
+    {"int",        lua_uint_t_int},
+    {"int_t",      lua_uint_t_int_t},
+    {"__add",      lua_uint_t_add},
+    {"__sub",      lua_uint_t_sub},
+    {"__mul",      lua_uint_t_mul},
+    {"__div",      lua_uint_t_div},
+    {"__mod",      lua_uint_t_mod},
+    {"__eq",       lua_uint_t_eq},
+    {"__lt",       lua_uint_t_lt},
+    {"__le",       lua_uint_t_le},
+    {"strx",       lua_uint_t_strx},
+    {"str0x",      lua_uint_t_str0x},
+    {"size",       lua_uint_t_size},
+    {"from_string", lua_uint_t_from_string},
     {NULL, NULL}
 };
 
@@ -496,9 +497,13 @@ int lua_uint_t_new (lua_State * L)
         value = luaL_checkinteger(L, -1);
         lua_pop(L, 2);
     }
-    else {
+    else if (lua_isnumber(L, -1)) {
         bits = luaL_checkinteger(L, -1);
         lua_pop(L, 1);
+    }
+    else {
+        luaL_error(L, "invalid argument to uint_t.new");
+        return 0;
     }
 
     if (    (bits != 8)
@@ -845,3 +850,25 @@ int lua_uint_t_size (lua_State * L)
 
     return 1;
 }
+
+
+int lua_uint_t_from_string (lua_State * L)
+{
+    const char * s;
+    uint_t * new_uintt;
+    int error;
+
+    s = luaL_checkstring(L, -1);
+    lua_pop(L, 1);
+
+    new_uintt = lua_newuserdata(L, sizeof(uint_t));
+    luaL_getmetatable(L, "rop_tools.uint_t");
+    lua_setmetatable(L, -2);
+
+    error = uint_t_rstr0x(new_uintt, s);
+    if (error)
+        luaL_error(L, "error creating uint_t from %s", s);
+
+    return 1;
+}
+    

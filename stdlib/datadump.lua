@@ -48,10 +48,27 @@ function dump_functions (exec)
     local hook = hooks(exec)
     hook:init()
     
-    for fi, f in pairs(hook.functions) do
+    for fi, f in pairs(hook.functions:get()) do
         print(TERM_COLOR_GREEN .. f['address']:strx() .. TERM_COLOR_DEFAULT .. ' ' ..
-              f['size'] .. '\t' ..
+              f['size'] .. ' ' ..
               TERM_COLOR_CYAN .. f['name'] .. TERM_COLOR_DEFAULT)
+    end
+end
+
+
+-------------------------------------------------
+-- dump_function                               --
+-------------------------------------------------
+function dump_function (exec, function_name)
+    local hook = hooks(exec)
+    hook:init()
+
+    local func = hook.functions:g_name(function_name)
+    if func == nil then
+        print('could not find function')
+    else
+        instructions = exec:disassemble(func['address'], func['size'])
+        dump_instructions(exec, instructions)
     end
 end
 
@@ -59,8 +76,6 @@ end
 -------------------------------------------------
 -- dump_instructions                           --
 -------------------------------------------------
-
-
 function dump_instructions (exec, instructions)
     table.sort(instructions, function (a, b) return a['address'] < b['address'] end)
 
@@ -71,14 +86,34 @@ function dump_instructions (exec, instructions)
             print(TERM_BOLD .. TERM_COLOR_RED .. description .. TERM_COLOR_DEFAULT .. TERM_NORMAL)
         end
 
+        -- hook label for this address
+        local labels = hooks(exec).labels:g_address(ins['address'])
+        if labels ~= nil then
+            for li, l in pairs(labels) do
+                print(TERM_COLOR_GREEN .. ins['address']:strx() .. TERM_COLOR_DEFAULT .. ' ' ..
+                      TERM_COLOR_WHITE .. '// ' .. l .. TERM_COLOR_DEFAULT)
+            end
+        end
+
         -- calls and jumps are special cases
+        local description = ins['description']
+        local description_color = TERM_COLOR_CYAN
         if ins['mnemonic'] == 'call' or is_jump(ins['mnemonic']) then
-            print(ins['mnemonic'])
+            description_color = TERM_COLOR_YELLOW
+            if operand_abs(ins, 1) ~= nil then
+                local description_text = hooks(e).functions:g_address(operand_abs(ins, 1):uint_t())
+                if description_text ~= nil then
+                    description_text = description_text['name']
+                else
+                    description_text = describe_address(exec, operand_abs(ins, 1):uint_t())
+                end
+                description = ins['mnemonic'] .. ' ' .. description_text
+            end
         end
 
         -- print the instruction
         print(TERM_COLOR_GREEN .. ins['address']:strx() .. TERM_COLOR_DEFAULT .. ' ' ..
-              TERM_COLOR_CYAN  .. ins['description']    .. TERM_COLOR_DEFAULT)
+              description_color  .. description    .. TERM_COLOR_DEFAULT)
 
     end
 
