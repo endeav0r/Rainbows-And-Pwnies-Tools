@@ -1,5 +1,15 @@
 #include "lua.h"
 
+LUALIB_API int luaopen_rt (lua_State * L)
+{
+    lua_open_int_t(L);
+    lua_open_uint_t(L);
+    lua_open_elf_t(L);
+    lua_open_exec_t(L);
+
+    return 1;
+}
+
 int lua_rt_init (lua_State * L, int argc, char * argv[])
 {
     int args_i;

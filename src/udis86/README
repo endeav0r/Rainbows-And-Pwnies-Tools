@@ -1,0 +1,8 @@
+These files are taking from udis86 1.7
+
+The original source is available from
+http://udis86.sourceforge.net/
+
+udis86 is released under a BSD license
+
+The purpose for including the source for udis86 directly into the source for RainbowsAndPwnies-Tools is not to make your life easier, but to allow for different compiling options while producing different rt builds.
