@@ -1,5 +1,29 @@
 Brought to you by rainbowsandpwnies
 
+/*************** 
+* REQUIREMENTS *
+***************/
+
+lua5.1 (5.2 untested)
+http://www.lua.org/
+
+/********
+* BUILD *
+********/
+
+For lua, you will need the Ubuntu package liblua5.1-0-dev
+
+The build system was reworked on 29 JAN 2012. To build rt, from the base
+directory run
+./build/make.lua
+or
+lua build/make.lua
+
+This should produce rt, an executable, and rt.so, a shared object which can
+be included in your own lua projects via require("rt")
+
+FYI: rt is developed in Arch Linux
+
 /**************
 * DESCRIPTION *
 **************/
@@ -42,28 +66,3 @@ convenience. These can be found in the stdlib/ directory.
 
 Finally, rt now has a command line lua interpreter, allowing you to script
 your disassembly away to your heart's content.
-
-
-/*************** 
-* REQUIREMENTS *
-***************/
-
-rt is built with scons
-http://www.scons.org/
-
-udis86 and lua5.1
-http://udis86.sourceforge.net/
-http://www.lua.org/
-
-
-/********
-* BUILD *
-********/
-
-Make sure you have the necessary dependencies. There is no Ubuntu package for
-udis86. For lua, you will need the Ubuntu package liblua5.1-0-dev
-
-Then just run scons
-
-FYI: rt is developed in Arch Linux
-
