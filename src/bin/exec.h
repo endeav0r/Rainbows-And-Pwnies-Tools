@@ -60,11 +60,12 @@ struct _exec * exec_open    (char * filename);
 void           exec_destroy (struct _exec * exec);
 int            exec_copy    (struct _exec * dst, struct _exec * src);
 
-int exec_type           (struct _exec * exec);
-int exec_num_sections   (struct _exec * exec);
-int exec_num_symbols    (struct _exec * exec);
-int exec_mode           (struct _exec * exec);
-int exec_size           (struct _exec * exec);
+int      exec_type         (struct _exec * exec);
+int      exec_num_sections (struct _exec * exec);
+int      exec_num_symbols  (struct _exec * exec);
+int      exec_mode         (struct _exec * exec);
+int      exec_size         (struct _exec * exec);
+uint_t * exec_entry        (struct _exec * exec);
 
 int exec_find_functions (struct _exec * exec);
 

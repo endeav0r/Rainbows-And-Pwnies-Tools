@@ -49,11 +49,13 @@ struct _elf * elf_open (char * filename)
         int_t_16_set (&(elf->shnum),    elf->e.elf32->e_shnum);
         uint_t_32_set(&(elf->shoff),    elf->e.elf32->e_shoff);
         int_t_16_set (&(elf->shstrndx), elf->e.elf32->e_shstrndx);
+        uint_t_32_set(&(elf->entry),    elf->e.elf32->e_entry);
         break;
     case ELFCLASS64 :
         int_t_16_set (&(elf->shnum),    elf->e.elf64->e_shnum);
         uint_t_64_set(&(elf->shoff),    elf->e.elf64->e_shoff);
         int_t_16_set (&(elf->shstrndx), elf->e.elf64->e_shstrndx);
+        uint_t_64_set(&(elf->entry),    elf->e.elf64->e_entry);
         break;
     }   
     
@@ -99,6 +101,7 @@ char *        elf_filename (struct _elf * elf) { return elf->filename; }
 int_t *       elf_shnum    (struct _elf * elf) { return &(elf->shnum); }
 uint_t *      elf_shoff    (struct _elf * elf) { return &(elf->shoff); }
 int_t *       elf_shstrndx (struct _elf * elf) { return &(elf->shstrndx); }
+uint_t *      elf_entry    (struct _elf * elf) { return &(elf->entry); }
 
 
 // returns string from section strtab at offset

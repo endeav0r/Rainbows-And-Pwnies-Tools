@@ -18,7 +18,8 @@ static const struct luaL_Reg exec_lib_m [] = {
     {"symbol",         lua_exec_symbol},
     {"symbols",        lua_exec_symbols},
     {"mem_at_address", lua_exec_mem_at_address},
-    {"disassemble",     lua_exec_disassemble},
+    {"disassemble",    lua_exec_disassemble},
+    {"entry",          lua_exec_entry},
     {NULL, NULL}
 };
 
@@ -584,6 +585,20 @@ int lua_exec_disassemble (lua_State * L)
 
     return 1;
 }
+
+
+int lua_exec_entry (lua_State * L)
+{
+    struct _exec * exec;
+
+    exec = lua_check_exec(L, 1);
+    lua_pop(L, 1);
+    lua_push_uint_t(L, exec_entry(exec));
+
+    return 1;
+}
+
+
 
 /********************************
 *         EXEC_SECTION          *

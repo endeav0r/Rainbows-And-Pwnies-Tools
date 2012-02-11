@@ -144,6 +144,17 @@ int exec_size (struct _exec * exec)
     return -1;
 }
 
+uint_t * exec_entry (struct _exec * exec)
+{
+    switch (exec_type(exec)) {
+    case EXEC_TYPE_ELF :
+        return elf_entry(exec->e.elf);
+    case EXEC_TYPE_PE :
+        return pe_AddressOfEntryPoint(exec->e.pe);
+    }
+    return NULL;
+}
+
 int exec_section (struct _exec * exec, struct _exec_section * section,
                    int index)
 {

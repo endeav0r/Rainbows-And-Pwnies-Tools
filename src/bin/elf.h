@@ -21,6 +21,7 @@ struct _elf {
     unsigned char type;
     int_t shnum;
     uint_t shoff;
+    uint_t entry;
     int_t shstrndx;
 };
 
@@ -82,6 +83,7 @@ int_t *       elf_shnum      (struct _elf * elf);
 uint_t *      elf_shoff      (struct _elf * elf);
 int_t *       elf_shstrndx   (struct _elf * elf);
 char *        elf_strtab_str (struct _elf * elf, int strtab, int offset);
+uint_t *      elf_entry      (struct _elf * elf);
 
 int elf_section (struct _elf * elf, struct _elf_section * section, int index);
 
