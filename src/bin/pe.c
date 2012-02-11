@@ -305,6 +305,8 @@ PE_ACCESSOR(AddressOfEntryPoint)
 PE_ACCESSOR(BaseOfCode)
 PE_ACCESSOR(BaseOfData)
 PE_ACCESSOR(ImageBase)
+PE_ACCESSOR(SectionAlignment)
+PE_ACCESSOR(FileAlignment)
 
 char * pe_string (struct _pe * pe, int offset)
 {

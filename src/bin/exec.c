@@ -359,6 +359,17 @@ int exec_section_size (struct _exec_section * section)
     return -1;
 }
 
+int exec_section_virtual_size (struct _exec_section * section)
+{
+    switch (exec_type(section->exec)) {
+    case EXEC_TYPE_ELF :
+        return int_t_get(elf_section_size(&(section->s.elf_section)));
+    case EXEC_TYPE_PE  : 
+        return uint_t_get(pe_section_VirtualSize(&(section->s.pe_section)));
+    }
+    return -1;
+}
+
 unsigned char * exec_section_data (struct _exec_section * section)
 {
     switch (exec_type(section->exec)) {
@@ -379,6 +390,18 @@ uint_t * exec_section_address (struct _exec_section * section)
         return pe_section_address(&(section->s.pe_section));
     }
     return NULL;
+}
+
+int exec_section_offset (struct _exec_section * section)
+{
+    switch (exec_type(section->exec)) {
+    case EXEC_TYPE_ELF :
+        return (int) uint_t_get(elf_section_offset(&(section->s.elf_section)));
+    case EXEC_TYPE_PE :
+        return (int) uint_t_get(pe_section_PointerToRawData(&(section->s.pe_section)))
+                   * uint_t_get(pe_FileAlignment(section->exec->e.pe));
+    }
+    return -1;
 }
 
 

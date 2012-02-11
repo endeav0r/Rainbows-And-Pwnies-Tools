@@ -141,6 +141,8 @@ uint_t * pe_AddressOfEntryPoint     (struct _pe * pe);
 uint_t * pe_BaseOfCode              (struct _pe * pe);
 uint_t * pe_BaseOfData              (struct _pe * pe);
 uint_t * pe_ImageBase               (struct _pe * pe);
+uint_t * pe_SectionAlignment        (struct _pe * pe);
+uint_t * pe_FileAlignment           (struct _pe * pe);
 
 char *        pe_string          (struct _pe * pe, int offset);
 unsigned char pe_symbol_type     (struct _pe * pe, int index);

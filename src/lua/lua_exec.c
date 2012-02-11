@@ -27,13 +27,15 @@ static const struct luaL_Reg exec_section_lib_f [] = {
     {NULL, NULL}
 };
 
-static const struct luaL_Reg exec_section_lib_m [] = {
-    {"__gc",        lua_exec_section_t_gc},
-    {"name",        lua_exec_section_name},
-    {"address",     lua_exec_section_address},
-    {"types",       lua_exec_section_types},
-    {"size",        lua_exec_section_size},
-    {"disassemble", lua_exec_section_disassemble},
+static const struct  luaL_Reg exec_section_lib_m [] = {
+    {"__gc",         lua_exec_section_t_gc},
+    {"name",         lua_exec_section_name},
+    {"address",      lua_exec_section_address},
+    {"types",        lua_exec_section_types},
+    {"size",         lua_exec_section_size},
+    {"disassemble",  lua_exec_section_disassemble},
+    {"virtual_size", lua_exec_section_virtual_size},
+    {"offset",       lua_exec_section_offset},
     {NULL, NULL}
 };
 
@@ -764,6 +766,28 @@ int lua_exec_section_disassemble (lua_State * L)
                       exec_mode(section->exec));
 
     lua_gc(L, LUA_GCRESTART, 0);
+
+    return 1;
+}
+
+int lua_exec_section_virtual_size (lua_State * L)
+{
+    struct _exec_section * section;
+
+    section = lua_check_exec_section(L, -1);
+    lua_pop(L, 1);
+    lua_pushinteger(L, exec_section_virtual_size(section));
+
+    return 1;
+}
+
+int lua_exec_section_offset (lua_State * L)
+{
+    struct _exec_section * section;
+
+    section = lua_check_exec_section(L, -1);
+    lua_pop(L, 1);
+    lua_pushinteger(L, exec_section_offset(section));
 
     return 1;
 }

@@ -75,11 +75,13 @@ int exec_relocation (struct _exec * exec,
                      struct _exec_relocation * relocation,
                      int index);
 
-char *          exec_section_name    (struct _exec_section * section);
-int             exec_section_types   (struct _exec_section * section);
-int             exec_section_size    (struct _exec_section * section);
-unsigned char * exec_section_data    (struct _exec_section * section);
-uint_t *        exec_section_address (struct _exec_section * section);
+char *          exec_section_name         (struct _exec_section * section);
+int             exec_section_types        (struct _exec_section * section);
+int             exec_section_size         (struct _exec_section * section);
+int             exec_section_virtual_size (struct _exec_section * section);
+unsigned char * exec_section_data         (struct _exec_section * section);
+uint_t *        exec_section_address      (struct _exec_section * section);
+int             exec_section_offset       (struct _exec_section * section);
 
 char *   exec_symbol_name        (struct _exec_symbol * symbol);
 uint_t * exec_symbol_value       (struct _exec_symbol * symbol);

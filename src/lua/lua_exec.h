@@ -64,12 +64,14 @@ void lua_exec_section_t_collect (struct lua_exec_section_t * section_t);
 // ref_count for the section will be set to 1
 void lua_push_exec_section_t (lua_State * L);
 
-int lua_exec_section_t_gc        (lua_State * L);
-int lua_exec_section_name        (lua_State * L);
-int lua_exec_section_address     (lua_State * L);
-int lua_exec_section_types       (lua_State * L);
-int lua_exec_section_size        (lua_State * L);
-int lua_exec_section_disassemble (lua_State * L);
+int lua_exec_section_t_gc         (lua_State * L);
+int lua_exec_section_name         (lua_State * L);
+int lua_exec_section_address      (lua_State * L);
+int lua_exec_section_types        (lua_State * L);
+int lua_exec_section_size         (lua_State * L);
+int lua_exec_section_disassemble  (lua_State * L);
+int lua_exec_section_virtual_size (lua_State * L);
+int lua_exec_section_offset       (lua_State * L);
 
 struct lua_exec_symbol_t * lua_check_exec_symbol_t (lua_State * L, int position);
 struct _exec_symbol *      lua_check_exec_symbol (lua_State * L, int position);
