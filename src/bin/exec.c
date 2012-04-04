@@ -39,6 +39,8 @@ struct _exec * exec_open (char * filename)
         exec = (struct _exec *) malloc(sizeof(struct _exec));
         exec->type = EXEC_TYPE_ELF;
         exec->e.elf = elf_open(filename);
+        // set ELF specific values
+        uint_t_set(&(exec->entry), elf_entry(exec->e.elf));
     }
     // check for PE
     else if (    (buf[offset+0] == 'P')
@@ -48,6 +50,9 @@ struct _exec * exec_open (char * filename)
         exec = (struct _exec *) malloc(sizeof(struct _exec));
         exec->type = EXEC_TYPE_PE;
         exec->e.pe = pe_open(filename);
+        // set PE specific values
+        uint_t_set(&(exec->entry), pe_AddressOfEntryPoint(exec->e.pe));
+        uint_t_add(&(exec->entry), pe_ImageBase(exec->e.pe));
     }
     else {
         fprintf(stderr, "file format for %s not recognized\n", filename);
@@ -146,6 +151,8 @@ int exec_size (struct _exec * exec)
 
 uint_t * exec_entry (struct _exec * exec)
 {
+    return &(exec->entry);
+    /*
     switch (exec_type(exec)) {
     case EXEC_TYPE_ELF :
         return elf_entry(exec->e.elf);
@@ -153,6 +160,7 @@ uint_t * exec_entry (struct _exec * exec)
         return pe_AddressOfEntryPoint(exec->e.pe);
     }
     return NULL;
+    */
 }
 
 int exec_section (struct _exec * exec, struct _exec_section * section,
@@ -238,68 +246,7 @@ int exec_symbol (struct _exec * exec, struct _exec_symbol * symbol, int index)
         break;
     }
     return symbol_found - 1;
-}
-
-
-int exec_relocation (struct _exec * exec,
-                     struct _exec_relocation * relocation,
-                     int index)
-{
-    struct _elf_section section_elf;
-    struct _pe_section  section_pe;
-    int section_i;
-    int relocation_found = 0;
-    
-    switch (exec_type(exec)) {
-    case EXEC_TYPE_ELF :
-        for (section_i = 0;
-             section_i < int_t_get(elf_shnum(exec->e.elf));
-             section_i++) {
-            elf_section(exec->e.elf, &(section_elf), section_i);
-            if (    (int_t_get(elf_section_type(&section_elf)) == SHT_REL)
-                 || (int_t_get(elf_section_type(&section_elf)) == SHT_RELA)) {
-                if (elf_section_num(&section_elf) < index)
-                    index -= elf_section_num(&section_elf);
-                else {
-                    relocation_found = 1;
-                    break;
-                }
-            }
-        }
-        
-        if (relocation_found == 0)
-            break;
-        elf_section_relocation(&section_elf, &(relocation->r.elf_relocation),
-                               index);
-        uint_t_set(&(relocation->address),
-                   elf_relocation_offset(&(relocation->r.elf_relocation)));
-        break;
-    case EXEC_TYPE_PE :
-        for (section_i = 1;
-             section_i <= uint_t_get(pe_NumberOfSections(exec->e.pe));
-             section_i++) {
-            pe_section(exec->e.pe, &section_pe, section_i);
-            if (uint_t_get(pe_section_NumberOfRelocations(&section_pe)) < index)
-                index -= uint_t_get(pe_section_NumberOfRelocations(&section_pe));
-            else {
-                relocation_found = 1;
-                break;
-            }
-        }
-        
-        if (relocation_found == 0)
-            break;
-        pe_section_relocation(&section_pe, &(relocation->r.pe_relocation),
-                              index);
-        uint_t_set(&(relocation->address), pe_section_VirtualAddress(&section_pe));
-        uint_t_add(&(relocation->address), pe_ImageBase(exec->e.pe));
-        // NEED TO FINISH OUT ADDRESS WITH RVA
-        break;
-    }
-    
-    return relocation_found - 1;
-}
-                
+}                
 
 
 char * exec_section_name (struct _exec_section * section)
@@ -323,7 +270,7 @@ int exec_section_types (struct _exec_section * section)
                 break;
             case SHT_REL  :
             case SHT_RELA :
-                types |= EXEC_SECTION_TYPE_RELOCATION;
+                types |= EXEC_SECTION_TYPE_IMPORT;
                 break;
             case SHT_PROGBITS :
                 types |= EXEC_SECTION_TYPE_TEXT;
@@ -338,8 +285,6 @@ int exec_section_types (struct _exec_section * section)
         if (uint_t_get(pe_section_Characteristics(&(section->s.pe_section)))
             & IMAGE_SCN_CNT_CODE)
             types |= EXEC_SECTION_TYPE_TEXT;
-        if (uint_t_get(pe_section_NumberOfRelocations(&(section->s.pe_section))))
-            types |= EXEC_SECTION_TYPE_RELOCATION;
         if (uint_t_get(pe_section_Characteristics(&(section->s.pe_section)))
             & IMAGE_SCN_MEM_EXECUTE)
             types |= EXEC_SECTION_TYPE_EXECUTABLE;
@@ -478,3 +423,45 @@ int exec_symbol_size (struct _exec_symbol * symbol)
     }
     return 0;
 }
+
+/*
+int exec_relocation (struct _exec * exec,
+                     struct _exec_relocation * relocation,
+                     int index)
+{
+    struct _elf_section section_elf;
+    struct _pe_section  section_pe;
+    int section_i;
+    int relocation_found = 0;
+    
+    switch (exec_type(exec)) {
+    case EXEC_TYPE_ELF :
+        for (section_i = 0;
+             section_i < int_t_get(elf_shnum(exec->e.elf));
+             section_i++) {
+            elf_section(exec->e.elf, &(section_elf), section_i);
+            if (    (int_t_get(elf_section_type(&section_elf)) == SHT_REL)
+                 || (int_t_get(elf_section_type(&section_elf)) == SHT_RELA)) {
+                if (elf_section_num(&section_elf) < index)
+                    index -= elf_section_num(&section_elf);
+                else {
+                    relocation_found = 1;
+                    break;
+                }
+            }
+        }
+        
+        if (relocation_found == 0)
+            break;
+        elf_section_relocation(&section_elf, &(relocation->r.elf_relocation),
+                               index);
+        uint_t_set(&(relocation->address),
+                   elf_relocation_offset(&(relocation->r.elf_relocation)));
+        break;
+    case EXEC_TYPE_PE :
+        break;
+    }
+    
+    return relocation_found - 1;
+}
+*/

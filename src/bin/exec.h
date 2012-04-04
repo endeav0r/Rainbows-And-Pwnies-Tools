@@ -14,7 +14,7 @@
 #define EXEC_TYPE_PE      2
 
 #define EXEC_SECTION_TYPE_SYMBOL     0x1
-#define EXEC_SECTION_TYPE_RELOCATION 0x2
+#define EXEC_SECTION_TYPE_IMPORT     0x2
 #define EXEC_SECTION_TYPE_TEXT       0x4
 #define EXEC_SECTION_TYPE_UNKNOWN    0x8
 #define EXEC_SECTION_TYPE_EXECUTABLE 0x10
@@ -28,6 +28,7 @@ struct _exec {
         struct _elf * elf;
         struct _pe *  pe;
     } e;
+    uint_t entry;
 };
 
 struct _exec_section {
@@ -47,12 +48,11 @@ struct _exec_symbol {
     uint_t address;
 };
 
-struct _exec_relocation {
+struct _exec_import {
     struct _exec * exec;
     union {
         struct _elf_relocation elf_relocation;
-        struct _pe_relocation  pe_relocation;
-    } r;
+    } i;
     uint_t address;
 };
 
@@ -71,9 +71,11 @@ int exec_find_functions (struct _exec * exec);
 
 int exec_section (struct _exec * exec, struct _exec_section * section, int index);
 int exec_symbol  (struct _exec * exec, struct _exec_symbol * symbol,   int index);
+/*
 int exec_relocation (struct _exec * exec,
                      struct _exec_relocation * relocation,
                      int index);
+*/
 
 char *          exec_section_name         (struct _exec_section * section);
 int             exec_section_types        (struct _exec_section * section);
@@ -90,7 +92,7 @@ char *   exec_symbol_description (struct _exec_symbol * symbol);
 int      exec_symbol_type        (struct _exec_symbol * symbol);
 int      exec_symbol_size        (struct _exec_symbol * symbol);
 
-int    exec_relocation_address (struct _exec_relocation * relocation);
-char * exec_relocation_name    (struct _exec_relocation * name);
+uint_t * exec_import_address (struct _exec_import * import);
+char *   exec_import_name    (struct _exec_import * import);
 
 #endif

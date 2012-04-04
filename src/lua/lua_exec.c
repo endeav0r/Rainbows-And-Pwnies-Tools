@@ -701,11 +701,6 @@ int lua_exec_section_types (lua_State * L)
         lua_pushstring(L, "symbol");
         lua_settable(L, -3);
     }
-    if (types & EXEC_SECTION_TYPE_RELOCATION) {
-        lua_pushinteger(L, index++);
-        lua_pushstring(L, "relocation");
-        lua_settable(L, -3);
-    }
     if (types & EXEC_SECTION_TYPE_TEXT) {
         lua_pushinteger(L, index++);
         lua_pushstring(L, "text");
